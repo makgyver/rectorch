@@ -40,5 +40,5 @@ class Metrics:
         pred_scores_binary[np.arange(pred_scores.shape[0])[:, np.newaxis], idx[:, :k]] = True
         X_true_binary = (ground_truth > 0)
         num = (np.logical_and(X_true_binary, pred_scores_binary).sum(axis=1)).astype(np.float32)
-        recall = num / np.minimum(k, X_true_binary.sum(axis=1))
+        recall = num / np.minimum(k, X_true_binary.sum(axis=1)) #TODO check this, it seems precision to me
         return recall

@@ -51,11 +51,13 @@ te_loader = DataLoader(data_manager.test_set, batch_size=batch_size, shuffle=Fal
 dec_dims = [200, 600, data_manager.n_items]
 model = nets.MultiVAE_net(dec_dims).to(device)
 vae = models.MultiVAE(model, num_epochs=vae_config["num_epochs"], learning_rate=vae_config["learning_rate"])
-vae.train(tr_loader, val_loader, vae_config["valid_metrics"], vae_config["verbose"])
+#vae.train(tr_loader, val_loader, vae_config["valid_metrics"][0], vae_config["verbose"])
 
 ###############################################################################
 # Test the model
 ###############################################################################
-test_loss, stats = vae.evaluate(te_loader, vae_config["test_metrics"])
-str_stats = " | ".join([f"{k} {v:.3f}" for k,v in stats.items()])
-logger.info('| final evaluation | test loss {test_loss:.2f} | {str_stats} |')
+#test_loss, stats = vae.evaluate(te_loader, vae_config["test_metrics"])
+
+#for metric in vae_config["test_metrics"]
+#str_stats = " | ".join([f"{k} {v:.3f}" for k,v in stats.items()])
+#logger.info('| final evaluation | test loss {test_loss:.2f} | {str_stats} |')

@@ -10,19 +10,19 @@ logger = logging.getLogger(__name__)
 
 class TorchNNTrainer():
     def __init__(self, net, num_epochs=100, learning_rate=1e-3):
-        self.model = net
+        self.network = net
         self.num_epochs = num_epochs
         self.learning_rate = learning_rate
 
-        if next(self.model.parameters()).is_cuda:
+        if next(self.network.parameters()).is_cuda:
             self.device = torch.device("cuda")
         else:
             self.device = torch.device("cpu")
 
-    def loss_function(self, recon_x, x, *args, **kwargs):
+    def loss_function(self, ground_truth, prediction, *args, **kwargs):
         raise NotImplementedError()
 
-    def loss_function(self, recon_x, x, *args, **kwargs):
+    def loss_function(self, ground_truth, prediction, *args, **kwargs):
         raise NotImplementedError()
 
     def train(self, train_data, *args, **kwargs):
@@ -31,23 +31,40 @@ class TorchNNTrainer():
     def training_epoch(self, epoch, train_data, *args, **kwargs):
         raise NotImplementedError()
 
+    def validate(self, valid_data, metric):
+        raise NotImplementedError()
+
+    def predict(self, x, *args, **kwargs):
+        raise NotImplementedError()
+
     def save_model(self, filepath):
         raise NotImplementedError()
 
     def load_model(self, filepath):
         raise NotImplementedError()
 
+    def __str__(self):
+        s = self.__class__.__name__ +"(\n"
+        for k,v in self.__dict__.items():
+            sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
+            s += f"  {k} = {sv},\n"
+        s = s[:-2] + "\n)"
+        return s
+
+    def __repr__(self):
+        return str(self)
+
 
 class MultiDAE(TorchNNTrainer):
     def __init__(self, mdae_net, lam=0.2, num_epochs=100, learning_rate=1e-3):
         super(MultiDAE, self).__init__(mdae_net, um_epochs=100, learning_rate=1e-3)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
         self.lam = lam
 
     def loss_function(self, recon_x, x):
         BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
         l2_reg = Variable(torch.FloatTensor(1), requires_grad=True)
-        for W in self.model.parameters():
+        for W in self.network.parameters():
             l2_reg += W.norm(2)
 
         return BCE + self.lam * l2_reg
@@ -58,16 +75,15 @@ class MultiDAE(TorchNNTrainer):
 class VAE(TorchNNTrainer):
     def __init__(self, vae_net, num_epochs=100, learning_rate=1e-3):
         super(VAE, self).__init__(vae_net, num_epochs=100, learning_rate=1e-3)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
 
-    def train(self, train_data, valid_data=None, valid_metrics=[], verbose=1):
+    def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data)
                 if valid_data:
-                    val_loss, stats = self.evaluate(valid_data, valid_metrics)
-                    str_stats = " | ".join([f"{k} {v:.3f}" for k,v in stats.items()])
-                    logger.info(f'| epoch {epoch} | valid loss {val_loss:.2f} | {str_stats} |')
+                    valid_res = self.validate(valid_data, valid_metric)
+                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
@@ -77,7 +93,7 @@ class VAE(TorchNNTrainer):
         return BCE + KLD
 
     def training_epoch(self, epoch, train_loader, verbose=1):
-        self.model.train()
+        self.network.train()
         train_loss = 0
         epoch_start_time = time.time()
         start_time = time.time()
@@ -86,7 +102,7 @@ class VAE(TorchNNTrainer):
         for batch_idx, (data, _) in enumerate(train_loader):
             data_tensor = data.view(data.shape[0],-1).to(self.device)
             self.optimizer.zero_grad()
-            recon_batch, mu, var = self.model(data_tensor)
+            recon_batch, mu, var = self.network(data_tensor)
             loss = self.loss_function(recon_batch, data_tensor, mu, var)
             loss.backward()
             train_loss += loss.item()
@@ -102,41 +118,41 @@ class VAE(TorchNNTrainer):
                 start_time = time.time()
         logger.info(f"| epoch {epoch} | total time: {time.time() - epoch_start_time:.2f}s |")
 
-    def evaluate(self, test_loader, metrics):
-        self.model.eval()
-        total_loss = 0.0
-        results = []
+    def predict(self, x, remove_train=True):
+        self.network.eval()
         with torch.no_grad():
-            for batch_idx, (data_tr, heldout) in enumerate(test_loader):
-                data_tensor = data_tr.view(data_tr.shape[0],-1).to(self.device)
-                recon_batch, mu, logvar = self.model(data_tensor)
-                loss = self.loss_function(recon_batch, data_tensor, mu, logvar)
-                total_loss += loss.item()
-                recon_batch[tuple(data_tensor.nonzero().t())] = -np.inf
-                recon_batch = recon_batch.cpu().numpy()
-                heldout = heldout.view(heldout.shape[0],-1).cpu().numpy()
-                results.append(Metrics.compute(recon_batch, heldout, metrics))
+            x_tensor = x.to(self.device)
+            recon_x, mu, logvar = self.network(x_tensor)
+            if remove_train:
+                recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
+            return recon_x, mu, logvar
 
-        total_loss /= len(test_loader)
-        stats = {k:[res[k] for res in results] for k in results[0]}
-        stats = {k: np.mean(np.concatenate(v)) for k, v in stats.items()}
-        return total_loss, stats
+    def validate(self, test_loader, metric):
+        results = []
+        for batch_idx, (data_tr, heldout) in enumerate(test_loader):
+            data_tensor = data_tr.view(data_tr.shape[0],-1)
+            recon_batch, _, _ = self.predict(data_tensor)
+            recon_batch = recon_batch.cpu().numpy()
+            heldout = heldout.view(heldout.shape[0],-1).cpu().numpy()
+            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
+
+        return np.mean(np.concatenate(results))
 
     def save_model(self, filepath):
         logger.info(f"Saving model to {filepath}...")
-        torch.save(self.model, filepath)
+        torch.save(self.network, filepath)
         logger.info(f"Model saved in {filepath}!")
 
     def load_model(self, filepath):
         logger.info(f"Loading model from {filepath}...")
-        self.model = torch.load(filepath)
+        self.network = torch.load(filepath)
         logger.info(f"Model loaded from {filepath}!")
 
 
 class MultiVAE(VAE):
     def __init__(self, mvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
         super(MultiVAE, self).__init__(mvae_net, num_epochs, learning_rate)
-        self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=0.01)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate, weight_decay=0.01)
         self.anneal_steps = anneal_steps
         self.annealing = anneal_steps > 0
         self.gradient_updates = 0.
@@ -148,7 +164,7 @@ class MultiVAE(VAE):
         return BCE + beta * KLD
 
     def training_epoch(self, epoch, train_loader, verbose=1):
-        self.model.train()
+        self.network.train()
         train_loss = 0
         epoch_start_time = time.time()
         start_time = time.time()
@@ -161,7 +177,7 @@ class MultiVAE(VAE):
                 anneal_beta = min(self.beta, self.gradient_updates / self.anneal_steps)
 
             self.optimizer.zero_grad()
-            recon_batch, mu, var = self.model(data_tensor)
+            recon_batch, mu, var = self.network(data_tensor)
             loss = self.loss_function(recon_batch, data_tensor, mu, var, anneal_beta)
             loss.backward()
             train_loss += loss.item()
@@ -178,19 +194,18 @@ class MultiVAE(VAE):
                 start_time = time.time()
         logger.info(f"| epoch {epoch} | total time: {time.time() - epoch_start_time:.2f}s |")
 
-    def train(self, train_data, valid_data=None, valid_metrics=[], verbose=1):
+    def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             best_perf = -1. #Assume the higher the better >= 0
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data)
                 if valid_data:
-                    val_loss, stats = self.evaluate(valid_data, valid_metrics)
-                    str_stats = " | ".join([f"{k} {v:.3f}" for k,v in stats.items()])
-                    logger.info(f'| epoch {epoch} | valid loss {val_loss:.2f} | {str_stats} |')
+                    valid_res = self.validate(valid_data, valid_metric)
+                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
 
-                    if best_perf < stats[valid_metrics[0]]: #First validation metric
+                    if best_perf < valid_res:
                         #self.save_model()
-                        best_perf = stats[valid_metrics[0]]
+                        best_perf = valid_res
                         #TODO register best beta
 
         except KeyboardInterrupt:
