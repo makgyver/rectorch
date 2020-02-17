@@ -1,0 +1,12 @@
+{
+    "data_path": "datasets/msd/training.txt",
+    "proc_path": "datasets/msd/preproc",
+    "seed": 98765,
+    "threshold": 0.5,
+    "separator": " ",
+    "u_min": 20,
+    "i_min": 200,
+    "heldout": 50000,
+    "test_prop": 0.2,
+    "min_i_train": 10
+}

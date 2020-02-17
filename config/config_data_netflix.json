@@ -1,0 +1,12 @@
+{
+    "data_path": "datasets/netflix/ratings.csv",
+    "proc_path": "datasets/netflix/preproc",
+    "seed": 98765,
+    "threshold": 3.5,
+    "header": 0,
+    "u_min": 5,
+    "i_min": 0,
+    "heldout": 40000,
+    "test_prop": 0.2,
+    "min_i_train": 5
+}
