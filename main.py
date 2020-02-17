@@ -51,7 +51,7 @@ te_loader = DataLoader(data_manager.test_set, batch_size=batch_size, shuffle=Fal
 dec_dims = [200, 600, data_manager.n_items]
 model = nets.MultiVAE_net(dec_dims).to(device)
 vae = models.MultiVAE(model, num_epochs=vae_config["num_epochs"], learning_rate=vae_config["learning_rate"])
-#vae.train(tr_loader, val_loader, vae_config["valid_metrics"][0], vae_config["verbose"])
+vae.train(tr_loader, val_loader, vae_config["valid_metrics"][0], vae_config["verbose"])
 
 ###############################################################################
 # Test the model
