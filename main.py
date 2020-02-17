@@ -3,6 +3,7 @@ import data
 import json
 import logging
 import models
+import nets
 import os
 import torch
 from torch.utils.data import DataLoader
@@ -38,7 +39,7 @@ with open("config/config_vae.json", 'r') as f:
 # Load data
 ###############################################################################
 batch_size = vae_config["batch_size"]
-data_manager = data.DatasetManager("config/config_data.json")
+data_manager = data.DatasetManager("config/config_data_ml20m.json")
 kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 tr_loader = DataLoader(data_manager.training_set, batch_size=batch_size, shuffle=True, **kwargs)
 val_loader = DataLoader(data_manager.validation_set, batch_size=batch_size, shuffle=False, **kwargs)
@@ -48,8 +49,8 @@ te_loader = DataLoader(data_manager.test_set, batch_size=batch_size, shuffle=Fal
 # Training the model
 ###############################################################################
 dec_dims = [200, 600, data_manager.n_items]
-model = models.MultiVAE_net(dec_dims).to(device)
-vae = models.MultiVAE(model, vae_config["num_epochs"], vae_config["learning_rate"])
+model = nets.MultiVAE_net(dec_dims).to(device)
+vae = models.MultiVAE(model, num_epochs=vae_config["num_epochs"], learning_rate=vae_config["learning_rate"])
 vae.train(tr_loader, val_loader, vae_config["valid_metrics"], vae_config["verbose"])
 
 ###############################################################################

@@ -134,7 +134,7 @@ class VAE(TorchNNTrainer):
 
 
 class MultiVAE(VAE):
-    def __init__(self, mvae_net, beta=1., anneal_steps=1e5, num_epochs=100, learning_rate=1e-3):
+    def __init__(self, mvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
         super(MultiVAE, self).__init__(mvae_net, num_epochs, learning_rate)
         self.optimizer = optim.Adam(self.model.parameters(), lr=learning_rate, weight_decay=0.01)
         self.anneal_steps = anneal_steps
@@ -178,7 +178,6 @@ class MultiVAE(VAE):
                 start_time = time.time()
         logger.info(f"| epoch {epoch} | total time: {time.time() - epoch_start_time:.2f}s |")
 
-
     def train(self, train_data, valid_data=None, valid_metrics=[], verbose=1):
         try:
             best_perf = -1. #Assume the higher the better >= 0
@@ -190,7 +189,7 @@ class MultiVAE(VAE):
                     logger.info(f'| epoch {epoch} | valid loss {val_loss:.2f} | {str_stats} |')
 
                     if best_perf < stats[valid_metrics[0]]: #First validation metric
-                        self.save_model()
+                        #self.save_model()
                         best_perf = stats[valid_metrics[0]]
                         #TODO register best beta
 

@@ -9,6 +9,7 @@ import torch.optim as optim
 
 logger = logging.getLogger(__name__)
 
+
 class AE_net(nn.Module):
     def __init__(self, dec_dims, enc_dims=None):
         super(AE_net, self).__init__()
@@ -106,12 +107,7 @@ class MultiDAE_net(AE_net):
 
 class VAE_net(AE_net):
     def __init__(self, dec_dims, enc_dims=None):
-        if enc_dims:
-            assert enc_dims[0] == dec_dims[-1], "In and Out dimensions must equal to each other"
-            assert enc_dims[-1] == dec_dims[0], "Latent dimension for encoder and decoder network mismatches."
-            self.enc_dims = enc_dims
-        else:
-            self.enc_dims = dec_dims[::-1]
+        super(VAE_net, self).__init__(dec_dims, enc_dims)
 
         # Last dimension of enc- network is for mean and variance
         temp_dims = self.enc_dims[:-1] + [self.enc_dims[-1] * 2]
