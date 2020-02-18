@@ -146,8 +146,15 @@ class DataReader():
             return self.load_train_test_data(datatype)
         elif datatype == 'test':
             return self.load_train_test_data(datatype)
+        elif datatype == 'full':
+            tr = self.load_train_data()
+            val_tr, val_te = self.load_train_test_data("validation")
+            te_tr, te_te = self.load_train_test_data("test")
+            val = val_tr + val_te
+            te = te_tr + te_te
+            return sparse.vstack([tr, val, te])
         else:
-            raise ValueError("Parameter datatype should be in ['train', 'validation', 'test']")
+            raise ValueError("Parameter datatype should be in ['train', 'validation', 'test', 'full']")
 
     def load_n_items(self):
         unique_iid = []
