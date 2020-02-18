@@ -14,32 +14,29 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 class DataProcessing:
-    def __init__(self, config_file):
-        assert os.path.exists(config_file), "Preproc config file does not exist."
-        with open(config_file, 'r') as f:
-            self.cfg = json.load(f)
+    def __init__(self, data_config):
+        self.cfg = data_config
 
     def process(self):
-        np.random.seed(int(self.cfg["seed"]))
+        np.random.seed(int(self.cfg.seed))
 
-        logger.info(f"Reading data file {self.cfg['data_path']}.")
+        logger.info(f"Reading data file {self.cfg.data_path}.")
 
-        hdr = self.cfg["header"] if "header" in self.cfg else None
-        sep = self.cfg["separator"] if "separator" in self.cfg else ','
-        raw_data = pd.read_csv(self.cfg["data_path"], sep=sep, header=hdr)
+        sep = self.cfg.separator if self.cfg.separator else ','
+        raw_data = pd.read_csv(self.cfg.data_path, sep=sep, header=self.cfg.header)
 
-        if "threshold" in self.cfg:
-            raw_data = raw_data[raw_data[raw_data.columns.values[2]] > float(self.cfg["threshold"])]
+        if self.cfg.threshold:
+            raw_data = raw_data[raw_data[raw_data.columns.values[2]] > float(self.cfg.threshold)]
 
         logger.info("Applying filtering.")
-        imin, umin = int(self.cfg["i_min"]), int(self.cfg["u_min"])
+        imin, umin = int(self.cfg.i_min), int(self.cfg.u_min)
         raw_data, user_activity, item_popularity = self.filter(raw_data, umin, imin)
 
         unique_uid = user_activity.index
         idx_perm = np.random.permutation(unique_uid.size)
         unique_uid = unique_uid[idx_perm]
         n_users = unique_uid.size
-        n_heldout = self.cfg["heldout"]
+        n_heldout = self.cfg.heldout
 
         logger.info("Calculating splits.")
         tr_users = unique_uid[:(n_users - n_heldout * 2)]
@@ -54,7 +51,7 @@ class DataProcessing:
         u2id = dict((uid, i) for (i, uid) in enumerate(unique_uid))
 
         logger.info("Saving unique_iid.txt.")
-        pro_dir = self.cfg["proc_path"]
+        pro_dir = self.cfg.proc_path
         if not os.path.exists(pro_dir):
             os.makedirs(pro_dir)
 
@@ -108,10 +105,10 @@ class DataProcessing:
         return pd.DataFrame(data={'uid': uid, 'iid': iid}, columns=['uid', 'iid'])
 
     def split_train_test(self, data):
-        np.random.seed(self.cfg["seed"])
-        test_prop = float(self.cfg["test_prop"]) if "test_prop" in self.cfg else 0.2
+        np.random.seed(self.cfg.seed)
+        test_prop = float(self.cfg.test_prop) if self.cfg.test_prop else 0.2
         [uhead, ihead] = data.columns.values[:2]
-        threshold = int(self.cfg["min_i_train"])
+        threshold = int(self.cfg.min_i_train)
         data_grouped_by_user = data.groupby(uhead)
         tr_list, te_list = [], []
 
@@ -158,13 +155,13 @@ class DataReader():
 
     def load_n_items(self):
         unique_iid = []
-        with open(os.path.join(self.cfg["proc_path"], 'unique_iid.txt'), 'r') as f:
+        with open(os.path.join(self.cfg.proc_path, 'unique_iid.txt'), 'r') as f:
             for line in f:
                 unique_iid.append(line.strip())
         return len(unique_iid)
 
     def load_train_data(self):
-        path = os.path.join(self.cfg["proc_path"], 'train.csv')
+        path = os.path.join(self.cfg.proc_path, 'train.csv')
         data = pd.read_csv(path)
         n_users = data['uid'].max() + 1
 
@@ -175,8 +172,8 @@ class DataReader():
         return data
 
     def load_train_test_data(self, datatype='test'):
-        tr_path = os.path.join(self.cfg["proc_path"], f'{datatype}_tr.csv')
-        te_path = os.path.join(self.cfg["proc_path"], f'{datatype}_te.csv')
+        tr_path = os.path.join(self.cfg.proc_path, f'{datatype}_tr.csv')
+        te_path = os.path.join(self.cfg.proc_path, f'{datatype}_te.csv')
 
         data_tr = pd.read_csv(tr_path)
         data_te = pd.read_csv(te_path)
