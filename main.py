@@ -1,4 +1,5 @@
 import argparse
+from configuration import DataConfiguration, ModelConfiguration
 import data
 import json
 import logging
@@ -34,6 +35,9 @@ if torch.cuda.is_available():
 device = torch.device("cuda" if args.cuda else "cpu")
 with open("config/config_vae.json", 'r') as f:
     vae_config = json.load(f)
+
+DataConfiguration("config/config_data_ml20m.json")
+ModelConfiguration("config/config_vae.json")
 
 ###############################################################################
 # Load data

@@ -82,6 +82,7 @@ class VAE(TorchNNTrainer):
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data)
                 if valid_data:
+                    assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
                     logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
         except KeyboardInterrupt:
@@ -200,13 +201,14 @@ class MultiVAE(VAE):
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data)
                 if valid_data:
+                    assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
                     logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
 
+                    #TODO validation
                     if best_perf < valid_res:
                         #self.save_model()
                         best_perf = valid_res
-                        #TODO register best beta
 
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
