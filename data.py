@@ -129,11 +129,8 @@ class DataProcessing:
 
 
 class DataReader():
-    def __init__(self, config_file):
-        assert os.path.exists(config_file), "Preproc config file does not exist."
-        with open(config_file, 'r') as f:
-            self.cfg = json.load(f)
-
+    def __init__(self, data_config):
+        self.cfg = data_config
         self.n_items = self.load_n_items()
 
     def load_data(self, datatype='train'):
