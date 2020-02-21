@@ -1,3 +1,4 @@
+from configuration import DataConfiguration
 import json
 import logging
 import numpy as np
@@ -15,7 +16,12 @@ logger = logging.getLogger(__name__)
 
 class DataProcessing:
     def __init__(self, data_config):
-        self.cfg = data_config
+        if isinstance(data_config, DataConfiguration):
+            self.cfg = data_config
+        elif isinstance(data_config, str):
+            self.cfg = DataConfiguration(data_config)
+        else:
+            raise TypeError("'data_config' must be of type 'DataConfiguration' or 'str'.")
 
     def process(self):
         np.random.seed(int(self.cfg.seed))
@@ -102,7 +108,14 @@ class DataProcessing:
         [uhead, ihead] = data.columns.values[:2]
         uid = data[uhead].apply(lambda x: u2id[x])
         iid = data[ihead].apply(lambda x: i2id[x])
-        return pd.DataFrame(data={'uid': uid, 'iid': iid}, columns=['uid', 'iid'])
+        if self.cfg.topn:
+            return pd.DataFrame(data={'uid': uid, 'iid': iid}, columns=['uid', 'iid'])
+        else:
+            dic_data = {'uid': uid, 'iid': iid}
+            for c in data.columns.values[2:]:
+                dic_data[c] = data[c]
+            cols = ['uid', 'iid'] + list(data.columns.values[2:])
+            return pd.DataFrame(data=dic_data, columns=cols)
 
     def split_train_test(self, data):
         np.random.seed(self.cfg.seed)
@@ -163,7 +176,12 @@ class DataReader():
         n_users = data['uid'].max() + 1
 
         rows, cols = data['uid'], data['iid']
-        data = sparse.csr_matrix((np.ones_like(rows),
+        if self.cfg.topn:
+            values = np.ones_like(rows)
+        else:
+            values = data[data.columns.values[2]]
+
+        data = sparse.csr_matrix((values,
                                  (rows, cols)), dtype='float64',
                                  shape=(n_users, self.n_items))
         return data
@@ -181,11 +199,18 @@ class DataReader():
         rows_tr, cols_tr = data_tr['uid'] - start_idx, data_tr['iid']
         rows_te, cols_te = data_te['uid'] - start_idx, data_te['iid']
 
-        data_tr = sparse.csr_matrix((np.ones_like(rows_tr),
+        if self.cfg.topn:
+            values_tr = np.ones_like(rows_tr)
+            values_te = np.ones_like(rows_te)
+        else:
+            values_tr = data_tr[data_tr.columns.values[2]]
+            values_te = data_te[data_tr.columns.values[2]]
+
+        data_tr = sparse.csr_matrix((values_tr,
                                     (rows_tr, cols_tr)),
                                     dtype='float64',
                                     shape=(end_idx - start_idx + 1, self.n_items))
-        data_te = sparse.csr_matrix((np.ones_like(rows_te),
+        data_te = sparse.csr_matrix((values_te,
                                     (rows_te, cols_te)),
                                     dtype='float64',
                                     shape=(end_idx - start_idx + 1, self.n_items))
