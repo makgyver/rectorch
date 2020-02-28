@@ -51,7 +51,6 @@ data_config = ConfigurationManager.get_instance().data_config
 logger.info("Data configuration: " + str(data_config))
 logger.info("Model configuration: " + str(vae_config))
 
-
 ###############################################################################
 # Load data
 ###############################################################################
@@ -67,12 +66,14 @@ te_loader = DataLoader(data_manager.test_set, batch_size=batch_size, shuffle=Fal
 ###############################################################################
 dec_dims = [200, 600, data_manager.n_items]
 model = nets.MultiVAE_net(dec_dims).to(device)
+logger.info("Network: " + str(model))
 #vae = models.MultiVAE(model, num_epochs=vae_config.num_epochs, learning_rate=vae_config.learning_rate)
 vae = models.MultiVAE(model,
                       beta=args.anneal_cap,
                       anneal_steps=args.total_anneal_steps,
                       num_epochs=vae_config.num_epochs,
                       learning_rate=vae_config.learning_rate)
+logger.info("Model: " + str(vae))
 vae.train(tr_loader, val_loader, vae_config.valid_metrics[0], vae_config.verbose)
 
 ###############################################################################

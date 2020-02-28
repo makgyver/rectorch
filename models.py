@@ -57,7 +57,7 @@ class TorchNNTrainer():
 
 class MultiDAE(TorchNNTrainer):
     def __init__(self, mdae_net, lam=0.2, num_epochs=100, learning_rate=1e-3):
-        super(MultiDAE, self).__init__(mdae_net, num_epochs=100, learning_rate=1e-3)
+        super(MultiDAE, self).__init__(mdae_net, num_epochs=num_epochs, learning_rate=learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
         self.lam = lam
 
