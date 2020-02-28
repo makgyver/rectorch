@@ -1,17 +1,19 @@
 import argparse
-from configuration import DataConfiguration, ModelConfiguration
+from configuration import ConfigurationManager
 import data
 import json
 import logging
 import models
 import nets
 import os
+import sys
 import torch
 from torch.utils.data import DataLoader
 
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format="[%(asctime)s]  %(message)s",
-                    datefmt='%H:%M:%S-%d%m%y')
+                    datefmt='%H:%M:%S-%d%m%y',
+                    stream=sys.stdout)
 logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='PyTorch Variational Autoencoders')
@@ -40,7 +42,7 @@ device = torch.device("cuda" if args.cuda else "cpu")
 #with open(args.model_conf, 'r') as f:
 #    vae_config = json.load(f)
 
-ConfigurationManager("config/config_data_ml20m.json", "config/config_vae.json")
+ConfigurationManager(args.data_conf, args.model_conf)
 vae_config = ConfigurationManager.get_instance().model_config
 data_config = ConfigurationManager.get_instance().data_config
 

@@ -8,9 +8,10 @@ from scipy import sparse
 import torch
 from torch.utils.data import Dataset
 
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(level=logging.DEBUG,
                     format="[%(asctime)s]  %(message)s",
-                    datefmt='%H:%M:%S-%d%m%y')
+                    datefmt='%H:%M:%S-%d%m%y',
+                    stream=sys.stdout)
 
 logger = logging.getLogger(__name__)
 
