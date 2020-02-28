@@ -1,0 +1,13 @@
+{
+    "data_path": "ml-20m/ratings.csv",
+    "proc_path": "ml-20m/preproc",
+    "seed": 98765,
+    "threshold": 3.5,
+    "header": 0,
+    "u_min": 5,
+    "i_min": 0,
+    "heldout": 10000,
+    "test_prop": 0.2,
+    "min_i_train": 5,
+    "topn": 1
+}

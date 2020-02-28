@@ -25,6 +25,10 @@ parser.add_argument('--cuda', action='store_true',
                     help='use CUDA')
 parser.add_argument('--save', type=str, default='model.pt',
                     help='path to save the final model')
+parser.add_argument('--data_conf', type=str, default='config/config_data_ml20m.json',
+                    help='path to the configuration file for reading the data')
+parser.add_argument('--model_conf', type=str, default='config/config_vae.json',
+                    help='path to the configuration file for reading the data')
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
@@ -33,17 +37,18 @@ if torch.cuda.is_available():
         logger.warning("You have a CUDA device, so you should probably run with --cuda")
 
 device = torch.device("cuda" if args.cuda else "cpu")
-with open("config/config_vae.json", 'r') as f:
-    vae_config = json.load(f)
+#with open(args.model_conf, 'r') as f:
+#    vae_config = json.load(f)
 
-DataConfiguration("config/config_data_ml20m.json")
-ModelConfiguration("config/config_vae.json")
+ConfigurationManager("config/config_data_ml20m.json", "config/config_vae.json")
+vae_config = ConfigurationManager.get_instance().model_config
+data_config = ConfigurationManager.get_instance().data_config
 
 ###############################################################################
 # Load data
 ###############################################################################
-batch_size = vae_config["batch_size"]
-data_manager = data.DatasetManager("config/config_data_ml20m.json")
+batch_size = vae_config.batch_size
+data_manager = data.DatasetManager(data_config)
 kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
 tr_loader = DataLoader(data_manager.training_set, batch_size=batch_size, shuffle=True, **kwargs)
 val_loader = DataLoader(data_manager.validation_set, batch_size=batch_size, shuffle=False, **kwargs)
@@ -54,8 +59,8 @@ te_loader = DataLoader(data_manager.test_set, batch_size=batch_size, shuffle=Fal
 ###############################################################################
 dec_dims = [200, 600, data_manager.n_items]
 model = nets.MultiVAE_net(dec_dims).to(device)
-vae = models.MultiVAE(model, num_epochs=vae_config["num_epochs"], learning_rate=vae_config["learning_rate"])
-vae.train(tr_loader, val_loader, vae_config["valid_metrics"][0], vae_config["verbose"])
+vae = models.MultiVAE(model, num_epochs=vae_config.num_epochs, learning_rate=vae_config.learning_rate)
+vae.train(tr_loader, val_loader, vae_config.valid_metrics[0], vae_config.verbose)
 
 ###############################################################################
 # Test the model
