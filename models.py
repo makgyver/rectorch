@@ -57,7 +57,7 @@ class TorchNNTrainer():
 
 class MultiDAE(TorchNNTrainer):
     def __init__(self, mdae_net, lam=0.2, num_epochs=100, learning_rate=1e-3):
-        super(MultiDAE, self).__init__(mdae_net, um_epochs=100, learning_rate=1e-3)
+        super(MultiDAE, self).__init__(mdae_net, num_epochs=100, learning_rate=1e-3)
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
         self.lam = lam
 
@@ -74,7 +74,7 @@ class MultiDAE(TorchNNTrainer):
 
 class VAE(TorchNNTrainer):
     def __init__(self, vae_net, num_epochs=100, learning_rate=1e-3):
-        super(VAE, self).__init__(vae_net, num_epochs=100, learning_rate=1e-3)
+        super(VAE, self).__init__(vae_net, num_epochs=num_epochs, learning_rate=learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
 
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
@@ -152,7 +152,7 @@ class VAE(TorchNNTrainer):
 
 class MultiVAE(VAE):
     def __init__(self, mvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
-        super(MultiVAE, self).__init__(mvae_net, num_epochs, learning_rate)
+        super(MultiVAE, self).__init__(mvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate, weight_decay=0.01)
         self.anneal_steps = anneal_steps
         self.annealing = anneal_steps > 0

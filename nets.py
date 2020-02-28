@@ -165,7 +165,7 @@ class MultiVAE_net(VAE_net):
     https://arxiv.org/abs/1802.05814
     '''
 
-    def __init__(self, dec_dims, enc_dims=None, dropout=0.0):
+    def __init__(self, dec_dims, enc_dims=None, dropout=0.5):
         super(MultiVAE_net, self).__init__(dec_dims, enc_dims)
         self.dropout = nn.Dropout(dropout)
 
