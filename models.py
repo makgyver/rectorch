@@ -170,7 +170,6 @@ class MultiVAE(VAE):
         epoch_start_time = time.time()
         start_time = time.time()
         log_delay = max(10, len(train_loader) // 10**verbose)
-        anneal_beta = 0 if self.annealing else self.beta
 
         for batch_idx, (data, _) in enumerate(train_loader):
             data_tensor = data.view(data.shape[0],-1).to(self.device)
@@ -198,6 +197,7 @@ class MultiVAE(VAE):
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             best_perf = -1. #Assume the higher the better >= 0
+            anneal_beta = 0 if self.annealing else self.beta
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data)
                 if valid_data:
