@@ -175,6 +175,8 @@ class MultiVAE(VAE):
             data_tensor = data.view(data.shape[0],-1).to(self.device)
             if self.annealing:
                 anneal_beta = self.beta * min(1., self.gradient_updates / self.anneal_steps)
+            else:
+                anneal_beta = self.beta
 
             self.optimizer.zero_grad()
             recon_batch, mu, var = self.network(data_tensor)
@@ -197,9 +199,8 @@ class MultiVAE(VAE):
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             best_perf = -1. #Assume the higher the better >= 0
-            anneal_beta = 0 if self.annealing else self.beta
             for epoch in range(1, self.num_epochs + 1):
-                self.training_epoch(epoch, train_data)
+                self.training_epoch(epoch, train_data, verbose)
                 if valid_data:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
