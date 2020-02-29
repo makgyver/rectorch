@@ -55,8 +55,8 @@ class DataProcessing:
         train_data = raw_data.loc[raw_data[uhead].isin(tr_users)]
         unique_iid = pd.unique(train_data[ihead])
 
-        i2id = dict((iid, i) for (i, iid) in enumerate(unique_iid))
-        u2id = dict((uid, i) for (i, uid) in enumerate(unique_uid))
+        self.i2id = dict((iid, i) for (i, iid) in enumerate(unique_iid))
+        self.u2id = dict((uid, i) for (i, uid) in enumerate(unique_uid))
 
         logger.info("Saving unique_iid.txt.")
         pro_dir = self.cfg.proc_path
@@ -76,11 +76,11 @@ class DataProcessing:
         val_data_tr, val_data_te = self.split_train_test(val_data)
         test_data_tr, test_data_te = self.split_train_test(test_data)
 
-        train_data = self.numerize(train_data, u2id, i2id)
-        val_data_tr = self.numerize(val_data_tr, u2id, i2id)
-        val_data_te = self.numerize(val_data_te, u2id, i2id)
-        test_data_tr = self.numerize(test_data_tr, u2id, i2id)
-        test_data_te = self.numerize(test_data_te, u2id, i2id)
+        train_data = self.numerize(train_data, self.u2id, self.i2id)
+        val_data_tr = self.numerize(val_data_tr, self.u2id, self.i2id)
+        val_data_te = self.numerize(val_data_te, self.u2id, self.i2id)
+        test_data_tr = self.numerize(test_data_tr, self.u2id, self.i2id)
+        test_data_te = self.numerize(test_data_te, self.u2id, self.i2id)
 
         logger.info("Saving all the files.")
         train_data.to_csv(os.path.join(pro_dir, 'train.csv'), index=False)
