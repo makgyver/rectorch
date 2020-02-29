@@ -21,7 +21,7 @@ parser.add_argument('--total_anneal_steps', type=int, default=200000,
                     help='the total number of gradient updates for annealing')
 parser.add_argument('--anneal_cap', type=float, default=0.2,
                     help='largest annealing parameter')
-parser.add_argument('--seed', type=int, default=1111,
+parser.add_argument('--seed', type=int, default=98765,
                     help='random seed')
 parser.add_argument('--cuda', action='store_true',
                     help='use CUDA')

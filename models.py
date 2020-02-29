@@ -153,7 +153,7 @@ class VAE(TorchNNTrainer):
 class MultiVAE(VAE):
     def __init__(self, mvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
         super(MultiVAE, self).__init__(mvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate, weight_decay=0.01)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate, weight_decay=0.0)
         self.anneal_steps = anneal_steps
         self.annealing = anneal_steps > 0
         self.gradient_updates = 0.
