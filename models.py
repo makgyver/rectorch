@@ -174,7 +174,7 @@ class MultiVAE(VAE):
         for batch_idx, (data, _) in enumerate(train_loader):
             data_tensor = data.view(data.shape[0],-1).to(self.device)
             if self.annealing:
-                anneal_beta = self.beta * min(1., self.gradient_updates / self.anneal_steps)
+                anneal_beta = min(1., 1. * self.gradient_updates / self.anneal_steps)
             else:
                 anneal_beta = self.beta
 
