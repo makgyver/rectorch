@@ -12,8 +12,7 @@ from torch.utils.data import DataLoader
 
 logging.basicConfig(level=logging.DEBUG,
                     format="[%(asctime)s]  %(message)s",
-                    datefmt='%H:%M:%S-%d%m%y',
-                    stream=sys.stdout)
+                    datefmt='%H:%M:%S-%d%m%y')
 logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='PyTorch Variational Autoencoders')
@@ -56,17 +55,16 @@ logger.info("Model configuration: " + str(vae_config))
 ###############################################################################
 batch_size = vae_config.batch_size
 data_manager = data.DatasetManager(data_config)
-kwargs = {'num_workers': 1, 'pin_memory': True} if args.cuda else {}
-tr_loader = DataLoader(data_manager.training_set, batch_size=batch_size, shuffle=True, **kwargs)
-val_loader = DataLoader(data_manager.validation_set, batch_size=batch_size, shuffle=False, **kwargs)
-te_loader = DataLoader(data_manager.test_set, batch_size=batch_size, shuffle=False, **kwargs)
+tr_loader = data.DataSampler(*data_manager.training_set, batch_size=batch_size, shuffle=True)
+val_loader = data.DataSampler(*data_manager.validation_set, batch_size=batch_size, shuffle=False)
+te_loader = data.DataSampler(*data_manager.test_set, batch_size=batch_size, shuffle=False)
 
 ###############################################################################
 # Training the model
 ###############################################################################
 dec_dims = [200, 600, data_manager.n_items]
 model = nets.MultiVAE_net(dec_dims).to(device)
-logger.info("Network: " + str(model))
+#logger.info("Network: " + str(model))
 #vae = models.MultiVAE(model, num_epochs=vae_config.num_epochs, learning_rate=vae_config.learning_rate)
 vae = models.MultiVAE(model,
                       beta=args.anneal_cap,

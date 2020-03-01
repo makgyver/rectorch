@@ -228,30 +228,44 @@ class DatasetContainer(Dataset):
         return self.sparse_data_tr.shape[0]
 
     def __getitem__(self, index):
-        #user_tr = self.sparse_data_tr[index, :]
-        #user_tr = torch.FloatTensor(user_tr.toarray())
-        user_tr = self._sparse2torch_sparse(self.sparse_data_tr[index, :])
+        user_tr = self.sparse_data_tr[index, :]
+        user_tr = torch.FloatTensor(user_tr.toarray())
 
         if self.sparse_data_te == None:
             user_te = np.zeros((1,1), dtype='uint8')
         else:
-            #user_te = self.sparse_data_te[index, :]
-            #user_te = torch.FloatTensor(user_te.toarray())
-            user_te = self._sparse2torch_sparse(self.sparse_data_te[index, :])
+            user_te = self.sparse_data_te[index, :]
+            user_te = torch.FloatTensor(user_te.toarray())
 
         return user_tr, user_te
 
-    def _sparse2torch_sparse(self, data):
-        samples = data.shape[0]
-        features = data.shape[1]
-        coo_data = data.tocoo()
-        indices = torch.LongTensor([coo_data.row, coo_data.col])
-        #row_norms_inv = 1 / np.sqrt(data.sum(1))
-        #row2val = {i : row_norms_inv[i].item() for i in range(samples)}
-        #values = np.array([row2val[r] for r in coo_data.row])
-        values = np.array([1. for r in coo_data.row])
-        t = torch.sparse.FloatTensor(indices, torch.from_numpy(values).float(), [samples, features])
-        return t
+class DataSampler():
+    def __init__(self, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
+        self.sparse_data_tr = sparse_data_tr
+        self.sparse_data_te = sparse_data_te
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+
+    def __len__(self):
+        return int(np.ceil(self.sparse_data_tr.shape[0] / self.batch_size))
+
+    def __iter__(self):
+        n = self.sparse_data_tr.shape[0]
+        idxlist = list(range(n))
+        if self.shuffle:
+            np.random.shuffle(idxlist)
+
+        for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            data_tr = self.sparse_data_tr[idxlist[start_idx:end_idx]]
+            data_tr = torch.FloatTensor(data_tr.toarray())
+
+            data_te = None
+            if self.sparse_data_te:
+                data_te = self.sparse_data_te[idxlist[start_idx:end_idx]]
+                data_te = torch.FloatTensor(data_tr.toarray())
+
+            yield data_tr, data_te
 
 
 class DatasetManager():
@@ -262,6 +276,6 @@ class DatasetManager():
         test_data_tr, test_data_te = reader.load_data('test')
 
         self.n_items = reader.n_items
-        self.training_set = DatasetContainer(train_data)
-        self.validation_set = DatasetContainer(vad_data_tr, vad_data_te)
-        self.test_set = DatasetContainer(test_data_tr, test_data_te)
+        self.training_set = (train_data, None)
+        self.validation_set = (vad_data_tr, vad_data_te)
+        self.test_set = (test_data_tr, test_data_te)
