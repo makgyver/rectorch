@@ -219,26 +219,6 @@ class DataReader():
         return data_tr, data_te
 
 
-class DatasetContainer(Dataset):
-    def __init__(self, sparse_data_tr, sparse_data_te=None, transform=None):
-        self.sparse_data_tr = sparse_data_tr
-        self.sparse_data_te = sparse_data_te
-
-    def __len__(self):
-        return self.sparse_data_tr.shape[0]
-
-    def __getitem__(self, index):
-        user_tr = self.sparse_data_tr[index, :]
-        user_tr = torch.FloatTensor(user_tr.toarray())
-
-        if self.sparse_data_te == None:
-            user_te = np.zeros((1,1), dtype='uint8')
-        else:
-            user_te = self.sparse_data_te[index, :]
-            user_te = torch.FloatTensor(user_te.toarray())
-
-        return user_tr, user_te
-
 class DataSampler():
     def __init__(self, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
         self.sparse_data_tr = sparse_data_tr
@@ -261,7 +241,7 @@ class DataSampler():
             data_tr = torch.FloatTensor(data_tr.toarray())
 
             data_te = None
-            if self.sparse_data_te:
+            if self.sparse_data_te is not None:
                 data_te = self.sparse_data_te[idxlist[start_idx:end_idx]]
                 data_te = torch.FloatTensor(data_tr.toarray())
 
