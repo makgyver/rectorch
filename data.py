@@ -228,16 +228,30 @@ class DatasetContainer(Dataset):
         return self.sparse_data_tr.shape[0]
 
     def __getitem__(self, index):
-        user_tr = self.sparse_data_tr[index, :]
-        user_tr = torch.FloatTensor(user_tr.toarray())
+        #user_tr = self.sparse_data_tr[index, :]
+        #user_tr = torch.FloatTensor(user_tr.toarray())
+        user_tr = self._sparse2torch_sparse(self.sparse_data_tr[index, :])
 
         if self.sparse_data_te == None:
             user_te = np.zeros((1,1), dtype='uint8')
         else:
-            user_te = self.sparse_data_te[index, :]
-            user_te = torch.FloatTensor(user_te.toarray())
+            #user_te = self.sparse_data_te[index, :]
+            #user_te = torch.FloatTensor(user_te.toarray())
+            user_te = self._sparse2torch_sparse(self.sparse_data_te[index, :])
 
         return user_tr, user_te
+
+    def _sparse2torch_sparse(self, data):
+        samples = data.shape[0]
+        features = data.shape[1]
+        coo_data = data.tocoo()
+        indices = torch.LongTensor([coo_data.row, coo_data.col])
+        #row_norms_inv = 1 / np.sqrt(data.sum(1))
+        #row2val = {i : row_norms_inv[i].item() for i in range(samples)}
+        #values = np.array([row2val[r] for r in coo_data.row])
+        values = np.array([1. for r in coo_data.row])
+        t = torch.sparse.FloatTensor(indices, torch.from_numpy(values).float(), [samples, features])
+        return t
 
 
 class DatasetManager():
