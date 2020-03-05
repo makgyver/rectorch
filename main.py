@@ -1,6 +1,6 @@
 import argparse
 from configuration import ConfigurationManager
-import data
+from data import DatasetManager, DataSampler
 import json
 import logging
 import models
@@ -38,8 +38,6 @@ if torch.cuda.is_available():
         logger.warning("You have a CUDA device, so you should probably run with --cuda")
 
 device = torch.device("cuda" if args.cuda else "cpu")
-#with open(args.model_conf, 'r') as f:
-#    vae_config = json.load(f)
 
 logger.info("Parametrs: " + str(vars(args)))
 
@@ -54,18 +52,16 @@ logger.info("Model configuration: " + str(vae_config))
 # Load data
 ###############################################################################
 batch_size = vae_config.batch_size
-data_manager = data.DatasetManager(data_config)
-tr_loader = data.DataSampler(*data_manager.training_set, batch_size=batch_size, shuffle=True)
-val_loader = data.DataSampler(*data_manager.validation_set, batch_size=batch_size, shuffle=False)
-te_loader = data.DataSampler(*data_manager.test_set, batch_size=batch_size, shuffle=False)
+data_manager = DatasetManager(data_config)
+tr_loader = DataSampler(*data_manager.training_set, batch_size=batch_size, shuffle=True)
+val_loader = DataSampler(*data_manager.validation_set, batch_size=batch_size, shuffle=False)
+te_loader = DataSampler(*data_manager.test_set, batch_size=batch_size, shuffle=False)
 
 ###############################################################################
 # Training the model
 ###############################################################################
 dec_dims = [200, 600, data_manager.n_items]
 model = nets.MultiVAE_net(dec_dims).to(device)
-#logger.info("Network: " + str(model))
-#vae = models.MultiVAE(model, num_epochs=vae_config.num_epochs, learning_rate=vae_config.learning_rate)
 vae = models.MultiVAE(model,
                       beta=args.anneal_cap,
                       anneal_steps=args.total_anneal_steps,
