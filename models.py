@@ -44,7 +44,7 @@ class TorchNNTrainer():
         raise NotImplementedError()
 
     def __str__(self):
-        s = self.__class__.__name__ +"(\n"
+        s = self.__class__.__name__ + "(\n"
         for k,v in self.__dict__.items():
             sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
             s += f"  {k} = {sv},\n"

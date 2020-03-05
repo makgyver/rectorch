@@ -1,0 +1,13 @@
+{
+    "data_path": "../ml-1m/ratings.dat",
+    "proc_path": "../ml-1m/preproc_rp",
+    "seed": 98765,
+    "threshold": 0,
+    "separator": "::",
+    "u_min": 0,
+    "i_min": 0,
+    "heldout": 500,
+    "test_prop": 0.2,
+    "min_i_train": 10,
+    "topn": 0
+}
