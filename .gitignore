@@ -2,3 +2,4 @@
 .DS_Store
 datasets
 *.pyc
+log
