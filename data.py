@@ -243,7 +243,7 @@ class DataSampler():
             data_te = None
             if self.sparse_data_te is not None:
                 data_te = self.sparse_data_te[idxlist[start_idx:end_idx]]
-                data_te = torch.FloatTensor(data_tr.toarray())
+                data_te = torch.FloatTensor(data_te.toarray())
 
             yield data_tr, data_te
 

@@ -157,7 +157,7 @@ class VAE(TorchNNTrainer):
 
 
     def load_model(self, filepath):
-        assert os.path.isfile(filepath), f"The checkpoint file {} does not exist."
+        assert os.path.isfile(filepath), f"The checkpoint file {filepath} does not exist."
         logger.info(f"Loading model checkpoint from {filepath}...")
         checkpoint = torch.load(filepath)
         epoch = checkpoint['epoch']
