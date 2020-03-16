@@ -1,6 +1,6 @@
 {
-    "data_path": "ml-20m/ratings.csv",
-    "proc_path": "ml-20m/preproc",
+    "data_path": "../ml-20m/ratings.csv",
+    "proc_path": "../ml-20m/preproc",
     "seed": 98765,
     "threshold": 3.5,
     "header": 0,

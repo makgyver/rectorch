@@ -140,19 +140,24 @@ class VAE(TorchNNTrainer):
 
         return np.mean(np.concatenate(results))
 
-    def save_model(self, dir_path, cur_epoch, loss_train):
-        assert os.path.isdir(dir_path), "The directory {} does not exist."
-        logger.info(f"Saving model checkpoint to {filepath}...")
+    def save_model(self, dir_path, cur_epoch, loss_train, *args, **kwargs):
+        assert os.path.isdir(dir_path), f"The directory {dir_path} does not exist."
         filepath = os.path.join(dir_path, "checkpoint_e%d.pth" %cur_epoch)
-        torch.save({'epoch': cur_epoch,
-                    'state_dict': self.network.state_dict(),
-                    'loss_train': loss_train,
-                    'optimizer': self.optimizer.state_dict(),
-                    }, filepath)
+        state = {'epoch': cur_epoch,
+                 'state_dict': self.network.state_dict(),
+                 'loss_train': loss_train,
+                 'optimizer': self.optimizer.state_dict()
+                }
+        self._save_checkpoint(filepath, state)
+
+    def _save_checkpoint(self, filepath, state):
+        logger.info(f"Saving model checkpoint to {filepath}...")
+        torch.save(state, filepath)
         logger.info("Model checkpoint saved!")
 
+
     def load_model(self, filepath):
-        assert os.path.isfile(filepath), "The checkpoint file {} does not exist."
+        assert os.path.isfile(filepath), f"The checkpoint file {} does not exist."
         logger.info(f"Loading model checkpoint from {filepath}...")
         checkpoint = torch.load(filepath)
         epoch = checkpoint['epoch']
@@ -161,7 +166,7 @@ class VAE(TorchNNTrainer):
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         logger.info(f"Checkpoint epoch {epoch} | loss {loss_train}")
         logger.info(f"Model checkpoint loaded!")
-        return epoch, loss_train
+        return epoch, loss_train, checkpoint
 
 
 class MultiVAE(VAE):
@@ -227,6 +232,22 @@ class MultiVAE(VAE):
 
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
+
+    def save_model(self, dir_path, cur_epoch, loss_train, *args, **kwargs):
+        assert os.path.isdir(dir_path), f"The directory {dir_path} does not exist."
+        filepath = os.path.join(dir_path, "checkpoint_e%d.pth" %cur_epoch)
+        state = {'epoch': cur_epoch,
+                 'state_dict': self.network.state_dict(),
+                 'loss_train': loss_train,
+                 'optimizer': self.optimizer.state_dict(),
+                 'gradient_updates': self.gradient_updates
+                }
+        self._save_checkpoint(filepath, state)
+
+    def load_model(self, filepath):
+        epoch, loss_train, checkpoint = super().load_model(self, filepath)
+        self.gradient_updates = checkpoint['gradient_updates']
+        return epoch, loss_train, checkpoint
 
 
 #TODO move this in another module??
