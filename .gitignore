@@ -3,3 +3,5 @@
 datasets
 *.pyc
 log
+out
+tex
