@@ -1,6 +1,7 @@
 import logging
 from metric import Metrics
 import numpy as np
+import os
 import time
 import torch
 import torch.nn.functional as F
@@ -37,10 +38,10 @@ class TorchNNTrainer():
     def predict(self, x, *args, **kwargs):
         raise NotImplementedError()
 
-    def save_model(self, filepath):
+    def save_model(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def load_model(self, filepath):
+    def load_model(self, filepath, *args, **kwargs):
         raise NotImplementedError()
 
     def __str__(self):
@@ -139,15 +140,28 @@ class VAE(TorchNNTrainer):
 
         return np.mean(np.concatenate(results))
 
-    def save_model(self, filepath):
-        logger.info(f"Saving model to {filepath}...")
-        torch.save(self.network, filepath)
-        logger.info(f"Model saved in {filepath}!")
+    def save_model(self, dir_path, cur_epoch, loss_train):
+        assert os.path.isdir(dir_path), "The directory {} does not exist."
+        logger.info(f"Saving model checkpoint to {filepath}...")
+        filepath = os.path.join(dir_path, "checkpoint_e%d.pth" %cur_epoch)
+        torch.save({'epoch': cur_epoch,
+                    'state_dict': self.network.state_dict(),
+                    'loss_train': loss_train,
+                    'optimizer': self.optimizer.state_dict(),
+                    }, filepath)
+        logger.info("Model checkpoint saved!")
 
     def load_model(self, filepath):
-        logger.info(f"Loading model from {filepath}...")
-        self.network = torch.load(filepath)
-        logger.info(f"Model loaded from {filepath}!")
+        assert os.path.isfile(filepath), "The checkpoint file {} does not exist."
+        logger.info(f"Loading model checkpoint from {filepath}...")
+        checkpoint = torch.load(filepath)
+        epoch = checkpoint['epoch']
+        loss_train = checkpoint['loss_train']
+        self.network.load_state_dict(checkpoint['state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
+        logger.info(f"Checkpoint epoch {epoch} | loss {loss_train}")
+        logger.info(f"Model checkpoint loaded!")
+        return epoch, loss_train
 
 
 class MultiVAE(VAE):
