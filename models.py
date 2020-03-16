@@ -140,12 +140,11 @@ class VAE(TorchNNTrainer):
 
         return np.mean(np.concatenate(results))
 
-    def save_model(self, dir_path, cur_epoch, loss_train, *args, **kwargs):
+    def save_model(self, dir_path, cur_epoch, *args, **kwargs):
         assert os.path.isdir(dir_path), f"The directory {dir_path} does not exist."
         filepath = os.path.join(dir_path, "checkpoint_e%d.pth" %cur_epoch)
         state = {'epoch': cur_epoch,
                  'state_dict': self.network.state_dict(),
-                 'loss_train': loss_train,
                  'optimizer': self.optimizer.state_dict()
                 }
         self._save_checkpoint(filepath, state)
@@ -161,12 +160,11 @@ class VAE(TorchNNTrainer):
         logger.info(f"Loading model checkpoint from {filepath}...")
         checkpoint = torch.load(filepath)
         epoch = checkpoint['epoch']
-        loss_train = checkpoint['loss_train']
         self.network.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
-        logger.info(f"Checkpoint epoch {epoch} | loss {loss_train}")
+        logger.info(f"Checkpoint epoch {epoch}")
         logger.info(f"Model checkpoint loaded!")
-        return epoch, loss_train, checkpoint
+        return epoch, checkpoint
 
 
 class MultiVAE(VAE):
@@ -220,6 +218,7 @@ class MultiVAE(VAE):
             best_perf = -1. #Assume the higher the better >= 0
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data, verbose)
+                self.save_model("chkpt_multivae", epoch)
                 if valid_data:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
@@ -227,27 +226,26 @@ class MultiVAE(VAE):
 
                     #TODO validation
                     if best_perf < valid_res:
-                        #self.save_model()
+                        self.save_model("best_multivae", epoch)
                         best_perf = valid_res
 
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
-    def save_model(self, dir_path, cur_epoch, loss_train, *args, **kwargs):
+    def save_model(self, dir_path, cur_epoch, *args, **kwargs):
         assert os.path.isdir(dir_path), f"The directory {dir_path} does not exist."
         filepath = os.path.join(dir_path, "checkpoint_e%d.pth" %cur_epoch)
         state = {'epoch': cur_epoch,
                  'state_dict': self.network.state_dict(),
-                 'loss_train': loss_train,
                  'optimizer': self.optimizer.state_dict(),
                  'gradient_updates': self.gradient_updates
                 }
         self._save_checkpoint(filepath, state)
 
     def load_model(self, filepath):
-        epoch, loss_train, checkpoint = super().load_model(self, filepath)
+        epoch, checkpoint = super().load_model(filepath)
         self.gradient_updates = checkpoint['gradient_updates']
-        return epoch, loss_train, checkpoint
+        return epoch, checkpoint
 
 
 #TODO move this in another module??
