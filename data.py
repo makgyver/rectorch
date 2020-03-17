@@ -219,7 +219,19 @@ class DataReader():
         return data_tr, data_te
 
 
-class DataSampler():
+
+class Sampler():
+    def __init__(self, *args, **args):
+        pass
+
+    def __len__(self):
+        pass
+
+    def __iter__(self):
+        pass
+
+
+class DataSampler(Sampler):
     def __init__(self, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
         self.sparse_data_tr = sparse_data_tr
         self.sparse_data_te = sparse_data_te

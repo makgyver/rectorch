@@ -248,6 +248,16 @@ class MultiVAE(VAE):
         return epoch, checkpoint
 
 
+class CMultiVAE(MultiVAE):
+    def __init__(self, cmvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
+        super(CMultiVAE, self).__init__(cmvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
+
+    def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
+        BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x[:,:-self.network.cond_dim], -1))
+        KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
+        return BCE + beta * KLD
+
+
 #TODO move this in another module??
 class EASE():
     def __init__(self, lam=100):
