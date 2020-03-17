@@ -164,7 +164,7 @@ class VAE(TorchNNTrainer):
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         logger.info(f"Checkpoint epoch {epoch}")
         logger.info(f"Model checkpoint loaded!")
-        return epoch, checkpoint
+        return checkpoint
 
 
 class MultiVAE(VAE):
@@ -224,9 +224,9 @@ class MultiVAE(VAE):
                     valid_res = self.validate(valid_data, valid_metric)
                     logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
 
-                    #TODO validation
                     if best_perf < valid_res:
                         self.save_model("best_multivae", epoch)
+                        #shutil.copyfile(filename, bestname)
                         best_perf = valid_res
 
         except KeyboardInterrupt:
@@ -243,7 +243,7 @@ class MultiVAE(VAE):
         self._save_checkpoint(filepath, state)
 
     def load_model(self, filepath):
-        epoch, checkpoint = super().load_model(filepath)
+        checkpoint = super().load_model(filepath)
         self.gradient_updates = checkpoint['gradient_updates']
         return epoch, checkpoint
 
