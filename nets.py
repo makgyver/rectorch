@@ -197,7 +197,7 @@ class MultiVAE_net(VAE_net):
 
 class CMultiVAE_net(MultiVAE_net):
     def __init__(self, cond_dim, dec_dims, enc_dims=None, dropout=0.5):
-        super(AE_net, self).__init__(dec_dims, enc_dims)
+        super(CMultiVAE_net, self).__init__(dec_dims, enc_dims)
         self.dropout = nn.Dropout(dropout)
         self.cond_dim = cond_dim
 
