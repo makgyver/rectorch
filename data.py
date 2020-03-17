@@ -286,7 +286,7 @@ class DataGenresSampler(Sampler):
         rows = [m for m in self.m2g for _ in range(len(self.m2g[m]))]
         cols = [g for m in self.m2g for g in self.m2g[m]]
         values = np.ones(len(rows))
-        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(m2g), len(self.all_conditions)))
+        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.m2g), len(self.all_conditions)))
 
     def __len__(self):
         return len(self.examples)

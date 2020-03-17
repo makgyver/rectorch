@@ -249,7 +249,7 @@ class MultiVAE(VAE):
 
 
 class CMultiVAE(MultiVAE):
-    def __init__(self, cmvae_net, col2cond, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
+    def __init__(self, cmvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
         super(CMultiVAE, self).__init__(cmvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
 
     def training_epoch(self, epoch, train_loader, verbose=1):
