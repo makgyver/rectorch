@@ -261,7 +261,7 @@ class CMultiVAE(MultiVAE):
 
         for batch_idx, (data, gt) in enumerate(train_loader):
             data_tensor = data.view(data.shape[0],-1).to(self.device)
-            gt_tensor = data.view(gt.shape[0],-1).to(self.device)
+            gt_tensor = gt.view(gt.shape[0],-1).to(self.device)
             if self.annealing:
                 anneal_beta = min(1., 1. * self.gradient_updates / self.anneal_steps)
             else:

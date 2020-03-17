@@ -224,4 +224,4 @@ class CMultiVAE_net(MultiVAE_net):
             else:
                 mu = h[:, :self.enc_dims[-1]]
                 logvar = h[:, self.enc_dims[-1]:]
-        return mu, logvar, x[:, -self.cond_dim:]
+        return mu, logvar

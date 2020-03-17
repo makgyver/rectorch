@@ -289,7 +289,7 @@ class DataGenresSampler(Sampler):
         self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.m2g), len(self.all_conditions)))
 
     def __len__(self):
-        return len(self.examples)
+        return int(np.ceil(len(self.examples) / self.batch_size))
 
     def __iter__(self):
         n = len(self.examples)
@@ -316,6 +316,17 @@ class DataGenresSampler(Sampler):
             if self.sparse_data_te is None:
                 self.sparse_data_te = self.sparse_data_tr
 
+            rows, cols = [], []
+            for i,(r,c) in enumerate(ex):
+                if c >= 0:
+                    rows.append(i)
+                    cols.append(c)
+                else:
+                    rows += [i]*len(self.all_conditions)
+                    cols += range(len(self.all_conditions))
+
+            values = np.ones(len(rows))
+            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), len(self.all_conditions)))
             filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr()
             data_te = self.sparse_data_te[rows].multiply(filtered)
             data_te = torch.FloatTensor(data_te.toarray())
