@@ -193,3 +193,35 @@ class MultiVAE_net(VAE_net):
         for i, layer in enumerate(self.dec_layers[:-1]):
             h = torch.tanh(layer(h))
         return self.dec_layers[-1](h)
+
+
+class CMUltiVAE_net(MultiVAE_net):
+    def __init__(self, cond_dim, dec_dims, enc_dims=None, dropout=0.5):
+        super(AE_net, self).__init__(dec_dims, enc_dims)
+        self.dropout = nn.Dropout(dropout)
+        self.cond_dim = cond_dim
+
+        temp_dims = self.enc_dims[:-1] + [self.enc_dims[-1] * 2]
+        temp_dims[0] += self.cond_dim
+        self.enc_layers = nn.ModuleList(
+            [nn.Linear(d_in, d_out) for d_in, d_out in zip(temp_dims[:-1], temp_dims[1:])]
+        )
+
+        self.dec_layers = nn.ModuleList(
+            [nn.Linear(d_in, d_out) for d_in, d_out in zip(self.dec_dims[:-1], self.dec_dims[1:])]
+        )
+        self.init_weights()
+
+    def encode(self, x):
+        h1 = F.normalize(x[:, :-self.cond_dim])
+        if self.training:
+            h1 = self.dropout(h1)
+        h = torch.cat((h1, x[:, -self.cond_dim:]), 1)
+        for i, layer in enumerate(self.enc_layers):
+            h = layer(h)
+            if i != len(self.enc_layers) - 1:
+                h = torch.tanh(h)
+            else:
+                mu = h[:, :self.enc_dims[-1]]
+                logvar = h[:, self.enc_dims[-1]:]
+        return mu, logvar, x[:, -self.cond_dim:]
