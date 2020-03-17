@@ -221,7 +221,7 @@ class DataReader():
 
 
 class Sampler():
-    def __init__(self, *args, **args):
+    def __init__(self, *args, **kargs):
         pass
 
     def __len__(self):
@@ -256,6 +256,69 @@ class DataSampler(Sampler):
             if self.sparse_data_te is not None:
                 data_te = self.sparse_data_te[idxlist[start_idx:end_idx]]
                 data_te = torch.FloatTensor(data_te.toarray())
+
+            yield data_tr, data_te
+
+
+class DataGenresSampler(Sampler):
+    def __init__(self, mid2gid, all_conds, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
+        self.sparse_data_tr = sparse_data_tr
+        self.sparse_data_te = sparse_data_te
+        self.m2g = mid2gid
+        self.batch_size = batch_size
+        self.all_conditions = all_conds
+        self.shuffle = shuffle
+        self.compute_conditions()
+
+    def compute_conditions(self):
+        r2cond = {}
+        cnt = 0
+        for i,row in enumerate(self.sparse_data_tr):
+            _, cols = row.nonzero()
+            r2cond[i] = set.union(*[set(self.m2g[c]) for c in cols])
+            cnt += len(r2cond[i])
+
+        self.examples = [(r, -1) for r in r2cond]
+        self.examples += [(r, c) for r in r2cond for c in r2cond[r]]
+        self.examples = np.array(self.examples)
+        del r2cond
+
+        rows = [m for m in self.m2g for _ in range(len(self.m2g[m]))]
+        cols = [g for m in self.m2g for g in self.m2g[m]]
+        values = np.ones(len(rows))
+        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(m2g), len(self.all_conditions)))
+
+    def __len__(self):
+        return len(self.examples)
+
+    def __iter__(self):
+        n = len(self.examples)
+        idxlist = list(range(n))
+        if self.shuffle:
+            np.random.shuffle(idxlist)
+
+        for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            ex = self.examples[idxlist[start_idx:end_idx]]
+            rows, cols = [], []
+            for i,(r,c) in enumerate(ex):
+                if c >= 0:
+                    rows.append(i)
+                    cols.append(c)
+
+            values = np.ones(len(rows))
+            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), len(self.all_conditions)))
+
+            rows = [r for r,_ in enumerate(ex)]
+            data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix])
+            data_tr = torch.FloatTensor(data_tr.toarray())
+
+            if self.sparse_data_te is None:
+                self.sparse_data_te = self.sparse_data_tr
+
+            filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr()
+            data_te = self.sparse_data_te[rows].multiply(filtered)
+            data_te = torch.FloatTensor(data_te.toarray())
 
             yield data_tr, data_te
 
