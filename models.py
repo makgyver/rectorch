@@ -249,13 +249,41 @@ class MultiVAE(VAE):
 
 
 class CMultiVAE(MultiVAE):
-    def __init__(self, cmvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
+    def __init__(self, cmvae_net, col2cond, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
         super(CMultiVAE, self).__init__(cmvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
 
-    def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
-        BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x[:,:-self.network.cond_dim], -1))
-        KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
-        return BCE + beta * KLD
+    def training_epoch(self, epoch, train_loader, verbose=1):
+        self.network.train()
+        train_loss = 0
+        epoch_start_time = time.time()
+        start_time = time.time()
+        log_delay = max(10, len(train_loader) // 10**verbose)
+
+        for batch_idx, (data, gt) in enumerate(train_loader):
+            data_tensor = data.view(data.shape[0],-1).to(self.device)
+            gt_tensor = data.view(gt.shape[0],-1).to(self.device)
+            if self.annealing:
+                anneal_beta = min(1., 1. * self.gradient_updates / self.anneal_steps)
+            else:
+                anneal_beta = self.beta
+
+            self.optimizer.zero_grad()
+            recon_batch, mu, var = self.network(data_tensor)
+            loss = self.loss_function(recon_batch, gt_tensor, mu, var, anneal_beta)
+            loss.backward()
+            train_loss += loss.item()
+            self.optimizer.step()
+            self.gradient_updates += 1.
+            if (batch_idx+1) % log_delay == 0:
+                elapsed = time.time() - start_time
+                logger.info('| epoch {:d} | {:d}/{:d} batches | ms/batch {:.2f} | '
+                        'loss {:.2f} |'.format(
+                            epoch, (batch_idx+1), len(train_loader),
+                            elapsed * 1000 / log_delay,
+                            train_loss / log_delay))
+                train_loss = 0.0
+                start_time = time.time()
+        logger.info(f"| epoch {epoch} | total time: {time.time() - epoch_start_time:.2f}s |")
 
 
 #TODO move this in another module??
