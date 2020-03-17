@@ -195,7 +195,7 @@ class MultiVAE_net(VAE_net):
         return self.dec_layers[-1](h)
 
 
-class CMUltiVAE_net(MultiVAE_net):
+class CMultiVAE_net(MultiVAE_net):
     def __init__(self, cond_dim, dec_dims, enc_dims=None, dropout=0.5):
         super(AE_net, self).__init__(dec_dims, enc_dims)
         self.dropout = nn.Dropout(dropout)
