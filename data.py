@@ -328,6 +328,7 @@ class DataGenresSampler(Sampler):
             values = np.ones(len(rows))
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), len(self.all_conditions)))
             filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr()
+            rows = [r for r,_ in enumerate(ex)]
             data_te = self.sparse_data_te[rows].multiply(filtered)
             data_te = torch.FloatTensor(data_te.toarray())
 
