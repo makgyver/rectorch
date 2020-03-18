@@ -309,9 +309,8 @@ class DataGenresSampler(Sampler):
             values = np.ones(len(rows))
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), len(self.all_conditions)))
 
-            rows = [r for r,_ in enumerate(ex)]
-            data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix])
-            data_tr = torch.FloatTensor(data_tr.toarray())
+            rows = [r for r,_ in ex]
+            data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix], format="csr")
 
             if self.sparse_data_te is None:
                 self.sparse_data_te = self.sparse_data_tr
@@ -328,9 +327,15 @@ class DataGenresSampler(Sampler):
             values = np.ones(len(rows))
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), len(self.all_conditions)))
             filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr()
-            rows = [r for r,_ in enumerate(ex)]
+            rows = [r for r,_ in ex]
             data_te = self.sparse_data_te[rows].multiply(filtered)
+
+            filter_idx = np.diff(data_te.indptr) != 0
+            data_te = data_te[filter_idx]
+            data_tr = data_tr[filter_idx]
+
             data_te = torch.FloatTensor(data_te.toarray())
+            data_tr = torch.FloatTensor(data_tr.toarray())
 
             yield data_tr, data_te
 
