@@ -285,6 +285,16 @@ class CMultiVAE(MultiVAE):
                 start_time = time.time()
         logger.info(f"| epoch {epoch} | total time: {time.time() - epoch_start_time:.2f}s |")
 
+    def predict(self, x, remove_train=True):
+        self.network.eval()
+        cond_dim = self.network.cond_dim
+        with torch.no_grad():
+            x_tensor = x.to(self.device)
+            recon_x, mu, logvar = self.network(x_tensor)
+            if remove_train:
+                recon_x[tuple(x_tensor[:, :-cond_dim].nonzero().t())] = -np.inf
+            return recon_x, mu, logvar
+
 
 #TODO move this in another module??
 class EASE():
