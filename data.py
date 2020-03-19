@@ -261,12 +261,12 @@ class DataSampler(Sampler):
 
 
 class DataGenresSampler(Sampler):
-    def __init__(self, mid2gid, all_conds, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
+    def __init__(self, mid2gid, n_genres, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
         self.sparse_data_tr = sparse_data_tr
         self.sparse_data_te = sparse_data_te
         self.m2g = mid2gid
         self.batch_size = batch_size
-        self.all_conditions = all_conds
+        self.n_genres = n_genres
         self.shuffle = shuffle
         self.compute_conditions()
 
@@ -286,7 +286,7 @@ class DataGenresSampler(Sampler):
         rows = [m for m in self.m2g for _ in range(len(self.m2g[m]))]
         cols = [g for m in self.m2g for g in self.m2g[m]]
         values = np.ones(len(rows))
-        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.m2g), len(self.all_conditions)))
+        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.m2g), self.n_genres))
 
     def __len__(self):
         return int(np.ceil(len(self.examples) / self.batch_size))
@@ -307,7 +307,7 @@ class DataGenresSampler(Sampler):
                     cols.append(c)
 
             values = np.ones(len(rows))
-            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), len(self.all_conditions)))
+            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_genres))
 
             rows = [r for r,_ in ex]
             data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix], format="csr")
@@ -321,12 +321,13 @@ class DataGenresSampler(Sampler):
                     rows.append(i)
                     cols.append(c)
                 else:
-                    rows += [i]*len(self.all_conditions)
-                    cols += range(len(self.all_conditions))
+                    rows += [i]*self.n_genres
+                    cols += range(self.n_genres)
 
             values = np.ones(len(rows))
-            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), len(self.all_conditions)))
-            filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr() > 0
+            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_genres))
+            #filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr() > 0
+            filtered = cond_matrix.dot(self.M.transpose().tocsr()) > 0
             rows = [r for r,_ in ex]
             data_te = self.sparse_data_te[rows].multiply(filtered)
 
