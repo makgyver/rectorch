@@ -9,6 +9,7 @@ import torch.optim as optim
 
 logger = logging.getLogger(__name__)
 
+
 class TorchNNTrainer():
     def __init__(self, net, num_epochs=100, learning_rate=1e-3):
         self.network = net
@@ -219,14 +220,14 @@ class MultiVAE(VAE):
             best_perf = -1. #Assume the higher the better >= 0
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data, verbose)
-                self.save_model("chkpt_multivae", epoch)
+                #self.save_model("chkpt_multivae", epoch)
                 if valid_data:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
                     logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
 
                     if best_perf < valid_res:
-                        self.save_model("best_multivae", epoch)
+                        self.save_model("best_multivae", 0)
                         #shutil.copyfile(filename, bestname)
                         best_perf = valid_res
 

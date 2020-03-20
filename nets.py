@@ -224,3 +224,16 @@ class CMultiVAE_net(MultiVAE_net):
                 mu = h[:, :self.enc_dims[-1]]
                 logvar = h[:, self.enc_dims[-1]:]
         return mu, logvar
+
+    def init_weights(self):
+        for i, layer in enumerate(self.enc_layers):
+            if i == 0:
+                xavier_init(layer.weight[:-self.cond_dim, :])
+                layer.weight[-self.cond_dim:, :].data.fill_(0.0)
+            else:
+                xavier_init(layer.weight)
+            normal_init(layer.bias)
+
+        for layer in self.dec_layers:
+            xavier_init(layer.weight)
+            normal_init(layer.bias)
