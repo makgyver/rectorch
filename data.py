@@ -260,13 +260,13 @@ class DataSampler(Sampler):
             yield data_tr, data_te
 
 
-class DataGenresSampler(Sampler):
-    def __init__(self, mid2gid, n_genres, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
+class ConditionedDataSampler(Sampler):
+    def __init__(self, iid2cids, n_cond, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
         self.sparse_data_tr = sparse_data_tr
         self.sparse_data_te = sparse_data_te
-        self.m2g = mid2gid
+        self.iid2cids = iid2cids
         self.batch_size = batch_size
-        self.n_genres = n_genres
+        self.n_cond = n_cond
         self.shuffle = shuffle
         self.compute_conditions()
 
@@ -275,7 +275,7 @@ class DataGenresSampler(Sampler):
         cnt = 0
         for i,row in enumerate(self.sparse_data_tr):
             _, cols = row.nonzero()
-            r2cond[i] = set.union(*[set(self.m2g[c]) for c in cols])
+            r2cond[i] = set.union(*[set(self.iid2cids[c]) for c in cols])
             cnt += len(r2cond[i])
 
         self.examples = [(r, -1) for r in r2cond]
@@ -283,10 +283,10 @@ class DataGenresSampler(Sampler):
         self.examples = np.array(self.examples)
         del r2cond
 
-        rows = [m for m in self.m2g for _ in range(len(self.m2g[m]))]
-        cols = [g for m in self.m2g for g in self.m2g[m]]
+        rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
+        cols = [g for m in self.iid2cids for g in self.iid2cids[m]]
         values = np.ones(len(rows))
-        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.m2g), self.n_genres))
+        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
 
     def __len__(self):
         return int(np.ceil(len(self.examples) / self.batch_size))
@@ -307,7 +307,7 @@ class DataGenresSampler(Sampler):
                     cols.append(c)
 
             values = np.ones(len(rows))
-            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_genres))
+            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
 
             rows = [r for r,_ in ex]
             data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix], format="csr")
@@ -321,11 +321,11 @@ class DataGenresSampler(Sampler):
                     rows.append(i)
                     cols.append(c)
                 else:
-                    rows += [i]*self.n_genres
-                    cols += range(self.n_genres)
+                    rows += [i]*self.n_cond
+                    cols += range(self.n_cond)
 
             values = np.ones(len(rows))
-            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_genres))
+            cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
             #filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr() > 0
             filtered = cond_matrix.dot(self.M.transpose().tocsr()) > 0
             rows = [r for r,_ in ex]
@@ -337,6 +337,39 @@ class DataGenresSampler(Sampler):
 
             data_te = torch.FloatTensor(data_te.toarray())
             data_tr = torch.FloatTensor(data_tr.toarray())
+
+            yield data_tr, data_te
+
+
+class EmptyConditionedDataSampler():
+    def __init__(self, cond_size, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
+        self.sparse_data_tr = sparse_data_tr
+        self.sparse_data_te = sparse_data_te
+        self.batch_size = batch_size
+        self.cond_size = cond_size
+        self.shuffle = shuffle
+
+    def __len__(self):
+        return int(np.ceil(self.sparse_data_tr.shape[0] / self.batch_size))
+
+    def __iter__(self):
+        n = self.sparse_data_tr.shape[0]
+        idxlist = list(range(n))
+        if self.shuffle:
+            np.random.shuffle(idxlist)
+
+        for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            data_tr = self.sparse_data_tr[idxlist[start_idx:end_idx]]
+            cond_matrix = sparse.csr_matrix((data_tr.shape[0], self.cond_size))
+            data_tr = sparse.hstack([data_tr, cond_matrix], format="csr")
+            data_tr = torch.FloatTensor(data_tr.toarray())
+
+            if self.sparse_data_te is None:
+                self.sparse_data_te = self.sparse_data_tr
+
+            data_te = self.sparse_data_te[idxlist[start_idx:end_idx]]
+            data_te = torch.FloatTensor(data_te.toarray())
 
             yield data_tr, data_te
 
