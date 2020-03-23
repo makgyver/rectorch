@@ -8,6 +8,5 @@
     "i_min": 0,
     "heldout": 100,
     "test_prop": 0.2,
-    "min_i_train": 0,
     "topn": 0
 }

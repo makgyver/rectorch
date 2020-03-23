@@ -123,20 +123,19 @@ class DataProcessing:
         np.random.seed(self.cfg.seed)
         test_prop = float(self.cfg.test_prop) if self.cfg.test_prop else 0.2
         [uhead, ihead] = data.columns.values[:2]
-        threshold = int(self.cfg.min_i_train)
         data_grouped_by_user = data.groupby(uhead)
         tr_list, te_list = [], []
 
         for _, group in data_grouped_by_user:
             n_items_u = len(group)
-
-            if n_items_u >= threshold:
+            if n_items_u > 1:
                 idx = np.zeros(n_items_u, dtype='bool')
-                idx[np.random.choice(n_items_u, size=int(test_prop * n_items_u), replace=False).astype('int64')] = True
+                sz = min(int(test_prop * n_items_u), 1)
+                idx[np.random.choice(n_items_u, size=sz, replace=False).astype('int64')] = True
                 tr_list.append(group[np.logical_not(idx)])
                 te_list.append(group[idx])
             else:
-                tr_list.append(group)
+                logger.warning("Skipped user in test set: number of ratings <= 1.")
 
         data_tr = pd.concat(tr_list)
         data_te = pd.concat(te_list)
