@@ -340,7 +340,7 @@ class ConditionedDataSampler(Sampler):
             yield data_tr, data_te
 
 
-class EmptyConditionedDataSampler():
+class EmptyConditionedDataSampler(Sampler):
     def __init__(self, cond_size, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
         self.sparse_data_tr = sparse_data_tr
         self.sparse_data_te = sparse_data_te
