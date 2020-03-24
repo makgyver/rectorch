@@ -272,8 +272,8 @@ class AlphaCMultiVAE(CMultiVAE):
 
     def loss_function(self, recon_x, x_in, x_cond, mu, logvar, beta=1.0):
         lsm = F.log_softmax(recon_x, 1)
-        BCE_in = -torch.mean(torch.sum(lsm * x_in, -1))
-        BCE_cond = -torch.mean(torch.sum(lsm * x_cond, -1))
+        BCE_in = -torch.mean(torch.sum(lsm * x_in, -1)) if self.alpha > 0 else 0
+        BCE_cond = -torch.mean(torch.sum(lsm * x_cond, -1)) if self.alpha < 1 else 0
         KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
         return (self.alpha * BCE_in + (1-self.alpha) * BCE_cond) + beta * KLD
 
@@ -294,7 +294,8 @@ class AlphaCMultiVAE(CMultiVAE):
 
             self.optimizer.zero_grad()
             recon_batch, mu, var = self.network(data_tensor)
-            loss = self.loss_function(recon_batch, data_tensor, gt_tensor, mu, var, anneal_beta)
+            in_tensor = data_tensor[:, :-self.network.cond_dim]
+            loss = self.loss_function(recon_batch, in_tensor, gt_tensor, mu, var, anneal_beta)
             loss.backward()
             train_loss += loss.item()
             self.optimizer.step()
