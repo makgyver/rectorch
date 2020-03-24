@@ -267,7 +267,7 @@ class CMultiVAE(MultiVAE):
 
 class AlphaCMultiVAE(CMultiVAE):
     def __init__(self, cmvae_net, alpha, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
-        super(LambdaCMultiVAE, self).__init__(cmvae_net, beta=beta, anneal_steps=anneal_steps, num_epochs=num_epochs, learning_rate=learning_rate)
+        super(AlphaCMultiVAE, self).__init__(cmvae_net, beta=beta, anneal_steps=anneal_steps, num_epochs=num_epochs, learning_rate=learning_rate)
         self.alpha = alpha
 
     def loss_function(self, recon_x, x_in, x_cond, mu, logvar, beta=1.0):
