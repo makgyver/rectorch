@@ -130,7 +130,7 @@ class DataProcessing:
             n_items_u = len(group)
             if n_items_u > 1:
                 idx = np.zeros(n_items_u, dtype='bool')
-                sz = min(int(test_prop * n_items_u), 1)
+                sz = max(int(test_prop * n_items_u), 1)
                 idx[np.random.choice(n_items_u, size=sz, replace=False).astype('int64')] = True
                 tr_list.append(group[np.logical_not(idx)])
                 te_list.append(group[idx])
