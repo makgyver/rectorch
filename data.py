@@ -260,7 +260,7 @@ class DataSampler(Sampler):
 
 
 class ConditionedDataSampler(Sampler):
-    def __init__(self, iid2cids, n_cond, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
+    def __init__(self, iid2cids, n_cond, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True, subsample=1.):
         self.sparse_data_tr = sparse_data_tr
         self.sparse_data_te = sparse_data_te
         self.iid2cids = iid2cids
@@ -293,8 +293,10 @@ class ConditionedDataSampler(Sampler):
     def __iter__(self):
         n = len(self.examples)
         idxlist = list(range(n))
-        if self.shuffle:
+        if self.shuffle or self.subsample:
             np.random.shuffle(idxlist)
+
+        n *= self.subsample
 
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
