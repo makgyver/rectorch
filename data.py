@@ -363,19 +363,19 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
         self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
 
     def __len__(self):
-        m = self.num_examples - self.sparse_data_tr.shape[0]
-        return int(np.ceil(int(m * self.subsample) / self.batch_size))
+        m = int(self.num_examples * self.subsample) + self.sparse_data_tr.shape[0]
+        return int(np.ceil(m / self.batch_size))
 
     def __iter__(self):
 
         data = [(r, -1) for r in self.examples[-1]]
 
-        m = self.num_examples - self.sparse_data_tr.shape[0]
+        m = self.num_examples
         m = int(m * self.subsample / self.n_cond)
 
         for c in self.examples:
             if c >= 0:
-                data += [(r,c) for r in random.sample(self.examples[c], k)]
+                data += [(r,c) for r in np.random.choice(list(self.examples[c]), m)]
 
         data = np.array(data)
         n = len(data)
@@ -383,7 +383,6 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
         if self.shuffle or self.subsample:
             np.random.shuffle(idxlist)
 
-        n = int(n * self.subsample)
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
             ex = data[idxlist[start_idx:end_idx]]
