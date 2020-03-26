@@ -267,6 +267,7 @@ class ConditionedDataSampler(Sampler):
         self.batch_size = batch_size
         self.n_cond = n_cond
         self.shuffle = shuffle
+        self.subsample = subsample
         self.compute_conditions()
 
     def compute_conditions(self):
@@ -288,7 +289,7 @@ class ConditionedDataSampler(Sampler):
         self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
 
     def __len__(self):
-        return int(np.ceil(len(self.examples) / self.batch_size))
+        return int(np.ceil(len(self.examples) * self.subsample / self.batch_size))
 
     def __iter__(self):
         n = len(self.examples)
@@ -297,7 +298,6 @@ class ConditionedDataSampler(Sampler):
             np.random.shuffle(idxlist)
 
         n *= self.subsample
-
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
             ex = self.examples[idxlist[start_idx:end_idx]]
