@@ -3,6 +3,7 @@
     "batch_size": 250,
     "learning_rate": 0.001,
     "verbose": 1,
+    "best_path": "",
     "valid_metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"],
     "test_metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"]
 }

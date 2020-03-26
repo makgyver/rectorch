@@ -141,9 +141,7 @@ class VAE(TorchNNTrainer):
 
         return np.mean(np.concatenate(results))
 
-    def save_model(self, dir_path, cur_epoch, *args, **kwargs):
-        assert os.path.isdir(dir_path), f"The directory {dir_path} does not exist."
-        filepath = os.path.join(dir_path, "checkpoint_e%d.pth" %cur_epoch)
+    def save_model(self, filepath, *args, **kwargs):
         state = {'epoch': cur_epoch,
                  'state_dict': self.network.state_dict(),
                  'optimizer': self.optimizer.state_dict()
@@ -155,12 +153,10 @@ class VAE(TorchNNTrainer):
         torch.save(state, filepath)
         logger.info("Model checkpoint saved!")
 
-
     def load_model(self, filepath):
         assert os.path.isfile(filepath), f"The checkpoint file {filepath} does not exist."
         logger.info(f"Loading model checkpoint from {filepath}...")
         checkpoint = torch.load(filepath)
-        epoch = checkpoint['epoch']
         self.network.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
         logger.info(f"Checkpoint epoch {epoch}")
@@ -169,13 +165,14 @@ class VAE(TorchNNTrainer):
 
 
 class MultiVAE(VAE):
-    def __init__(self, mvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
+    def __init__(self, mvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3, best_path="chkpt_best.pth"):
         super(MultiVAE, self).__init__(mvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate, weight_decay=0.0)
         self.anneal_steps = anneal_steps
         self.annealing = anneal_steps > 0
         self.gradient_updates = 0.
         self.beta = beta
+        self.best_path = best_path
 
     def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
         BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
@@ -220,23 +217,19 @@ class MultiVAE(VAE):
             best_perf = -1. #Assume the higher the better >= 0
             for epoch in range(1, self.num_epochs + 1):
                 self.training_epoch(epoch, train_data, verbose)
-                #self.save_model("chkpt_multivae", epoch)
                 if valid_data:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
                     logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
 
                     if best_perf < valid_res:
-                        self.save_model("best_multivae", 0)
-                        #shutil.copyfile(filename, bestname)
+                        self.save_model(self.best_path, epoch)
                         best_perf = valid_res
 
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
-    def save_model(self, dir_path, cur_epoch, *args, **kwargs):
-        assert os.path.isdir(dir_path), f"The directory {dir_path} does not exist."
-        filepath = os.path.join(dir_path, "checkpoint_e%d.pth" %cur_epoch)
+    def save_model(self, filepath, cur_epoch, *args, **kwargs):
         state = {'epoch': cur_epoch,
                  'state_dict': self.network.state_dict(),
                  'optimizer': self.optimizer.state_dict(),
@@ -247,7 +240,7 @@ class MultiVAE(VAE):
     def load_model(self, filepath):
         checkpoint = super().load_model(filepath)
         self.gradient_updates = checkpoint['gradient_updates']
-        return epoch, checkpoint
+        return checkpoint
 
 
 class CMultiVAE(MultiVAE):
@@ -320,8 +313,10 @@ class EASE():
 
     #TODO logging
     def train(self, train_data):
-        X = train_data #TODO revise this
+        logger.info(f"ease - start tarining (lam={self.lam})")
+        X = train_data.todense() #TODO revise this
         G = np.dot(X.T, X)
+        logger.info("ease - linear kernel computed")
         diag_idx = np.diag_indices(G.shape[0])
         G[diag_idx] += self.lam
         P = np.linalg.inv(G)
@@ -330,5 +325,14 @@ class EASE():
         B[diag_idx] = 0
         del P
         self.model = np.dot(X, B)
+        logger.info("ease - training complete")
 
     #TODO implement save/load model
+
+    def predict(self, ids_te_users, test_tr, remove_train=True):
+        pred = self.model[ids_te_users,:]
+        if remove_train:
+            test_tr = test_tr.todense()
+            pred -= test_tr*1000
+
+        return pred
