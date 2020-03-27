@@ -182,6 +182,7 @@ class MultiVAE(VAE):
     def training_epoch(self, epoch, train_loader, verbose=1):
         self.network.train()
         train_loss = 0
+        partial_loss = 0
         epoch_start_time = time.time()
         start_time = time.time()
         log_delay = max(10, len(train_loader) // 10**verbose)
@@ -190,7 +191,7 @@ class MultiVAE(VAE):
             data_tensor = data.view(data.shape[0],-1).to(self.device)
             gt_tensor = data_tensor if gt is None else gt.view(gt.shape[0],-1).to(self.device)
             if self.annealing:
-                anneal_beta = min(1., 1. * self.gradient_updates / self.anneal_steps)
+                anneal_beta = min(self.beta, 1. * self.gradient_updates / self.anneal_steps)
             else:
                 anneal_beta = self.beta
 
@@ -198,7 +199,7 @@ class MultiVAE(VAE):
             recon_batch, mu, var = self.network(data_tensor)
             loss = self.loss_function(recon_batch, gt_tensor, mu, var, anneal_beta)
             loss.backward()
-            train_loss += loss.item()
+            partial_loss += loss.item()
             self.optimizer.step()
             self.gradient_updates += 1.
             if (batch_idx+1) % log_delay == 0:
@@ -207,10 +208,12 @@ class MultiVAE(VAE):
                         'loss {:.2f} |'.format(
                             epoch, (batch_idx+1), len(train_loader),
                             elapsed * 1000 / log_delay,
-                            train_loss / log_delay))
-                train_loss = 0.0
+                            partial_loss / log_delay))
+                train_loss += partial_loss
+                partial_loss = 0.0
                 start_time = time.time()
-        logger.info(f"| epoch {epoch} | total time: {time.time() - epoch_start_time:.2f}s |")
+        total_loss = (train_loss + partial_loss) / len(train_loader)
+        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} |total time: {time.time() - epoch_start_time:.2f}s |")
 
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
