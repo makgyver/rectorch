@@ -24,9 +24,6 @@ class TorchNNTrainer():
     def loss_function(self, ground_truth, prediction, *args, **kwargs):
         raise NotImplementedError()
 
-    def loss_function(self, ground_truth, prediction, *args, **kwargs):
-        raise NotImplementedError()
-
     def train(self, train_data, *args, **kwargs):
         raise NotImplementedError()
 
@@ -213,7 +210,7 @@ class MultiVAE(VAE):
                 partial_loss = 0.0
                 start_time = time.time()
         total_loss = (train_loss + partial_loss) / len(train_loader)
-        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} |total time: {time.time() - epoch_start_time:.2f}s |")
+        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | total time: {time.time() - epoch_start_time:.2f}s |")
 
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
@@ -247,8 +244,13 @@ class MultiVAE(VAE):
 
 
 class CMultiVAE(MultiVAE):
-    def __init__(self, cmvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3):
-        super(CMultiVAE, self).__init__(cmvae_net, beta=beta, anneal_steps=anneal_steps, num_epochs=num_epochs, learning_rate=learning_rate)
+    def __init__(self, cmvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3, best_path="chkpt_best.pth"):
+        super(CMultiVAE, self).__init__(cmvae_net,
+                                        beta=beta,
+                                        anneal_steps=anneal_steps,
+                                        num_epochs=num_epochs,
+                                        learning_rate=learning_rate,
+                                        best_path=best_path)
 
     def predict(self, x, remove_train=True):
         self.network.eval()
@@ -267,7 +269,6 @@ class EASE():
         self.lam = lam
         self.model = None
 
-    #TODO logging
     def train(self, train_data):
         logger.info(f"ease - start tarining (lam={self.lam})")
         X = train_data.todense() #TODO revise this
@@ -289,6 +290,6 @@ class EASE():
         pred = self.model[ids_te_users,:]
         if remove_train:
             test_tr = test_tr.todense()
-            pred -= test_tr*1000
+            pred -= test_tr * 1000 #TODO check this
 
         return pred

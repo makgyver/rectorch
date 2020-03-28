@@ -16,6 +16,7 @@ logging.basicConfig(level=logging.DEBUG,
 
 logger = logging.getLogger(__name__)
 
+
 class DataProcessing:
     def __init__(self, data_config):
         if isinstance(data_config, DataConfiguration):
@@ -215,8 +216,11 @@ class DataReader():
                                     (rows_te, cols_te)),
                                     dtype='float64',
                                     shape=(end_idx - start_idx + 1, self.n_items))
-        return data_tr, data_te
 
+        tr_idx = np.diff(data_tr.indptr) != 0
+        #te_idx = np.diff(data_te.indptr) != 0
+        #keep_idx = tr_idx * te_idx
+        return data_tr[tr_idx], data_te[tr_idx]
 
 
 class Sampler():
@@ -260,23 +264,20 @@ class DataSampler(Sampler):
 
 
 class ConditionedDataSampler(Sampler):
-    def __init__(self, iid2cids, n_cond, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True, subsample=1.):
+    def __init__(self, iid2cids, n_cond, sparse_data_tr, sparse_data_te=None, batch_size=1, shuffle=True):
         self.sparse_data_tr = sparse_data_tr
         self.sparse_data_te = sparse_data_te
         self.iid2cids = iid2cids
         self.batch_size = batch_size
         self.n_cond = n_cond
         self.shuffle = shuffle
-        self.subsample = subsample
         self.compute_conditions()
 
     def compute_conditions(self):
         r2cond = {}
-        cnt = 0
         for i,row in enumerate(self.sparse_data_tr):
             _, cols = row.nonzero()
             r2cond[i] = set.union(*[set(self.iid2cids[c]) for c in cols])
-            cnt += len(r2cond[i])
 
         self.examples = [(r, -1) for r in r2cond]
         self.examples += [(r, c) for r in r2cond for c in r2cond[r]]
@@ -289,15 +290,14 @@ class ConditionedDataSampler(Sampler):
         self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
 
     def __len__(self):
-        return int(np.ceil(int(len(self.examples) * self.subsample) / self.batch_size))
+        return int(np.ceil(len(self.examples) / self.batch_size))
 
     def __iter__(self):
         n = len(self.examples)
         idxlist = list(range(n))
-        if self.shuffle or self.subsample:
+        if self.shuffle:
             np.random.shuffle(idxlist)
 
-        n = int(n * self.subsample)
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
             ex = self.examples[idxlist[start_idx:end_idx]]
@@ -310,7 +310,7 @@ class ConditionedDataSampler(Sampler):
             values = np.ones(len(rows))
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
 
-            rows = [r for r,_ in ex]
+            rows_ = [r for r,_ in ex]
             data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix], format="csr")
 
             if self.sparse_data_te is None:
@@ -327,10 +327,8 @@ class ConditionedDataSampler(Sampler):
 
             values = np.ones(len(rows))
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
-            #filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr() > 0
             filtered = cond_matrix.dot(self.M.transpose().tocsr()) > 0
-            rows = [r for r,_ in ex]
-            data_te = self.sparse_data_te[rows].multiply(filtered)
+            data_te = self.sparse_data_te[rows_].multiply(filtered)
 
             filter_idx = np.diff(data_te.indptr) != 0
             data_te = data_te[filter_idx]
@@ -343,45 +341,26 @@ class ConditionedDataSampler(Sampler):
 
 
 class BalancedConditionedDataSampler(ConditionedDataSampler):
-
-    def compute_conditions(self):
-        r2cond = {}
-        cnt = 0
-        for i,row in enumerate(self.sparse_data_tr):
-            _, cols = row.nonzero()
-            r2cond[i] = set.union(*[set(self.iid2cids[c]) for c in cols])
-            cnt += len(r2cond[i])
-
-        self.examples = {c:{r for r in r2cond if c in r2cond[r]} for c in range(self.n_cond)}
-        self.examples[-1] = {r for r in r2cond}
-        self.num_examples = cnt
-        del r2cond
-
-        rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
-        cols = [g for m in self.iid2cids for g in self.iid2cids[m]]
-        values = np.ones(len(rows))
-        self.M = sparse.csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
+    def __init__(self, iid2cids, n_cond, sparse_data_tr, sparse_data_te=None, batch_size=1, subsample=.2):
+        super(BalancedConditionedDataSampler, self).__init__(iid2cids, n_cond, sparse_data_tr, sparse_data_te, batch_size, True)
+        self.num_cond_examples = len(self.examples) - self.sparse_data_tr.shape[0]
+        self.subsample = subsample
 
     def __len__(self):
-        m = int(self.num_examples * self.subsample) + self.sparse_data_tr.shape[0]
+        m = int(self.num_cond_examples * self.subsample) + self.sparse_data_tr.shape[0]
         return int(np.ceil(m / self.batch_size))
 
     def __iter__(self):
-
         data = [(r, -1) for r in self.examples[-1]]
+        m = int(self.num_cond_examples * self.subsample / self.n_cond)
 
-        m = self.num_examples
-        m = int(m * self.subsample / self.n_cond)
-
-        for c in self.examples:
-            if c >= 0:
-                data += [(r,c) for r in np.random.choice(list(self.examples[c]), m)]
+        for c in self.examples[self.sparse_data_tr.shape[0]:]:
+            data += [(r,c) for r in np.random.choice(list(self.examples[c]), m)]
 
         data = np.array(data)
         n = len(data)
         idxlist = list(range(n))
-        if self.shuffle or self.subsample:
-            np.random.shuffle(idxlist)
+        np.random.shuffle(idxlist)
 
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
@@ -395,8 +374,8 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
             values = np.ones(len(rows))
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
 
-            rows = [r for r,_ in ex]
-            data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix], format="csr")
+            rows_ = [r for r,_ in ex]
+            data_tr = sparse.hstack([self.sparse_data_tr[rows_], cond_matrix], format="csr")
 
             if self.sparse_data_te is None:
                 self.sparse_data_te = self.sparse_data_tr
@@ -412,10 +391,8 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
 
             values = np.ones(len(rows))
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
-            #filtered = self.M.dot(cond_matrix.transpose().tocsr()).transpose().tocsr() > 0
             filtered = cond_matrix.dot(self.M.transpose().tocsr()) > 0
-            rows = [r for r,_ in ex]
-            data_te = self.sparse_data_te[rows].multiply(filtered)
+            data_te = self.sparse_data_te[rows_].multiply(filtered)
 
             filter_idx = np.diff(data_te.indptr) != 0
             data_te = data_te[filter_idx]
