@@ -218,8 +218,8 @@ class DataReader():
                                     shape=(end_idx - start_idx + 1, self.n_items))
 
         tr_idx = np.diff(data_tr.indptr) != 0
-        #te_idx = np.diff(data_te.indptr) != 0
-        #keep_idx = tr_idx * te_idx
+        te_idx = np.diff(data_te.indptr) != 0
+        keep_idx = tr_idx * te_idx
         return data_tr[tr_idx], data_te[tr_idx]
 
 
