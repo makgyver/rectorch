@@ -9,7 +9,7 @@ import sys
 import torch
 from torch.utils.data import Dataset
 
-logging.basicConfig(level=logging.DEBUG,
+logging.basicConfig(level=logging.INFO,
                     format="[%(asctime)s]  %(message)s",
                     datefmt='%H:%M:%S-%d%m%y',
                     stream=sys.stdout)
