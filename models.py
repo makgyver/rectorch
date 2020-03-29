@@ -156,7 +156,6 @@ class VAE(TorchNNTrainer):
         checkpoint = torch.load(filepath)
         self.network.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
-        logger.info(f"Checkpoint epoch {epoch}")
         logger.info(f"Model checkpoint loaded!")
         return checkpoint
 

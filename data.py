@@ -315,7 +315,7 @@ class ConditionedDataSampler(Sampler):
             cond_matrix = sparse.csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
 
             rows_ = [r for r,_ in ex]
-            data_tr = sparse.hstack([self.sparse_data_tr[rows], cond_matrix], format="csr")
+            data_tr = sparse.hstack([self.sparse_data_tr[rows_], cond_matrix], format="csr")
 
             if self.sparse_data_te is None:
                 self.sparse_data_te = self.sparse_data_tr
