@@ -68,6 +68,10 @@ class DataProcessing:
             for iid in unique_iid:
                 f.write('%s\n' % iid)
 
+        with open(os.path.join(pro_dir, 'unique_uid.txt'), 'w') as f:
+            for uid in unique_uid:
+                f.write('%s\n' % uid)
+
         logger.info("Creating validation and test set.")
         val_data = raw_data.loc[raw_data[uhead].isin(vd_users)]
         val_data = val_data.loc[val_data[ihead].isin(unique_iid)]
