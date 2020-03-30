@@ -7,16 +7,15 @@ import pandas as pd
 from scipy import sparse
 import sys
 
+logging.basicConfig(level=logging.INFO,
+                    format="[%(asctime)s]  %(message)s",
+                    datefmt='%H:%M:%S-%d%m%y',
+                    stream=sys.stdout)
+
+logger = logging.getLogger(__name__)
 
 class DataProcessing:
     def __init__(self, data_config):
-        logging.basicConfig(level=logging.INFO,
-                            format="[%(asctime)s]  %(message)s",
-                            datefmt='%H:%M:%S-%d%m%y',
-                            stream=sys.stdout)
-
-        logger = logging.getLogger(__name__)
-
         if isinstance(data_config, DataConfiguration):
             self.cfg = data_config
         elif isinstance(data_config, str):
