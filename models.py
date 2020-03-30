@@ -27,7 +27,10 @@ class TorchNNTrainer():
     def train(self, train_data, *args, **kwargs):
         raise NotImplementedError()
 
-    def training_epoch(self, epoch, train_data, *args, **kwargs):
+    def train_epoch(self, epoch, train_data, *args, **kwargs):
+        raise NotImplementedError()
+
+    def train_batch(self, epoch, tr_batch, te_batch, *args, **kwargs):
         raise NotImplementedError()
 
     def validate(self, valid_data, metric):
@@ -53,10 +56,10 @@ class TorchNNTrainer():
     def __repr__(self):
         return str(self)
 
-
+'''
 class MultiDAE(TorchNNTrainer):
     def __init__(self, mdae_net, lam=0.2, num_epochs=100, learning_rate=1e-3):
-        super(MultiDAE, self).__init__(mdae_net, num_epochs=num_epochs, learning_rate=learning_rate)
+        super(MultiDAE, self).__init__(mdae_net, num_epochs, learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
         self.lam = lam
 
@@ -69,21 +72,23 @@ class MultiDAE(TorchNNTrainer):
         return BCE + self.lam * l2_reg
 
     #TODO complete the methods definition
-
+'''
 
 class VAE(TorchNNTrainer):
     def __init__(self, vae_net, num_epochs=100, learning_rate=1e-3):
-        super(VAE, self).__init__(vae_net, num_epochs=num_epochs, learning_rate=learning_rate)
+        super(VAE, self).__init__(vae_net, num_epochs, learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
 
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             for epoch in range(1, self.num_epochs + 1):
-                self.training_epoch(epoch, train_data)
-                if valid_data:
+                self.train_epoch(epoch, train_data)
+                if valid_data is not None:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
-                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
+                    mu_val = np.mean(valid_res)
+                    std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
+                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} ({std_err_val:.4f}) |')
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
@@ -92,31 +97,37 @@ class VAE(TorchNNTrainer):
         KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
         return BCE + KLD
 
-    def training_epoch(self, epoch, train_loader, verbose=1):
+    def train_epoch(self, epoch, train_loader, verbose=1):
         self.network.train()
         train_loss = 0
+        partial_loss = 0
         epoch_start_time = time.time()
         start_time = time.time()
         log_delay = max(10, len(train_loader) // 10**verbose)
 
-        for batch_idx, (data, _) in enumerate(train_loader):
-            data_tensor = data.view(data.shape[0],-1).to(self.device)
-            self.optimizer.zero_grad()
-            recon_batch, mu, var = self.network(data_tensor)
-            loss = self.loss_function(recon_batch, data_tensor, mu, var)
-            loss.backward()
-            train_loss += loss.item()
-            self.optimizer.step()
+        for batch_idx, (data, gt) in enumerate(train_loader):
+            partial_loss += self.train_batch(data, gt)
             if (batch_idx+1) % log_delay == 0:
                 elapsed = time.time() - start_time
                 logger.info('| epoch {:d} | {:d}/{:d} batches | ms/batch {:.2f} | '
                         'loss {:.2f} |'.format(
                             epoch, (batch_idx+1), len(train_loader),
                             elapsed * 1000 / log_delay,
-                            train_loss / log_delay))
-                train_loss = 0.0
+                            partial_loss / log_delay))
+                train_loss += partial_loss
+                partial_loss = 0.0
                 start_time = time.time()
-        logger.info(f"| epoch {epoch} | total time: {time.time() - epoch_start_time:.2f}s |")
+        total_loss = (train_loss + partial_loss) / len(train_loader)
+        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | total time: {time.time() - epoch_start_time:.2f}s |")
+
+    def train_batch(self, tr_batch, te_batch=None):
+        data_tensor = tr_batch.view(tr_batch.shape[0],-1).to(self.device)
+        self.optimizer.zero_grad()
+        recon_batch, mu, var = self.network(data_tensor)
+        loss = self.loss_function(recon_batch, data_tensor, mu, var)
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
 
     def predict(self, x, remove_train=True):
         self.network.eval()
@@ -136,9 +147,9 @@ class VAE(TorchNNTrainer):
             heldout = heldout.view(heldout.shape[0],-1).cpu().numpy()
             results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
 
-        return np.mean(np.concatenate(results))
+        return np.concatenate(results)
 
-    def save_model(self, filepath, *args, **kwargs):
+    def save_model(self, filepath):
         state = {'epoch': cur_epoch,
                  'state_dict': self.network.state_dict(),
                  'optimizer': self.optimizer.state_dict()
@@ -161,7 +172,13 @@ class VAE(TorchNNTrainer):
 
 
 class MultiVAE(VAE):
-    def __init__(self, mvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3, best_path="chkpt_best.pth"):
+    def __init__(self,
+                 mvae_net,
+                 beta=1.,
+                 anneal_steps=0,
+                 num_epochs=100,
+                 learning_rate=1e-3,
+                 best_path="chkpt_best.pth"):
         super(MultiVAE, self).__init__(mvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate, weight_decay=0.0)
         self.anneal_steps = anneal_steps
@@ -175,51 +192,33 @@ class MultiVAE(VAE):
         KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
         return BCE + beta * KLD
 
-    def training_epoch(self, epoch, train_loader, verbose=1):
-        self.network.train()
-        train_loss = 0
-        partial_loss = 0
-        epoch_start_time = time.time()
-        start_time = time.time()
-        log_delay = max(10, len(train_loader) // 10**verbose)
+    def train_batch(self, tr_batch, te_batch):
+        data_tensor = tr_batch.view(tr_batch.shape[0],-1).to(self.device)
+        gt_tensor = data_tensor if te_batch is None else te_batch.view(te_batch.shape[0],-1).to(self.device)
+        if self.annealing:
+            anneal_beta = min(self.beta, 1. * self.gradient_updates / self.anneal_steps)
+        else:
+            anneal_beta = self.beta
 
-        for batch_idx, (data, gt) in enumerate(train_loader):
-            data_tensor = data.view(data.shape[0],-1).to(self.device)
-            gt_tensor = data_tensor if gt is None else gt.view(gt.shape[0],-1).to(self.device)
-            if self.annealing:
-                anneal_beta = min(self.beta, 1. * self.gradient_updates / self.anneal_steps)
-            else:
-                anneal_beta = self.beta
-
-            self.optimizer.zero_grad()
-            recon_batch, mu, var = self.network(data_tensor)
-            loss = self.loss_function(recon_batch, gt_tensor, mu, var, anneal_beta)
-            loss.backward()
-            partial_loss += loss.item()
-            self.optimizer.step()
-            self.gradient_updates += 1.
-            if (batch_idx+1) % log_delay == 0:
-                elapsed = time.time() - start_time
-                logger.info('| epoch {:d} | {:d}/{:d} batches | ms/batch {:.2f} | '
-                        'loss {:.2f} |'.format(
-                            epoch, (batch_idx+1), len(train_loader),
-                            elapsed * 1000 / log_delay,
-                            partial_loss / log_delay))
-                train_loss += partial_loss
-                partial_loss = 0.0
-                start_time = time.time()
-        total_loss = (train_loss + partial_loss) / len(train_loader)
-        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | total time: {time.time() - epoch_start_time:.2f}s |")
+        self.optimizer.zero_grad()
+        recon_batch, mu, var = self.network(data_tensor)
+        loss = self.loss_function(recon_batch, gt_tensor, mu, var, anneal_beta)
+        loss.backward()
+        self.optimizer.step()
+        self.gradient_updates += 1.
+        return loss.item()
 
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             best_perf = -1. #Assume the higher the better >= 0
             for epoch in range(1, self.num_epochs + 1):
-                self.training_epoch(epoch, train_data, verbose)
+                self.train_epoch(epoch, train_data, verbose)
                 if valid_data:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
-                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} |')
+                    mu_val = np.mean(valid_res)
+                    std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
+                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} ({std_err_val:.4f}) |')
 
                     if best_perf < valid_res:
                         self.save_model(self.best_path, epoch)
@@ -228,7 +227,7 @@ class MultiVAE(VAE):
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
-    def save_model(self, filepath, cur_epoch, *args, **kwargs):
+    def save_model(self, filepath, cur_epoch):
         state = {'epoch': cur_epoch,
                  'state_dict': self.network.state_dict(),
                  'optimizer': self.optimizer.state_dict(),
@@ -243,7 +242,13 @@ class MultiVAE(VAE):
 
 
 class CMultiVAE(MultiVAE):
-    def __init__(self, cmvae_net, beta=1., anneal_steps=0, num_epochs=100, learning_rate=1e-3, best_path="chkpt_best.pth"):
+    def __init__(self,
+                 cmvae_net,
+                 beta=1.,
+                 anneal_steps=0,
+                 num_epochs=100,
+                 learning_rate=1e-3,
+                 best_path="chkpt_best.pth"):
         super(CMultiVAE, self).__init__(cmvae_net,
                                         beta=beta,
                                         anneal_steps=anneal_steps,

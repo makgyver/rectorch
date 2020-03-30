@@ -1,11 +1,13 @@
 import argparse
 from configuration import ConfigurationManager
-from data import DatasetManager, DataSampler
+from data import DatasetManager
+from evaluation import evaluate
 import json
 import logging
 import models
 import nets
 import os
+from sampler import DataSampler
 import sys
 import torch
 from torch.utils.data import DataLoader
@@ -73,8 +75,6 @@ vae.train(tr_loader, val_loader, vae_config.valid_metrics[0], vae_config.verbose
 ###############################################################################
 # Test the model
 ###############################################################################
-#test_loss, stats = vae.evaluate(te_loader, vae_config["test_metrics"])
-
-#for metric in vae_config["test_metrics"]
-#str_stats = " | ".join([f"{k} {v:.3f}" for k,v in stats.items()])
-#logger.info('| final evaluation | test loss {test_loss:.2f} | {str_stats} |')
+stats = evaluate(vae, vae_config.valid_metrics)
+str_stats = " | ".join([f"{k} {np.mean(v):.3f} ({np.std(v):.4f})" for k,v in stats.items()])
+logger.info('| final evaluation | {str_stats} |')

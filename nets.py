@@ -49,7 +49,7 @@ class CDAE_net(AE_net):
 
     def encode(self, x):
         if self.training:
-            x[:self.n_items] *= 1./(1.-self.dropout.p)
+            x[:self.n_items] *= 1. / (1.-self.dropout.p)
             x[:self.n_items] = self.dropout(x[:self.n_items])
 
         x = torch.sigmoid(self.enc_layer(x))
