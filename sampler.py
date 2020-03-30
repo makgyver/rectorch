@@ -106,13 +106,9 @@ class ConditionedDataSampler(Sampler):
             if self.sparse_data_te is None:
                 self.sparse_data_te = self.sparse_data_tr
 
-            rows, cols = [], []
             for i,(r,c) in enumerate(ex):
-                if c >= 0:
-                    rows.append(i)
-                    cols.append(c)
-                else:
-                    rows += [i]*self.n_cond
+                if c < 0:
+                    rows += [i] * self.n_cond
                     cols += range(self.n_cond)
 
             values = np.ones(len(rows))
