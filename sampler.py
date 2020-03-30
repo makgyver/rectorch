@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import csr_matrix, hstack
+from scipy.sparse import csr_matrix, hstack, vstack
 import torch
 
 
@@ -114,6 +114,89 @@ class ConditionedDataSampler(Sampler):
             values = np.ones(len(rows))
             cond_matrix = csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
             filtered = cond_matrix.dot(self.M.transpose().tocsr()) > 0
+            data_te = self.sparse_data_te[rows_].multiply(filtered)
+
+            filter_idx = np.diff(data_te.indptr) != 0
+            data_te = data_te[filter_idx]
+            data_tr = data_tr[filter_idx]
+
+            data_te = torch.FloatTensor(data_te.toarray())
+            data_tr = torch.FloatTensor(data_tr.toarray())
+
+            yield data_tr, data_te
+
+
+class FastConditionedDataSampler(Sampler):
+    def __init__(self,
+                 iid2cids,
+                 n_cond,
+                 sparse_data_tr,
+                 sparse_data_te=None,
+                 batch_size=1,
+                 shuffle=True):
+        self.sparse_data_tr = sparse_data_tr
+        self.sparse_data_te = sparse_data_te
+        self.iid2cids = iid2cids
+        self.batch_size = batch_size
+        self.n_cond = n_cond
+        self.shuffle = shuffle
+        self.compute_conditions()
+
+    def compute_conditions(self):
+        r2cond = {}
+        for i,row in enumerate(self.sparse_data_tr):
+            _, cols = row.nonzero()
+            r2cond[i] = set.union(*[set(self.iid2cids[c]) for c in cols])
+
+        self.examples = [(r, -1) for r in r2cond]
+        self.examples += [(r, c) for r in r2cond for c in r2cond[r]]
+        self.examples = np.array(self.examples)
+        del r2cond
+
+        empty_cond = csr_matrix((self.sparse_data_tr.shape[0], self.n_cond))
+
+        rows, cols = [], []
+        for i,(r,c) in enumerate(ex):
+            if c >= 0:
+                rows.append(i - empty_cond.shape[0])
+                cols.append(c)
+
+            values = np.ones(len(rows))
+            cond = csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
+
+        self.cond_matrix = vstack([empty_cond, cond], format="csr")
+
+        rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
+        cols = [g for m in self.iid2cids for g in self.iid2cids[m]]
+        values = np.ones(len(rows))
+        self.M = csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
+
+    def __len__(self):
+        return int(np.ceil(len(self.examples) / self.batch_size))
+
+    def __iter__(self):
+        n = len(self.examples)
+        idxlist = list(range(n))
+        if self.shuffle:
+            np.random.shuffle(idxlist)
+
+        cols = [i for i in range(self.n_cond)]
+        full_cond = csr_matrix(([1.]*len(cols), ([0]*len(cols), cols)), shape=(1, self.n_cond))
+        for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            ex = self.examples[idxlist[start_idx:end_idx]]
+            rows_ = [r for r,_ in ex]
+            cmatrix = self.cond_matrix[rows_].copy()
+            data_tr = hstack([self.sparse_data_tr[rows_], cmatrix], format="csr")
+
+            if self.sparse_data_te is None:
+                self.sparse_data_te = self.sparse_data_tr
+
+            for i,(r,c) in enumerate(ex):
+                if c < 0:
+                    cmatrix[i] += full_cond
+
+            filtered = cmatrix.dot(self.M.transpose().tocsr()) > 0
             data_te = self.sparse_data_te[rows_].multiply(filtered)
 
             filter_idx = np.diff(data_te.indptr) != 0
