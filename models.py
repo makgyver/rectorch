@@ -88,7 +88,7 @@ class VAE(TorchNNTrainer):
                     valid_res = self.validate(valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} ({std_err_val:.4f}) |')
+                    logger.info(f'| epoch {epoch} | {valid_metric} {mu_val:.3f} ({std_err_val:.4f}) |')
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
@@ -218,11 +218,11 @@ class MultiVAE(VAE):
                     valid_res = self.validate(valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                    logger.info(f'| epoch {epoch} | {valid_metric} {valid_res} ({std_err_val:.4f}) |')
+                    logger.info(f'| epoch {epoch} | {valid_metric} {mu_val:.3f} ({std_err_val:.4f}) |')
 
-                    if best_perf < valid_res:
+                    if best_perf < mu_val:
                         self.save_model(self.best_path, epoch)
-                        best_perf = valid_res
+                        best_perf = mu_val
 
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
