@@ -6,6 +6,7 @@ import json
 import logging
 import models
 import nets
+import numpy as np
 import os
 from sampler import DataSampler
 import sys
@@ -75,6 +76,6 @@ vae.train(tr_loader, val_loader, vae_config.valid_metrics[0], vae_config.verbose
 ###############################################################################
 # Test the model
 ###############################################################################
-stats = evaluate(vae, vae_config.valid_metrics)
-str_stats = " | ".join([f"{k} {np.mean(v):.3f} ({np.std(v):.4f})" for k,v in stats.items()])
-logger.info('| final evaluation | {str_stats} |')
+stats = evaluate(vae, te_loader, vae_config.valid_metrics)
+str_stats = " | ".join([f"{k} {np.mean(v):.5f} ({np.std(v)/np.sqrt(len(v)):.4f})" for k,v in stats.items()])
+logger.info(f'| final evaluation | {str_stats} |')
