@@ -182,8 +182,6 @@ class FastConditionedDataSampler(Sampler):
         if self.shuffle:
             np.random.shuffle(idxlist)
 
-        cols = [i for i in range(self.n_cond)]
-        full_cond = csr_matrix(([1.]*len(cols), ([0]*len(cols), cols)), shape=(1, self.n_cond))
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
             indices = idxlist[start_idx:end_idx]
