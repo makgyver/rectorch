@@ -156,14 +156,14 @@ class FastConditionedDataSampler(Sampler):
         empty_cond = csr_matrix((self.sparse_data_tr.shape[0], self.n_cond))
 
         rows, cols = [], []
-        for i,(r,c) in enumerate(ex):
+        for i,(r,c) in enumerate(self.examples):
             if c >= 0:
                 rows.append(i - empty_cond.shape[0])
                 cols.append(c)
 
-            values = np.ones(len(rows))
-            cond = csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
-
+        values = np.ones(len(rows))
+        m = len(self.examples) - self.sparse_data_tr.shape[0]
+        cond = csr_matrix((values, (rows, cols)), shape=(m, self.n_cond))
         self.cond_matrix = vstack([empty_cond, cond], format="csr")
 
         rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
