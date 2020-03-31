@@ -186,7 +186,7 @@ class FastConditionedDataSampler(Sampler):
             end_idx = min(start_idx + self.batch_size, n)
             ex = self.examples[idxlist[start_idx:end_idx]]
             rows_ = [r for r,_ in ex]
-            cmatrix = self.cond_matrix[rows_].copy()
+            cmatrix = self.cond_matrix[idxlist[start_idx:end_idx]].copy()
             data_tr = hstack([self.sparse_data_tr[rows_], cmatrix], format="csr")
 
             if self.sparse_data_te is None:
