@@ -154,7 +154,7 @@ class FastConditionedDataSampler(Sampler):
         del r2cond
 
         empty_cond = csr_matrix((self.sparse_data_tr.shape[0], self.n_cond))
-
+        full_cond = csr_matrix(np.ones(empty_cond.shape))
         rows, cols = [], []
         for i,(r,c) in enumerate(self.examples):
             if c >= 0:
@@ -165,11 +165,13 @@ class FastConditionedDataSampler(Sampler):
         m = len(self.examples) - self.sparse_data_tr.shape[0]
         cond = csr_matrix((values, (rows, cols)), shape=(m, self.n_cond))
         self.cond_matrix = vstack([empty_cond, cond], format="csr")
+        self.cond_matrix_te = vstack([full_cond, cond], format="csr")
 
         rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
         cols = [g for m in self.iid2cids for g in self.iid2cids[m]]
         values = np.ones(len(rows))
         self.M = csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
+        self.M_t = self.M.transpose().tocsr()
 
     def __len__(self):
         return int(np.ceil(len(self.examples) / self.batch_size))
@@ -184,20 +186,19 @@ class FastConditionedDataSampler(Sampler):
         full_cond = csr_matrix(([1.]*len(cols), ([0]*len(cols), cols)), shape=(1, self.n_cond))
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
-            ex = self.examples[idxlist[start_idx:end_idx]]
-            rows_ = [r for r,_ in ex]
-            cmatrix = self.cond_matrix[idxlist[start_idx:end_idx]].copy()
-            data_tr = hstack([self.sparse_data_tr[rows_], cmatrix], format="csr")
+            indices = idxlist[start_idx:end_idx]
+
+            ex = self.examples[indices]
+            rows = [r for r,_ in ex]
+            cmatrix = self.cond_matrix[indices]
+            data_tr = hstack([self.sparse_data_tr[rows], cmatrix], format="csr")
 
             if self.sparse_data_te is None:
                 self.sparse_data_te = self.sparse_data_tr
 
-            for i,(r,c) in enumerate(ex):
-                if c < 0:
-                    cmatrix[i] += full_cond
-
-            filtered = cmatrix.dot(self.M.transpose().tocsr()) > 0
-            data_te = self.sparse_data_te[rows_].multiply(filtered)
+            cmatrix_te = self.cond_matrix_te[indices]
+            filtered = cmatrix_te.dot(self.M_t) > 0
+            data_te = self.sparse_data_te[rows].multiply(filtered)
 
             filter_idx = np.diff(data_te.indptr) != 0
             data_te = data_te[filter_idx]
