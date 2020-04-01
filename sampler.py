@@ -153,20 +153,6 @@ class FastConditionedDataSampler(Sampler):
         self.examples = np.array(self.examples)
         del r2cond
 
-        empty_cond = csr_matrix((self.sparse_data_tr.shape[0], self.n_cond))
-        full_cond = csr_matrix(np.ones(empty_cond.shape))
-        rows, cols = [], []
-        for i,(r,c) in enumerate(self.examples):
-            if c >= 0:
-                rows.append(i - empty_cond.shape[0])
-                cols.append(c)
-
-        values = np.ones(len(rows))
-        m = len(self.examples) - self.sparse_data_tr.shape[0]
-        cond = csr_matrix((values, (rows, cols)), shape=(m, self.n_cond))
-        self.cond_matrix = vstack([empty_cond, cond], format="csr")
-        self.cond_matrix_te = vstack([full_cond, cond], format="csr")
-
         rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
         cols = [g for m in self.iid2cids for g in self.iid2cids[m]]
         values = np.ones(len(rows))
@@ -182,19 +168,24 @@ class FastConditionedDataSampler(Sampler):
         if self.shuffle:
             np.random.shuffle(idxlist)
 
+        empty_cond = csr_matrix((1, self.n_cond))
+        full_cond = csr_matrix(np.ones(empty_cond.shape))
+        cond_matrix = identity(self.n_cond, format='csr')
+
         for batch_idx, start_idx in enumerate(range(0, n, self.batch_size)):
             end_idx = min(start_idx + self.batch_size, n)
             indices = idxlist[start_idx:end_idx]
 
             ex = self.examples[indices]
             rows = [r for r,_ in ex]
-            cmatrix = self.cond_matrix[indices]
+            cols = [c for _,c in ex]
+            cmatrix = vstack([cond_matrix, empty_cond])[cols]
             data_tr = hstack([self.sparse_data_tr[rows], cmatrix], format="csr")
 
             if self.sparse_data_te is None:
                 self.sparse_data_te = self.sparse_data_tr
 
-            cmatrix_te = self.cond_matrix_te[indices]
+            cmatrix_te = vstack([cond_matrix, full_cond])[cols]
             filtered = cmatrix_te.dot(self.M_t) > 0
             data_te = self.sparse_data_te[rows].multiply(filtered)
 
