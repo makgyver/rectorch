@@ -61,29 +61,8 @@ class TorchNNTrainer(RecSysModel):
     def __repr__(self):
         return str(self)
 
-'''
-class MultiDAE(TorchNNTrainer):
-    def __init__(self, mdae_net, lam=0.2, num_epochs=100, learning_rate=1e-3):
-        super(MultiDAE, self).__init__(mdae_net, num_epochs, learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
-        self.lam = lam
 
-    def loss_function(self, recon_x, x):
-        BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
-        l2_reg = Variable(torch.FloatTensor(1), requires_grad=True)
-        for W in self.network.parameters():
-            l2_reg += W.norm(2)
-
-        return BCE + self.lam * l2_reg
-
-    #TODO complete the methods definition
-'''
-
-class VAE(TorchNNTrainer):
-    def __init__(self, vae_net, num_epochs=100, learning_rate=1e-3):
-        super(VAE, self).__init__(vae_net, num_epochs, learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
-
+class AETrainer(TorchNNTrainer):
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             for epoch in range(1, self.num_epochs + 1):
@@ -97,34 +76,65 @@ class VAE(TorchNNTrainer):
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
+    def train_batch(self, tr_batch, te_batch=None):
+        data_tensor = tr_batch.view(tr_batch.shape[0],-1).to(self.device)
+        self.optimizer.zero_grad()
+        recon_batch = self.network(data_tensor)
+        loss = self.loss_function(recon_batch, data_tensor)
+        loss.backward()
+        self.optimizer.step()
+        return loss.item()
+
+    def predict(self, x, remove_train=True):
+        self.network.eval()
+        with torch.no_grad():
+            x_tensor = x.to(self.device)
+            recon_x = self.network(x_tensor)
+            if remove_train:
+                recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
+            return recon_x
+
+    def validate(self, test_loader, metric):
+        results = []
+        for batch_idx, (data_tr, heldout) in enumerate(test_loader):
+            data_tensor = data_tr.view(data_tr.shape[0],-1)
+            recon_batch = self.predict(data_tensor).cpu().numpy()
+            heldout = heldout.view(heldout.shape[0],-1).cpu().numpy()
+            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
+
+        return np.concatenate(results)
+
+    def save_model(self, filepath):
+        state = {'epoch': cur_epoch,
+                 'state_dict': self.network.state_dict(),
+                 'optimizer': self.optimizer.state_dict()
+                }
+        self._save_checkpoint(filepath, state)
+
+    def _save_checkpoint(self, filepath, state):
+        logger.info(f"Saving model checkpoint to {filepath}...")
+        torch.save(state, filepath)
+        logger.info("Model checkpoint saved!")
+
+    def load_model(self, filepath):
+        assert os.path.isfile(filepath), f"The checkpoint file {filepath} does not exist."
+        logger.info(f"Loading model checkpoint from {filepath}...")
+        checkpoint = torch.load(filepath)
+        self.network.load_state_dict(checkpoint['state_dict'])
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
+        logger.info(f"Model checkpoint loaded!")
+        return checkpoint
+
+
+class VAE(AETrainer):
+    def __init__(self, vae_net, num_epochs=100, learning_rate=1e-3):
+        super(VAE, self).__init__(vae_net, num_epochs, learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+
     def loss_function(self, recon_x, x, mu, logvar):
         BCE = F.binary_cross_entropy(recon_x, x)
         KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=1))
         return BCE + KLD
-
-    def train_epoch(self, epoch, train_loader, verbose=1):
-        self.network.train()
-        train_loss = 0
-        partial_loss = 0
-        epoch_start_time = time.time()
-        start_time = time.time()
-        log_delay = max(10, len(train_loader) // 10**verbose)
-
-        for batch_idx, (data, gt) in enumerate(train_loader):
-            partial_loss += self.train_batch(data, gt)
-            if (batch_idx+1) % log_delay == 0:
-                elapsed = time.time() - start_time
-                logger.info('| epoch {:d} | {:d}/{:d} batches | ms/batch {:.2f} | '
-                        'loss {:.2f} |'.format(
-                            epoch, (batch_idx+1), len(train_loader),
-                            elapsed * 1000 / log_delay,
-                            partial_loss / log_delay))
-                train_loss += partial_loss
-                partial_loss = 0.0
-                start_time = time.time()
-        total_loss = (train_loss + partial_loss) / len(train_loader)
-        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | "
-                     "total time: {time.time() - epoch_start_time:.2f}s |")
 
     def train_batch(self, tr_batch, te_batch=None):
         data_tensor = tr_batch.view(tr_batch.shape[0],-1).to(self.device)
@@ -155,26 +165,20 @@ class VAE(TorchNNTrainer):
 
         return np.concatenate(results)
 
-    def save_model(self, filepath):
-        state = {'epoch': cur_epoch,
-                 'state_dict': self.network.state_dict(),
-                 'optimizer': self.optimizer.state_dict()
-                }
-        self._save_checkpoint(filepath, state)
 
-    def _save_checkpoint(self, filepath, state):
-        logger.info(f"Saving model checkpoint to {filepath}...")
-        torch.save(state, filepath)
-        logger.info("Model checkpoint saved!")
+class MultiDAE(AETrainer):
+    def __init__(self, mdae_net, lam=0.2, num_epochs=100, learning_rate=1e-3):
+        super(MultiDAE, self).__init__(mdae_net, num_epochs, learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.lam = lam
 
-    def load_model(self, filepath):
-        assert os.path.isfile(filepath), f"The checkpoint file {filepath} does not exist."
-        logger.info(f"Loading model checkpoint from {filepath}...")
-        checkpoint = torch.load(filepath)
-        self.network.load_state_dict(checkpoint['state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
-        logger.info(f"Model checkpoint loaded!")
-        return checkpoint
+    def loss_function(self, recon_x, x):
+        BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
+        l2_reg = Variable(torch.FloatTensor(1), requires_grad=True)
+        for W in self.network.parameters():
+            l2_reg += W.norm(2)
+
+        return BCE + self.lam * l2_reg
 
 
 class MultiVAE(VAE):
