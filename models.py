@@ -76,6 +76,31 @@ class AETrainer(TorchNNTrainer):
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
+
+    def train_epoch(self, epoch, train_loader, verbose=1):
+        self.network.train()
+        train_loss = 0
+        partial_loss = 0
+        epoch_start_time = time.time()
+        start_time = time.time()
+        log_delay = max(10, len(train_loader) // 10**verbose)
+
+        for batch_idx, (data, gt) in enumerate(train_loader):
+            partial_loss += self.train_batch(data, gt)
+            if (batch_idx+1) % log_delay == 0:
+                elapsed = time.time() - start_time
+                logger.info('| epoch {:d} | {:d}/{:d} batches | ms/batch {:.2f} | '
+                        'loss {:.2f} |'.format(
+                            epoch, (batch_idx+1), len(train_loader),
+                            elapsed * 1000 / log_delay,
+                            partial_loss / log_delay))
+                train_loss += partial_loss
+                partial_loss = 0.0
+                start_time = time.time()
+        total_loss = (train_loss + partial_loss) / len(train_loader)
+        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | "
+                     "total time: {time.time() - epoch_start_time:.2f}s |")
+
     def train_batch(self, tr_batch, te_batch=None):
         data_tensor = tr_batch.view(tr_batch.shape[0],-1).to(self.device)
         self.optimizer.zero_grad()
