@@ -4,8 +4,7 @@ from os.path import exists
 
 class Singleton(type):
     """
-    Define an Instance operation that lets clients access its unique
-    instance.
+    Define an Instance operation that lets clients access its unique instance.
     """
     def __init__(cls, name, bases, attrs, **kwargs):
         super().__init__(name, bases, attrs)

@@ -117,13 +117,13 @@ class AETrainer(TorchNNTrainer):
             recon_x = self.network(x_tensor)
             if remove_train:
                 recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
-            return recon_x
+            return recon_x,
 
     def validate(self, test_loader, metric):
         results = []
         for batch_idx, (data_tr, heldout) in enumerate(test_loader):
             data_tensor = data_tr.view(data_tr.shape[0],-1)
-            recon_batch = self.predict(data_tensor).cpu().numpy()
+            recon_batch = self.predict(data_tensor)[0].cpu().numpy()
             heldout = heldout.view(heldout.shape[0],-1).cpu().numpy()
             results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
 
@@ -178,17 +178,6 @@ class VAE(AETrainer):
             if remove_train:
                 recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
             return recon_x, mu, logvar
-
-    def validate(self, test_loader, metric):
-        results = []
-        for batch_idx, (data_tr, heldout) in enumerate(test_loader):
-            data_tensor = data_tr.view(data_tr.shape[0],-1)
-            recon_batch, _, _ = self.predict(data_tensor)
-            recon_batch = recon_batch.cpu().numpy()
-            heldout = heldout.view(heldout.shape[0],-1).cpu().numpy()
-            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
-
-        return np.concatenate(results)
 
 
 class MultiDAE(AETrainer):
@@ -328,7 +317,7 @@ class EASE(RecSysModel):
             test_tr = test_tr.todense()
             pred -= test_tr * 1000 #TODO check this
 
-        return pred
+        return pred,
 
     def save_model(self, filepath):
         state = {'lambda': self.lam,
