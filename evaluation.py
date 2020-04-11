@@ -1,5 +1,5 @@
 import numpy as np
-from metric import Metrics
+from metrics import Metrics
 
 def evaluate(model, test_loader, metrics):
     results = {m:[] for m in metrics}
