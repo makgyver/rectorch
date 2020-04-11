@@ -99,7 +99,7 @@ class AETrainer(TorchNNTrainer):
                 start_time = time.time()
         total_loss = (train_loss + partial_loss) / len(train_loader)
         logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | "
-                     "total time: {time.time() - epoch_start_time:.2f}s |")
+                     f"total time: {time.time() - epoch_start_time:.2f}s |")
 
     def train_batch(self, tr_batch, te_batch=None):
         data_tensor = tr_batch.view(tr_batch.shape[0],-1).to(self.device)
