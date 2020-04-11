@@ -10,7 +10,21 @@ import torch.optim as optim
 logger = logging.getLogger(__name__)
 
 
-class TorchNNTrainer():
+class RecSysModel():
+    def train(self, train_data, *args, **kwargs):
+        raise NotImplementedError()
+
+    def predict(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def save_model(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def load_model(self, filepath, *args, **kwargs):
+        raise NotImplementedError()
+
+
+class TorchNNTrainer(RecSysModel):
     def __init__(self, net, num_epochs=100, learning_rate=1e-3):
         self.network = net
         self.num_epochs = num_epochs
@@ -24,9 +38,6 @@ class TorchNNTrainer():
     def loss_function(self, ground_truth, prediction, *args, **kwargs):
         raise NotImplementedError()
 
-    def train(self, train_data, *args, **kwargs):
-        raise NotImplementedError()
-
     def train_epoch(self, epoch, train_data, *args, **kwargs):
         raise NotImplementedError()
 
@@ -37,12 +48,6 @@ class TorchNNTrainer():
         raise NotImplementedError()
 
     def predict(self, x, *args, **kwargs):
-        raise NotImplementedError()
-
-    def save_model(self, *args, **kwargs):
-        raise NotImplementedError()
-
-    def load_model(self, filepath, *args, **kwargs):
         raise NotImplementedError()
 
     def __str__(self):
@@ -118,7 +123,8 @@ class VAE(TorchNNTrainer):
                 partial_loss = 0.0
                 start_time = time.time()
         total_loss = (train_loss + partial_loss) / len(train_loader)
-        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | total time: {time.time() - epoch_start_time:.2f}s |")
+        logger.info(f"| epoch {epoch} | loss {total_loss:.2f} | "
+                     "total time: {time.time() - epoch_start_time:.2f}s |")
 
     def train_batch(self, tr_batch, te_batch=None):
         data_tensor = tr_batch.view(tr_batch.shape[0],-1).to(self.device)
@@ -267,17 +273,16 @@ class CMultiVAE(MultiVAE):
             return recon_x, mu, logvar
 
 
-#TODO move this in another module??
-class EASE():
+class EASE(RecSysModel):
     def __init__(self, lam=100):
         self.lam = lam
         self.model = None
 
     def train(self, train_data):
-        logger.info(f"ease - start tarining (lam={self.lam})")
+        logger.info(f"EASE - start tarining (lam={self.lam})")
         X = train_data.todense() #TODO revise this
         G = np.dot(X.T, X)
-        logger.info("ease - linear kernel computed")
+        logger.info("EASE - linear kernel computed")
         diag_idx = np.diag_indices(G.shape[0])
         G[diag_idx] += self.lam
         P = np.linalg.inv(G)
@@ -286,9 +291,7 @@ class EASE():
         B[diag_idx] = 0
         del P
         self.model = np.dot(X, B)
-        logger.info("ease - training complete")
-
-    #TODO implement save/load model
+        logger.info("EASE - training complete")
 
     def predict(self, ids_te_users, test_tr, remove_train=True):
         pred = self.model[ids_te_users,:]
@@ -297,3 +300,31 @@ class EASE():
             pred -= test_tr * 1000 #TODO check this
 
         return pred
+
+    def save_model(self, filepath):
+        state = {'lambda': self.lam,
+                 'model': self.model
+                }
+        logger.info(f"Saving EASE model to {filepath}...")
+        np.save(filepath, state)
+        logger.info("Model saved!")
+
+    def load_model(self, filepath):
+        assert os.path.isfile(filepath), f"The model file {filepath} does not exist."
+        logger.info(f"Loading EASE model from {filepath}...")
+        state = np.load(filepath, allow_pickle=True)[()]
+        self.lam = state["lambda"]
+        self.model = state["model"]
+        logger.info(f"Model loaded!")
+        return self
+
+    def __str__(self):
+        s = f"EASE(lambda={lam}"
+        if self.model is not None:
+            s += f", model size={self.model.shape})"
+        else:
+            s += ") - not trained yet!"
+        return s
+
+    def __repr__(self):
+        return str(self)
