@@ -53,6 +53,29 @@ class DataProcessing:
         train_data = raw_data.loc[raw_data[uhead].isin(tr_users)]
         unique_iid = pd.unique(train_data[ihead])
 
+        logger.info("Creating validation and test set.")
+        val_data = raw_data.loc[raw_data[uhead].isin(vd_users)]
+        val_data = val_data.loc[val_data[ihead].isin(unique_iid)]
+        test_data = raw_data.loc[raw_data[uhead].isin(te_users)]
+        test_data = test_data.loc[test_data[ihead].isin(unique_iid)]
+
+        vcnt = val_data[[uhead]].groupby(uhead, as_index=False).size()
+        tcnt = test_data[[uhead]].groupby(uhead, as_index=False).size()
+        val_data = val_data.loc[val_data[uhead].isin(vcnt[vcnt>=2].index)]
+        test_data = test_data.loc[test_data[uhead].isin(tcnt[tcnt>=2].index)]
+
+        val_data_tr, val_data_te = self.split_train_test(val_data)
+        test_data_tr, test_data_te = self.split_train_test(test_data)
+
+        val_us = list(val_data.groupby(uhead).count().index)
+        te_us = list(test_data.groupby(uhead).count().index)
+        us = val_us + te_us
+
+        unique_uid = list(unique_uid)
+        todel = [u for u in unique_uid[len(tr_users):] if u not in us]
+        for u in todel:
+            unique_uid.remove(u)
+
         self.i2id = dict((iid, i) for (i, iid) in enumerate(unique_iid))
         self.u2id = dict((uid, i) for (i, uid) in enumerate(unique_uid))
 
@@ -65,18 +88,10 @@ class DataProcessing:
             for iid in unique_iid:
                 f.write('%s\n' % iid)
 
+        logger.info("Saving unique_uid.txt.")
         with open(os.path.join(pro_dir, 'unique_uid.txt'), 'w') as f:
             for uid in unique_uid:
                 f.write('%s\n' % uid)
-
-        logger.info("Creating validation and test set.")
-        val_data = raw_data.loc[raw_data[uhead].isin(vd_users)]
-        val_data = val_data.loc[val_data[ihead].isin(unique_iid)]
-        test_data = raw_data.loc[raw_data[uhead].isin(te_users)]
-        test_data = test_data.loc[test_data[ihead].isin(unique_iid)]
-
-        val_data_tr, val_data_te = self.split_train_test(val_data)
-        test_data_tr, test_data_te = self.split_train_test(test_data)
 
         train_data = self.numerize(train_data, self.u2id, self.i2id)
         val_data_tr = self.numerize(val_data_tr, self.u2id, self.i2id)
