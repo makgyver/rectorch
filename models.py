@@ -181,14 +181,18 @@ class VAE(AETrainer):
 
 
 class MultiDAE(AETrainer):
-    def __init__(self, mdae_net, lam=0.2, num_epochs=100, learning_rate=1e-3):
+    def __init__(self,
+                 mdae_net,
+                 lam=0.2,
+                 num_epochs=100,
+                 learning_rate=1e-3):
         super(MultiDAE, self).__init__(mdae_net, num_epochs, learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate, weight_decay=0.001)
         self.lam = lam
 
     def loss_function(self, recon_x, x):
         BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
-        l2_reg = Variable(torch.FloatTensor(1), requires_grad=True)
+        l2_reg = 0
         for W in self.network.parameters():
             l2_reg += W.norm(2)
 

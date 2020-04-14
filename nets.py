@@ -38,7 +38,7 @@ class AE_net(nn.Module):
 
 class CDAE_net(AE_net):
     def __init__(self, n_items, n_users, latent_size=50, dropout=0.5):
-        super(AE_net, self).__init__(self, [latent_size, n_items], [n_items+n_users, latent_size])
+        super(AE_net, self).__init__([latent_size, n_items], [n_items+n_users, latent_size])
         self.dropout = nn.Dropout(dropout)
 
         self.n_items = n_items
@@ -67,7 +67,7 @@ class CDAE_net(AE_net):
 
 class MultiDAE_net(AE_net):
     def __init__(self, dec_dims, enc_dims=None, dropout=0.5):
-        super(MultiDAE_net, self).__init__(self, dec_dims, enc_dims)
+        super(MultiDAE_net, self).__init__(dec_dims, enc_dims)
         self.dropout = nn.Dropout(dropout)
 
         self.enc_layers = nn.ModuleList(
