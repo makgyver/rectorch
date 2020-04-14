@@ -161,7 +161,12 @@ class DataProcessing:
 
 class DataReader():
     def __init__(self, data_config):
-        self.cfg = data_config
+        if isinstance(data_config, DataConfiguration):
+            self.cfg = data_config
+        elif isinstance(data_config, str):
+            self.cfg = DataConfiguration(data_config)
+        else:
+            raise TypeError("'data_config' must be of type 'DataConfiguration' or 'str'.")
         self.n_items = self.load_n_items()
 
     def load_data(self, datatype='train'):

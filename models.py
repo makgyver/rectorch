@@ -298,7 +298,7 @@ class EASE(RecSysModel):
 
     def train(self, train_data):
         logger.info(f"EASE - start tarining (lam={self.lam})")
-        X = train_data.todense() #TODO revise this
+        X = train_data.todense()
         G = np.dot(X.T, X)
         logger.info("EASE - linear kernel computed")
         diag_idx = np.diag_indices(G.shape[0])
@@ -315,7 +315,7 @@ class EASE(RecSysModel):
         pred = self.model[ids_te_users,:]
         if remove_train:
             test_tr = test_tr.todense()
-            pred -= test_tr * 1000 #TODO check this
+            pred -= test_tr * np.inf
 
         return pred,
 
