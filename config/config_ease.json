@@ -1,0 +1,6 @@
+{
+    "lambda": 100,
+    "verbose": 1,
+    "valid_metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"],
+    "test_metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"]
+}
