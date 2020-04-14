@@ -315,7 +315,7 @@ class EASE(RecSysModel):
         pred = self.model[ids_te_users,:]
         if remove_train:
             test_tr = test_tr.todense()
-            pred -= test_tr * np.inf
+            pred -= test_tr * 10**7 #huge number
 
         return pred,
 

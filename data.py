@@ -257,6 +257,6 @@ class DatasetManager():
         self.test_set = (test_data_tr, test_data_te)
 
     def get_train_and_test(self):
-        tr = sparse.vstack([self.training_set, sum(self.validation_set), self.test_set[0])
+        tr = sparse.vstack([self.training_set[0], sum(self.validation_set), self.test_set[0]])
         te = self.test_set[1]
         return tr, te
