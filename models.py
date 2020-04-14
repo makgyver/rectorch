@@ -314,9 +314,7 @@ class EASE(RecSysModel):
     def predict(self, ids_te_users, test_tr, remove_train=True):
         pred = self.model[ids_te_users,:]
         if remove_train:
-            test_tr = test_tr.todense()
-            pred -= test_tr * 10**7 #huge number
-
+            pred[test_tr.nonzero()] = -np.inf
         return pred,
 
     def save_model(self, filepath):
@@ -337,7 +335,7 @@ class EASE(RecSysModel):
         return self
 
     def __str__(self):
-        s = f"EASE(lambda={lam}"
+        s = f"EASE(lambda={self.lam}"
         if self.model is not None:
             s += f", model size={self.model.shape})"
         else:
