@@ -66,7 +66,7 @@ class AETrainer(TorchNNTrainer):
     def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
         try:
             for epoch in range(1, self.num_epochs + 1):
-                self.train_epoch(epoch, train_data)
+                self.train_epoch(epoch, train_data, verbose)
                 if valid_data is not None:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
                     valid_res = self.validate(valid_data, valid_metric)
