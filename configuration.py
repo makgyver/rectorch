@@ -18,7 +18,7 @@ class Singleton(type):
 
 class DataConfig(DefaultMunch):
     def __init__(self, file_path):
-        super(DataConfiguration, self).__init__(None, json.load(open(file_path, "r")))s
+        super(DataConfiguration, self).__init__(None, json.load(open(file_path, "r")))
 
 
 class ModelConfig():
