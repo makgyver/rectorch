@@ -124,7 +124,8 @@ class VAE_net(AE_net):
         h = x
         for i, layer in enumerate(self.enc_layers):
             h = layer(h)
-            if i != len(self.enc_layers) - 1: h = F.relu(h)
+            if i != len(self.enc_layers) - 1:
+                h = F.relu(h)
             else:
                 mu = h[:, :self.enc_dims[-1]]
                 logvar = h[:, self.enc_dims[-1]:]
