@@ -225,3 +225,54 @@ class CMultiVAE_net(MultiVAE_net):
                 mu = h[:, :self.enc_dims[-1]]
                 logvar = h[:, self.enc_dims[-1]:]
         return mu, logvar
+
+
+class CFGAN_G_net(nn.Module):
+    def __init__(self, layers_dim):
+        super(CFGAN_G_net, self).__init__()
+        self.latent_dim = layers_dim[0]
+        self.input_dim = layers_dim[-1]
+        self.layers_dim = layers_dim
+
+        def block(in_feat, out_feat):
+            return [nn.Linear(in_feat, out_feat), nn.ReLU(True)]
+
+        dims = zip(self.layers_dim[:-2], self.layers_dim[1:])
+        layers = [layer for d_in, d_out in dims for layer in block(d_in, d_out)]
+        layers += [nn.Linear(*self.layers_dim[-2:]), nn.Sigmoid()]
+        self.model = nn.Sequential(*layers)
+        self.model.apply(self.init_weights)
+
+    def forward(self, z):
+        return self.model(z)
+
+    def init_weights(self, layer):
+        if type(layer) in [nn.Linear]:
+            xavier_init(layer.weight)
+            normal_init(layer.bias)
+
+
+class CFGAN_D_net(nn.Module):
+    def __init__(self, layers_dim):
+        super(CFGAN_D_net, self).__init__()
+        assert layers_dim[-1] == 1, "Discriminator must output a single node"
+        self.latent_dim = layers_dim[0]
+        self.input_dim = layers_dim[-1]
+        self.layers_dim = layers_dim
+
+        def block(in_feat, out_feat):
+            return [nn.Linear(in_feat, out_feat), nn.ReLU(True)]
+
+        dims = zip(self.layers_dim[:-2], self.layers_dim[1:])
+        layers = [layer for d_in, d_out in dims for layer in block(d_in, d_out)]
+        layers += [nn.Linear(*self.layers_dim[-2:]), nn.Sigmoid()]
+        self.model = nn.Sequential(*layers)
+        self.model.apply(self.init_weights)
+
+    def forward(self, x, cond):
+        return self.model(torch.cat((x, cond), dim=1))
+
+    def init_weights(self, layer):
+        if type(layer) in [nn.Linear]:
+            xavier_init(layer.weight)
+            normal_init(layer.bias)

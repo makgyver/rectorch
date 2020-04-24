@@ -212,3 +212,24 @@ class EmptyConditionedDataSampler(Sampler):
             data_te = torch.FloatTensor(data_te.toarray())
 
             yield data_tr, data_te
+
+
+class CFGAN_TrainingSampler(Sampler):
+    def __init__(self,
+                 sparse_data_tr,
+                 batch_size=64):
+        self.sparse_data_tr = sparse_data_tr
+        self.batch_size = batch_size
+        n = self.sparse_data_tr.shape[0]
+        self.idxlist = list(range(n))
+
+    def __len__(self):
+        return int(np.ceil(self.sparse_data_tr.shape[0] / self.batch_size))
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        np.random.shuffle(self.idxlist)
+        data_tr = self.sparse_data_tr[self.idxlist[:self.batch_size]]
+        return torch.FloatTensor(data_tr.toarray())

@@ -255,7 +255,7 @@ class MultiVAE(VAE):
               valid_data=None,
               valid_metric=None,
               num_epochs=200,
-              best_path="chkpt_best.pth", 
+              best_path="chkpt_best.pth",
               verbose=1):
         try:
             best_perf = -1. #Assume the higher the better >= 0
@@ -364,3 +364,188 @@ class EASE(RecSysModel):
 
     def __repr__(self):
         return str(self)
+
+
+
+class CFGAN(RecSysModel):
+    def __init__(self,
+                 generator,
+                 discriminator,
+                 alpha=.1,
+                 s_pm=.7,
+                 s_zr=.5,
+                 learning_rate=0.001):
+
+        self.s_pm = s_pm
+        self.s_zr = s_zr
+        self.loss = nn.BCELoss()
+        self.regularization_loss = nn.MSELoss(reduction="sum")
+        self.generator = generator
+        self.discriminator = discriminator
+        self.learning_rate = learning_rate
+        self.alpha = alpha
+        self.n_items = self.generator.input_dim
+
+        self.opt_g = torch.optim.Adam(self.generator.parameters(), lr=self.learning_rate)
+        self.opt_d = torch.optim.Adam(self.discriminator.parameters(), lr=self.learning_rate)
+
+
+    def train(self,
+              train_data,
+              valid_data,
+              valid_metric,
+              num_epochs=1000,
+              g_steps=5,
+              d_steps=5,
+              verbose=1):
+
+        self.discriminator.train()
+        self.generator.train()
+
+        epoch_start_time = time.time()
+        start_time = time.time()
+        log_delay = max(10, num_epochs // 10**verbose)
+        loss_d, loss_g = 0, 0
+        try:
+            for epoch in range(1, num_epochs+1):
+                for i_d in range(1, d_steps+1):
+                    loss_d += self.train_disc_batch(next(train_data).to(device))
+
+                for i_g in range(1, g_steps+1):
+                    loss_g += self.train_gen_batch(next(train_data).to(device))
+
+                if epoch % log_delay == 0:
+                    loss_g /= (g_steps * log_delay)
+                    loss_d /= (d_steps * log_delay)
+                    elapsed = time.time() - start_time
+                    logger.info('| epoch {:d} | ms/batch {:.2f} | loss G {:.6f} | '
+                        'loss D {:.6f} |'.format(
+                            epoch, elapsed * 1000 / log_delay,
+                            loss_g, loss_d))
+                    start_time = time.time()
+                    loss_g, loss_d = 0, 0
+
+                    if valid_data is not None:
+                        assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
+                        valid_res = self.validate(valid_data, valid_metric)
+                        mu_val = np.mean(valid_res)
+                        std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
+                        logger.info(f'| epoch {epoch} | {valid_metric} {mu_val:.3f} ({std_err_val:.4f}) |')
+
+        except KeyboardInterrupt:
+            logger.warning('Handled KeyboardInterrupt: exiting from training early')
+
+
+    def train_gen_batch(self, batch):
+        batch = batch.to(device)
+        real_label = torch.ones(batch.shape[0], 1).to(device)
+
+        mask = batch.clone()
+        size = int(self.s_pm * self.n_items)
+        for u in range(batch.shape[0]):
+            rand_it = np.random.choice(self.n_items, size, replace=False)
+            mask[u, rand_it] = 1
+        mask = mask.to(device)
+
+        if self.alpha > 0:
+            mask_zr = batch.clone()
+            size = int(self.s_zr * self.n_items)
+            for u in range(batch.shape[0]):
+                rand_it = np.random.choice(self.n_items, size, replace=False)
+                mask_zr[u, rand_it] = 1
+            mask_zr = mask_zr.to(device)
+
+        fake_data = self.generator(batch)
+        g_reg_loss = 0
+        if self.alpha > 0:
+            g_reg_loss = self.regularization_loss(fake_data, mask_zr)
+
+        fake_data = torch.mul(fake_data, mask)
+        disc_on_fake = self.discriminator(fake_data, batch)
+        g_loss = self.loss(disc_on_fake, real_label)
+        g_loss = g_loss + self.alpha * g_reg_loss
+        self.opt_g.zero_grad()
+        g_loss.backward()
+        self.opt_g.step()
+
+        return g_loss.item()
+
+
+    def train_disc_batch(self, batch):
+        batch = batch.to(device)
+        real_label = torch.ones(batch.shape[0], 1).to(device)
+        fake_label = torch.zeros(batch.shape[0], 1).to(device)
+
+        mask = batch.clone()
+        size = int(self.s_pm * self.n_items)
+        for u in range(batch.shape[0]):
+            rand_it = np.random.choice(self.n_items, size, replace=False)
+            mask[u, rand_it] = 1
+        mask = mask.to(device)
+
+        disc_on_real = self.discriminator(batch, batch)
+        d_loss_real = self.loss(disc_on_real, real_label)
+
+        fake_data = self.generator(batch)
+        fake_data = torch.mul(fake_data, mask)
+        disc_on_fake = self.discriminator(fake_data, batch)
+        d_loss_fake = self.loss(disc_on_fake, fake_label)
+
+        d_loss = d_loss_real + d_loss_fake
+        self.opt_d.zero_grad()
+        d_loss.backward()
+        self.opt_d.step()
+
+        return d_loss.item()
+
+    def predict(self, x, remove_train=True):
+        self.generator.eval()
+        with torch.no_grad():
+            x_tensor = x.to(device)
+            pred = self.generator(x_tensor)
+            if remove_train:
+                pred[tuple(x_tensor.nonzero().t())] = -np.inf
+        return pred,
+
+    def validate(self, test_loader, metric):
+        results = []
+        for batch_idx, (data_tensor, heldout) in enumerate(test_loader):
+            data_tensor = data_tensor.view(data_tensor.shape[0],-1)
+            recon_batch = self.predict(data_tensor)[0].cpu().numpy()
+            heldout = heldout.view(heldout.shape[0],-1).cpu().numpy()
+            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
+
+        return np.concatenate(results)
+
+    def __str__(self):
+        s = self.__class__.__name__ + "(\n"
+        for k,v in self.__dict__.items():
+            sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
+            s += f"  {k} = {sv},\n"
+        s = s[:-2] + "\n)"
+        return s
+
+    def __repr__(self):
+        return str(self)
+
+    def save_model(self, filepath, cur_epoch):
+        state = {'epoch': cur_epoch,
+                 'state_dict_g': self.generator.state_dict(),
+                 'state_dict_d': self.discriminator.state_dict(),
+                 'optimizer_g': self.opt_g.state_dict(),
+                 'optimizer_d': self.opt_g.state_dict()
+                }
+        logger.info(f"Saving CFGAN model to {filepath}...")
+        torch.save(state, filepath)
+        logger.info("Model saved!")
+
+    def load_model(self, filepath):
+        assert os.path.isfile(filepath), f"The checkpoint file {filepath} does not exist."
+        logger.info(f"Loading model checkpoint from {filepath}...")
+        checkpoint = torch.load(filepath)
+        self.generator.load_state_dict(checkpoint['state_dict_g'])
+        self.discriminator.load_state_dict(checkpoint['state_dict_d'])
+        self.opt_g.load_state_dict(checkpoint['optimizer_g'])
+        self.opt_d.load_state_dict(checkpoint['optimizer_d'])
+        logger.info(f"Model checkpoint loaded!")
+        return checkpoint
