@@ -139,25 +139,41 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
                                                              sparse_data_tr,
                                                              sparse_data_te,
                                                              batch_size)
-        self.num_cond_examples = len(self.examples) - self.sparse_data_tr.shape[0]
         self.subsample = subsample
+        self.compute_sampled_conditions()
 
     def compute_conditions(self):
+        r2cond = {}
+        for i,row in enumerate(self.sparse_data_tr):
+            _, cols = row.nonzero()
+            r2cond[i] = set.union(*[set(self.iid2cids[c]) for c in cols])
+
+        self.examples = {-1 : [r for r in r2cond]}
+        for c in range(self.n_cond):
+            self.examples[c] = []
+            for r in r2cond:
+                if c in r2cond[r]:
+                    self.examples[c].append(r)
+        del r2cond
+        self.num_cond_examples = sum([len(self.examples[c]) for c in range(self.n_cond)])
+
+        rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
+        cols = [g for m in self.iid2cids for g in self.iid2cids[m]]
+        values = np.ones(len(rows))
+        self.M = csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
+
+    def compute_sampled_conditions(self):
         data = [(r, -1) for r in self.examples[-1]]
         m = int(self.num_cond_examples * self.subsample / self.n_cond)
 
-        for c in self.examples[self.sparse_data_tr.shape[0]:]:
-            data += [(r,c) for r in np.random.choice(list(self.examples[c]), m)]
+        for c in range(self.n_cond):
+            data += [(r,c) for r in np.random.choice(self.examples[c], m)]
 
         self.examples = np.array(data)
 
     def __len__(self):
         m = int(self.num_cond_examples * self.subsample) + self.sparse_data_tr.shape[0]
         return int(np.ceil(m / self.batch_size))
-
-    def __iter__(self):
-        self.compute_conditions()
-        super().__iter__()
 
 
 class EmptyConditionedDataSampler(Sampler):

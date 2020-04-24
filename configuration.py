@@ -15,19 +15,31 @@ class Singleton(type):
             cls._instance = super().__call__(*args, **kwargs)
         return cls._instance
 
-class Configuration(DefaultMunch):
+
+class DataConfig(DefaultMunch):
     def __init__(self, file_path):
-        super(Configuration, self).__init__(None, json.load(open(file_path, "r")))
+        super(DataConfiguration, self).__init__(None, json.load(open(file_path, "r")))s
 
-class DataConfiguration(Configuration):
-    pass
 
-class ModelConfiguration(Configuration):
-    pass
+class ModelConfig():
+    def __init__(self, file_path):
+        json_cfg = json.load(open(file_path, "r"))
+        self.model = DefaultMunch(None, json_cfg["model"])
+        self.train = DefaultMunch(None, json_cfg["train"])
+        self.test = DefaultMunch(None, json_cfg["test"])
+        self.sampler = DefaultMunch(None, json_cfg["sampler"])
 
-class ConfigurationManager(metaclass=Singleton):
+    def __str__(self):
+        return "ModelConfig(model={}, train={}, test={}, sampler={}".format(
+                self.model, self.train, self.test, self.sampler)
+
+    def __repr__(self):
+        return str(self)
+
+
+class ConfigManager(metaclass=Singleton):
     @classmethod
-    def get_instance(cls):
+    def get(cls):
         if cls._instance:
             return cls._instance
         else:
@@ -36,5 +48,5 @@ class ConfigurationManager(metaclass=Singleton):
     def __init__(self, data_config_path, model_config_path):
         assert exists(data_config_path), "Data config file does not exist."
         assert exists(model_config_path), "Model config file does not exist."
-        self.data_config = DataConfiguration(data_config_path)
-        self.model_config = ModelConfiguration(model_config_path)
+        self.data_config = DataConfig(data_config_path)
+        self.model_config = ModelConfig(model_config_path)

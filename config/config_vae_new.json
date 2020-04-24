@@ -1,0 +1,20 @@
+{
+    "model": {
+        "beta" : 0.2,
+        "anneal_steps" : 100000,
+        "learning_rate": 0.001
+    },
+    "train": {
+        "num_epochs": 200,
+        "verbose": 1,
+        "best_path": "",
+        "valid_metric": "ndcg@100"
+    },
+    "test":{
+        "metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"]
+    },
+    "sampler": {
+        "batch_size": 250
+    }
+    
+}

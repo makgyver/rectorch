@@ -19,16 +19,10 @@ logging.basicConfig(level=logging.INFO,
 logger = logging.getLogger(__name__)
 
 parser = argparse.ArgumentParser(description='PyTorch Variational Autoencoders')
-parser.add_argument('--total_anneal_steps', type=int, default=200000,
-                    help='the total number of gradient updates for annealing')
-parser.add_argument('--anneal_cap', type=float, default=0.2,
-                    help='largest annealing parameter')
 parser.add_argument('--seed', type=int, default=98765,
                     help='random seed')
 parser.add_argument('--cuda', action='store_true',
                     help='use CUDA')
-parser.add_argument('--save', type=str, default='model.pt',
-                    help='path to save the final model')
 parser.add_argument('--data_conf', type=str, default='config/config_data_ml20m.json',
                     help='path to the configuration file for reading the data')
 parser.add_argument('--model_conf', type=str, default='config/config_vae.json',
@@ -44,9 +38,9 @@ device = torch.device("cuda" if args.cuda else "cpu")
 
 logger.info("Parametrs: " + str(vars(args)))
 
-ConfigurationManager(args.data_conf, args.model_conf)
-vae_config = ConfigurationManager.get_instance().model_config
-data_config = ConfigurationManager.get_instance().data_config
+ConfigManager(args.data_conf, args.model_conf)
+vae_config = ConfigManager.get().model_config
+data_config = ConfigManager.get().data_config
 
 logger.info("Data configuration: " + str(data_config))
 logger.info("Model configuration: " + str(vae_config))
@@ -54,28 +48,23 @@ logger.info("Model configuration: " + str(vae_config))
 ###############################################################################
 # Load data
 ###############################################################################
-batch_size = vae_config.batch_size
-data_manager = DatasetManager(data_config)
-tr_loader = DataSampler(*data_manager.training_set, batch_size=batch_size, shuffle=True)
-val_loader = DataSampler(*data_manager.validation_set, batch_size=batch_size, shuffle=False)
-te_loader = DataSampler(*data_manager.test_set, batch_size=batch_size, shuffle=False)
+data_man = DatasetManager(data_config)
+tr_loader = DataSampler(*data_man.training_set, **vae_config.sampler)
+val_loader = DataSampler(*data_man.validation_set, **vae_config.sampler, shuffle=False)
+te_loader = DataSampler(*data_man.test_set, **vae_config.sampler, shuffle=False)
 
 ###############################################################################
 # Training the model
 ###############################################################################
-dec_dims = [200, 600, data_manager.n_items]
+dec_dims = [200, 600, data_man.n_items]
 model = nets.MultiVAE_net(dec_dims).to(device)
-vae = models.MultiVAE(model,
-                      beta=args.anneal_cap,
-                      anneal_steps=args.total_anneal_steps,
-                      num_epochs=vae_config.num_epochs,
-                      learning_rate=vae_config.learning_rate)
+vae = models.MultiVAE(model, **vae_config.model)
 logger.info("Model: " + str(vae))
-vae.train(tr_loader, val_loader, vae_config.valid_metrics[0], vae_config.verbose)
+vae.train(tr_loader, val_loader, **vae_config.train)
 
 ###############################################################################
 # Test the model
 ###############################################################################
-stats = evaluate(vae, te_loader, vae_config.valid_metrics)
+stats = evaluate(vae, te_loader, **vae_config.test)
 str_stats = " | ".join([f"{k} {np.mean(v):.5f} ({np.std(v)/np.sqrt(len(v)):.4f})" for k,v in stats.items()])
 logger.info(f'| final evaluation | {str_stats} |')

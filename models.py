@@ -25,10 +25,10 @@ class RecSysModel():
 
 
 class TorchNNTrainer(RecSysModel):
-    def __init__(self, net, num_epochs=100, learning_rate=1e-3):
+    def __init__(self, net, learning_rate=1e-3):
         self.network = net
-        self.num_epochs = num_epochs
         self.learning_rate = learning_rate
+        self.optimizer = None #to be initialized in the sub-classes
 
         if next(self.network.parameters()).is_cuda:
             self.device = torch.device("cuda")
@@ -36,6 +36,16 @@ class TorchNNTrainer(RecSysModel):
             self.device = torch.device("cpu")
 
     def loss_function(self, ground_truth, prediction, *args, **kwargs):
+        raise NotImplementedError()
+
+    def train(self,
+              train_data,
+              valid_data=None,
+              valid_metric=None,
+              num_epochs=100,
+              verbose=1,
+              *args,
+              **kwargs):
         raise NotImplementedError()
 
     def train_epoch(self, epoch, train_data, *args, **kwargs):
@@ -63,9 +73,18 @@ class TorchNNTrainer(RecSysModel):
 
 
 class AETrainer(TorchNNTrainer):
-    def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
+    def __init__(self, vae_net, learning_rate=1e-3):
+        super(AETrainer, self).__init__(vae_net, learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+
+    def train(self,
+              train_data,
+              valid_data=None,
+              valid_metric=None,
+              num_epochs=100,
+              verbose=1):
         try:
-            for epoch in range(1, self.num_epochs + 1):
+            for epoch in range(1, num_epochs + 1):
                 self.train_epoch(epoch, train_data, verbose)
                 if valid_data is not None:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
@@ -152,9 +171,8 @@ class AETrainer(TorchNNTrainer):
 
 
 class VAE(AETrainer):
-    def __init__(self, vae_net, num_epochs=100, learning_rate=1e-3):
-        super(VAE, self).__init__(vae_net, num_epochs, learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+    def __init__(self, vae_net, learning_rate=1e-3):
+        super(VAE, self).__init__(vae_net, learning_rate)
 
     def loss_function(self, recon_x, x, mu, logvar):
         BCE = F.binary_cross_entropy(recon_x, x)
@@ -184,9 +202,8 @@ class MultiDAE(AETrainer):
     def __init__(self,
                  mdae_net,
                  lam=0.2,
-                 num_epochs=100,
                  learning_rate=1e-3):
-        super(MultiDAE, self).__init__(mdae_net, num_epochs, learning_rate)
+        super(MultiDAE, self).__init__(mdae_net, learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate, weight_decay=0.001)
         self.lam = lam
 
@@ -204,16 +221,13 @@ class MultiVAE(VAE):
                  mvae_net,
                  beta=1.,
                  anneal_steps=0,
-                 num_epochs=100,
-                 learning_rate=1e-3,
-                 best_path="chkpt_best.pth"):
-        super(MultiVAE, self).__init__(mvae_net, num_epochs=num_epochs, learning_rate=learning_rate)
+                 learning_rate=1e-3):
+        super(MultiVAE, self).__init__(mvae_net, learning_rate=learning_rate)
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate, weight_decay=0.0)
         self.anneal_steps = anneal_steps
         self.annealing = anneal_steps > 0
         self.gradient_updates = 0.
         self.beta = beta
-        self.best_path = best_path
 
     def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
         BCE = -torch.mean(torch.sum(F.log_softmax(recon_x, 1) * x, -1))
@@ -236,10 +250,16 @@ class MultiVAE(VAE):
         self.gradient_updates += 1.
         return loss.item()
 
-    def train(self, train_data, valid_data=None, valid_metric=None, verbose=1):
+    def train(self,
+              train_data,
+              valid_data=None,
+              valid_metric=None,
+              num_epochs=200,
+              best_path="chkpt_best.pth", 
+              verbose=1):
         try:
             best_perf = -1. #Assume the higher the better >= 0
-            for epoch in range(1, self.num_epochs + 1):
+            for epoch in range(1, num_epochs + 1):
                 self.train_epoch(epoch, train_data, verbose)
                 if valid_data:
                     assert valid_metric != None, "In case of validation 'valid_metric' must be provided"
@@ -249,7 +269,7 @@ class MultiVAE(VAE):
                     logger.info(f'| epoch {epoch} | {valid_metric} {mu_val:.3f} ({std_err_val:.4f}) |')
 
                     if best_perf < mu_val:
-                        self.save_model(self.best_path, epoch)
+                        self.save_model(best_path, epoch)
                         best_perf = mu_val
 
         except KeyboardInterrupt:
@@ -274,15 +294,11 @@ class CMultiVAE(MultiVAE):
                  cmvae_net,
                  beta=1.,
                  anneal_steps=0,
-                 num_epochs=100,
-                 learning_rate=1e-3,
-                 best_path="chkpt_best.pth"):
+                 learning_rate=1e-3):
         super(CMultiVAE, self).__init__(cmvae_net,
                                         beta=beta,
                                         anneal_steps=anneal_steps,
-                                        num_epochs=num_epochs,
-                                        learning_rate=learning_rate,
-                                        best_path=best_path)
+                                        learning_rate=learning_rate)
 
     def predict(self, x, remove_train=True):
         self.network.eval()
