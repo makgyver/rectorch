@@ -1,4 +1,4 @@
-from configuration import DataConfiguration
+from configuration import DataConfig
 import json
 import logging
 import numpy as np
@@ -16,12 +16,12 @@ logger = logging.getLogger(__name__)
 
 class DataProcessing:
     def __init__(self, data_config):
-        if isinstance(data_config, DataConfiguration):
+        if isinstance(data_config, DataConfig):
             self.cfg = data_config
         elif isinstance(data_config, str):
-            self.cfg = DataConfiguration(data_config)
+            self.cfg = DataConfig(data_config)
         else:
-            raise TypeError("'data_config' must be of type 'DataConfiguration' or 'str'.")
+            raise TypeError("'data_config' must be of type 'DataConfig' or 'str'.")
 
     def process(self):
         np.random.seed(int(self.cfg.seed))
@@ -161,12 +161,12 @@ class DataProcessing:
 
 class DataReader():
     def __init__(self, data_config):
-        if isinstance(data_config, DataConfiguration):
+        if isinstance(data_config, DataConfig):
             self.cfg = data_config
         elif isinstance(data_config, str):
-            self.cfg = DataConfiguration(data_config)
+            self.cfg = DataConfig(data_config)
         else:
-            raise TypeError("'data_config' must be of type 'DataConfiguration' or 'str'.")
+            raise TypeError("'data_config' must be of type 'DataConfig' or 'str'.")
         self.n_items = self.load_n_items()
 
     def load_data(self, datatype='train'):

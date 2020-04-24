@@ -1,5 +1,5 @@
 import argparse
-from configuration import ConfigurationManager
+from configuration import ConfigManager
 from data import DatasetManager
 from evaluation import evaluate
 import json
