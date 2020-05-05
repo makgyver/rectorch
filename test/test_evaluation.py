@@ -13,27 +13,13 @@ from sampler import Sampler
 class FakeModel(RecSysModel):
     """Fake model
     """
-    def train(self, train_data, **kwargs):
-        pass
-
     def predict(self, x, *args, **kwargs):
         return (x + torch.FloatTensor([[1]*4]), )
 
-    def save_model(self, *args, **kwargs):
-        pass
-
-    def load_model(self, filepath, *args, **kwargs):
-        pass
 
 class FakeSampler(Sampler):
     """Fake sampler
     """
-    def __init__(self, *args, **kargs):
-        pass
-
-    def __len__(self):
-        return 2
-
     def __iter__(self):
         scores = [torch.FloatTensor([[4., 3., 2., 1.]]), torch.FloatTensor([[4., 3., 2., 1.]])]
         gt = [torch.FloatTensor([[1., 1., 0., 0.]]), torch.FloatTensor([[0, 0, 1., 1.]])]
