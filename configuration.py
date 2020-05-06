@@ -28,21 +28,7 @@ class DataConfig(DefaultMunch):
 
     Notes
     -----
-    The data configuration file **must** have the following structure:
-    ::
-
-        {
-            "data_path": path to the data set csv,
-            "proc_path": path to the folder to save the pre-processed files,
-            "seed": random seed,
-            "threshold": cut-off value for implicit feedback,
-            "separator": delimiter used in the csv,
-            "u_min": min number of items for a user,
-            "i_min": min number of users for an item,
-            "heldout": heldout size (number of users) for validation and test set,
-            "test_prop": test size proportion between 0 and 1,
-            "topn": 1 iff the dataset should be pre-processed for implicit feedback
-        }
+    The data configuration file **must** have the structure described in :ref:`config-format`.
 
     """
 
@@ -82,27 +68,7 @@ class ModelConfig():
 
     Notes
     -----
-    The model configuration file **must** have the following structure:
-    ::
-
-        {
-            "model": {
-                "model_param1" : value_m1,
-                ...
-            },
-            "train": {
-                "train_param1" : value_tr1,
-                ...
-            },
-            "test":{
-                "test_param1" : value_te1,
-                ...
-            },
-            "sampler": {
-                "sampler_param1" : value_s1,
-                ...
-            }
-        }
+    The data configuration file **must** have the structure described in :ref:`config-format`.
 
     """
 
