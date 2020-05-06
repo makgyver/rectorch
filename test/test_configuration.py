@@ -134,3 +134,5 @@ def test_ConfigManager():
     assert hasattr(man, "model_config")
     assert isinstance(man.data_config, DataConfig), "Should be a DataConfig object"
     assert isinstance(man.model_config, ModelConfig), "Should be a ModelConfig object"
+    assert str(man).startswith("ConfigManager")
+    assert repr(man).startswith("ConfigManager")

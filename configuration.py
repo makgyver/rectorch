@@ -1,4 +1,8 @@
 """The module contains useful classes to manage the configuration files.
+
+Configuration files are useful to correctly initialize the data processing and the
+recommendation engines. Configuration files must be `.json <https://www.json.org/json-en.html>`_ files with a specific
+format. Details about the file formats are described in :ref:`config-format`.
 """
 import json
 from os.path import exists
@@ -24,7 +28,7 @@ class DataConfig(DefaultMunch):
     Parameters
     ----------
     file_path : :obj:`str`
-        The path to the data configuration ``.json`` file.
+        The path to the data configuration `.json <https://www.json.org/json-en.html>`_ file.
 
     Notes
     -----
@@ -49,20 +53,20 @@ class ModelConfig():
     Parameters
     ----------
     file_path : :obj:`str`
-        The path to the model configuration ``.json`` file.
+        The path to the model configuration `.json <https://www.json.org/json-en.html>`_ file.
 
     Attributes
     ----------
-    model : `DefaultMunch <lhttps://github.com/Infinidat/munch>`_
+    model : `DefaultMunch <https://github.com/Infinidat/munch>`_
         Munch object containing the model's configurations according to the
         ``model`` key in the ``file_path`` json file.
-    train : `DefaultMunch <lhttps://github.com/Infinidat/munch>`_
+    train : `DefaultMunch <https://github.com/Infinidat/munch>`_
         Munch object containing the model training's configurations according
         to the ``train`` key in the ``file_path`` json file.
-    test : `DefaultMunch <lhttps://github.com/Infinidat/munch>`_
+    test : `DefaultMunch <https://github.com/Infinidat/munch>`_
         Munch object containing the test configurations according to the
         ``test`` key in the ``file_path`` json file.
-    sampler : `DefaultMunch <lhttps://github.com/Infinidat/munch>`_
+    sampler : `DefaultMunch <https://github.com/Infinidat/munch>`_
         Munch object containing the sampler configurations according to the
         ``model`` key in the ``file_path`` json file.
 
@@ -93,9 +97,9 @@ class ConfigManager(metaclass=Singleton):
     Parameters
     ----------
     data_config_path : :obj:`str`
-        The path to the data configuration ``.json`` file.
+        The path to the data configuration `.json <https://www.json.org/json-en.html>`_ file.
     model_config_path : :obj:`str`
-        The path to the model configuration ``.json`` file.
+        The path to the model configuration `.json <https://www.json.org/json-en.html>`_ file.
 
     Attributes
     ----------
@@ -111,6 +115,7 @@ class ConfigManager(metaclass=Singleton):
 
     >>> from rectorch.configuration import ConfigManager
     >>> ConfigManager("path/to/the/dataconfig/file", "path/to/the/modelconfig/file")
+    ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))
     """
 
     @classmethod
@@ -124,7 +129,7 @@ class ConfigManager(metaclass=Singleton):
 
         Raises
         ------
-        Exception
+        :class:`Exception`
             Raised when the singleton :class:`ConfigManager` object has not been
             previously created. To initialize the :class:`ConfigManager` simply call
             its constructor. Please, see **Examples**.
@@ -139,3 +144,9 @@ class ConfigManager(metaclass=Singleton):
         assert exists(model_config_path), "Model config file does not exist."
         self.data_config = DataConfig(data_config_path)
         self.model_config = ModelConfig(model_config_path)
+
+    def __str__(self):
+        return "ConfigManager(data_config=%s, model_config=%s"%(self.data_config, self.model_config)
+
+    def __repr__(self):
+        return str(self)

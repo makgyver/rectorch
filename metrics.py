@@ -1,5 +1,11 @@
 """Module containing the definition of the evaluation metrics.
 
+The metrics are implemented as static methods of the class :class:`Metrics`. Up to now
+the following metrics are implemented:
+
+* :func:`nDCG@k <Metrics.ndcg_at_k>`
+* :func:`recall@k <Metrics.recall_at_k>`
+
 See Also
 --------
 Modules:
