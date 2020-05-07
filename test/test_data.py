@@ -3,14 +3,16 @@
 import os
 import sys
 import json
-import numpy as np
 import tempfile
+import numpy as np
 sys.path.insert(0, os.path.abspath('..'))
 
 from data import DataProcessing, DataReader, DatasetManager
 from configuration import DataConfig
 
 def test_DataProcessing():
+    """Test for the DataProcessing class
+    """
     tmp = tempfile.NamedTemporaryFile()
     with open(tmp.name, "w") as f:
         f.write("1 1 4\n1 2 5\n1 3 2\n1 5 4\n")
@@ -96,6 +98,8 @@ def test_DataProcessing():
 
 
 def test_DataReader():
+    """Test for the DataReader class
+    """
     names = ['train.csv',
              'unique_iid.txt',
              'unique_uid.txt',
@@ -175,6 +179,8 @@ def test_DataReader():
 
 
 def test_DatasetManager():
+    """Test for the DatasetManager class
+    """
     names = ['train.csv',
              'unique_iid.txt',
              'unique_uid.txt',
