@@ -133,6 +133,27 @@ class ConfigManager(metaclass=Singleton):
             Raised when the singleton :class:`ConfigManager` object has not been
             previously created. To initialize the :class:`ConfigManager` simply call
             its constructor. Please, see **Examples**.
+
+        Examples
+        --------
+        >>> from rectorch.configuration import ConfigManager
+        >>> man = ConfigManager.get()
+        Exception: Singleton object not instantiated!
+
+        The :class:`ConfigManager` singleton object must be initialized to get it.
+
+        >>> ConfigManager("path/to/the/dataconfig/file", "path/to/the/modelconfig/file")
+        ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))
+        >>> man = ConfigManager.get()
+        >>> man
+        ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))
+
+        Getting the configuration objects is as easy as getting an attribute
+
+        >>> man.data_config
+        DataConfig(...)
+        >>> man.model_config
+        ModelConfig(...)
         """
         if cls._instance:
             return cls._instance
