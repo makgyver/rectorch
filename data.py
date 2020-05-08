@@ -445,7 +445,8 @@ class DatasetManager():
 
         Load the data set into only a training and a test set. Training, validation and the training
         part of the test set are merged together to form a bigger training set.
-        The test set will be only the test part of the test set.
+        The test set will be only the test part of the test set. The training part of the test users
+        are the last ``t`` rows of the training matrix, where ``t`` is the number of test users.
 
         Returns
         -------

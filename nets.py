@@ -192,7 +192,7 @@ class MultiDAE_net(AE_net):
     enc_dims : :obj:`list` or array_like of :obj:`int`
         See :attr:`end_dims` parameter.
     dropout : :obj:`float`
-        See :attr:`dropout` parameter.
+        The dropout layer that is applied to the input during the :meth:`AE_net.forward`.
 
     References
     ----------
@@ -253,7 +253,6 @@ class VAE_net(AE_net):
     Notes
     -----
     See :class:`AE_net` for parameters and attributes.
-
     """
     def __init__(self, dec_dims, enc_dims=None):
         super(VAE_net, self).__init__(dec_dims, enc_dims)

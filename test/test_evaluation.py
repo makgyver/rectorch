@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from evaluation import evaluate
 from models import RecSysModel
-from sampler import Sampler
+from samplers import Sampler
 
 class FakeModel(RecSysModel):
     """Fake model
