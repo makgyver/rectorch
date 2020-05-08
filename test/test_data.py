@@ -3,6 +3,7 @@
 import os
 import sys
 import json
+import pytest
 import tempfile
 import numpy as np
 sys.path.insert(0, os.path.abspath('..'))
@@ -28,13 +29,16 @@ def test_DataProcessing():
             "seed": 42,
             "threshold": 2.5,
             "separator": " ",
-            "u_min": 0,
-            "i_min": 0,
+            "u_min": 1,
+            "i_min": 1,
             "heldout": 1,
             "test_prop": 0.5,
             "topn": 1
         }
         json.dump(cfg_d, open(tmp_d.name, "w"))
+
+        with pytest.raises(TypeError):
+            DataProcessing(1)
 
         dp = DataProcessing(tmp_d.name)
         dp.process()
@@ -123,8 +127,8 @@ def test_DataReader():
             "seed": 42,
             "threshold": 2.5,
             "separator": " ",
-            "u_min": 0,
-            "i_min": 0,
+            "u_min": 1,
+            "i_min": 1,
             "heldout": 1,
             "test_prop": 0.5,
             "topn": 1
@@ -135,10 +139,17 @@ def test_DataReader():
             with open(tmp_folder + "/" + names[i], "w") as tf:
                 tf.write(f)
 
+        with pytest.raises(TypeError):
+            DataReader(1)
+
         reader = DataReader(tmp_d.name)
         reader2 = DataReader(DataConfig(tmp_d.name))
         assert reader.n_items == 3, "number of items should be 3"
         assert reader.cfg == reader2.cfg, "reader and reader2 should be equal"
+
+        with pytest.raises(ValueError):
+            reader.load_data("training")
+
         sp_data = reader.load_data("full")
         sp_train = reader.load_data("train")
         sp_vtr, sp_vte = reader.load_data("validation")
@@ -204,8 +215,8 @@ def test_DatasetManager():
             "seed": 42,
             "threshold": 2.5,
             "separator": " ",
-            "u_min": 0,
-            "i_min": 0,
+            "u_min": 1,
+            "i_min": 1,
             "heldout": 1,
             "test_prop": 0.5,
             "topn": 1
@@ -256,3 +267,90 @@ def test_DatasetManager():
         r, c = sp_tte.nonzero()
         assert np.all(r == np.array([0]))
         assert np.all(c == np.array([1]))
+
+def test_nontopn():
+    """Test for the module when topn=0
+    """
+    names = ['train.csv',
+             'unique_iid.txt',
+             'unique_uid.txt',
+             'validation_tr.csv',
+             'validation_te.csv',
+             'test_tr.csv',
+             'test_te.csv']
+    tmp = tempfile.NamedTemporaryFile()
+    with open(tmp.name, "w") as f:
+        f.write("1 1 4\n1 2 5\n1 3 2\n1 5 4\n")
+        f.write("2 2 3\n2 3 1\n2 5 4\n")
+        f.write("3 1 5\n3 2 5\n3 4 3\n3 5 4\n")
+        f.write("4 1 1\n4 3 4\n4 4 2\n4 5 4\n")
+
+    with tempfile.TemporaryDirectory() as tmp_folder:
+        tmp_d = tempfile.NamedTemporaryFile()
+        cfg_d = {
+            "data_path": tmp.name,
+            "proc_path": tmp_folder,
+            "seed": 42,
+            "threshold": 2.5,
+            "separator": " ",
+            "u_min": 1,
+            "i_min": 1,
+            "heldout": 1,
+            "test_prop": 0.5
+        }
+        json.dump(cfg_d, open(tmp_d.name, "w"))
+
+        dp = DataProcessing(tmp_d.name)
+        dp.process()
+
+        train_file = ""
+        with open(tmp_folder + "/" + "train.csv", "r") as t:
+            train_file = "".join(t.readlines())
+
+        iid_file = ""
+        with open(tmp_folder + "/" + "unique_iid.txt", "r") as t:
+            iid_file = "".join(t.readlines())
+
+        uid_file = ""
+        with open(tmp_folder + "/" + "unique_uid.txt", "r") as t:
+            uid_file = "".join(t.readlines())
+        vtr_file = ""
+        with open(tmp_folder + "/" + "validation_tr.csv", "r") as t:
+            vtr_file = "".join(t.readlines())
+
+        vte_file = ""
+        with open(tmp_folder + "/" + "validation_te.csv", "r") as t:
+            vte_file = "".join(t.readlines())
+
+        ttr_file = ""
+        with open(tmp_folder + "/" + "test_tr.csv", "r") as t:
+            ttr_file = "".join(t.readlines())
+
+        tte_file = ""
+        with open(tmp_folder + "/" + "test_te.csv", "r") as t:
+            tte_file = "".join(t.readlines())
+
+        train_gt = 'uid,iid,2\n0,0,3\n0,1,4\n1,2,4\n1,1,4\n'
+        iid_gt = '2\n5\n3\n'
+        uid_gt = '2\n4\n1\n3\n'
+        vtr_gt = 'uid,iid,2\n2,0,5\n'
+        vte_gt = 'uid,iid,2\n2,1,4\n'
+        ttr_gt = 'uid,iid,2\n3,0,5\n'
+        tte_gt = 'uid,iid,2\n3,1,4\n'
+
+        assert train_gt == train_file, "the content of train.csv should be %s" %train_gt
+        assert iid_gt == iid_file, "the content of unique_iid.txt should be %s" %iid_gt
+        assert uid_gt == uid_file, "the content of unique_uid.txt should be %s" %uid_gt
+        assert vtr_gt == vtr_file, "the content of validation_tr.csv should be %s" %vtr_gt
+        assert vte_gt == vte_file, "the content of validation_te.csv should be %s" %vte_gt
+        assert ttr_gt == ttr_file, "the content of test_tr.csv should be %s" %ttr_gt
+        assert tte_gt == tte_file, "the content of test_te.csv should be %s" %tte_gt
+
+        reader = DataReader(tmp_d.name)
+
+        sp_data = reader.load_data("full")
+
+        assert np.all(sp_data.data == np.array([3., 4., 4., 4., 5., 4., 5., 4.]))
+        r, c = sp_data.nonzero()
+        assert np.all(r == np.array([0, 0, 1, 1, 2, 2, 3, 3]))
+        assert np.all(c == np.array([0, 1, 1, 2, 0, 1, 0, 1]))
