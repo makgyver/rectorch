@@ -1,4 +1,4 @@
-"""The ``samplers`` module that contains definitions of sampler classes useful when training neural
+r"""The ``samplers`` module that contains definitions of sampler classes useful when training neural
 network-based models.
 
 The ``samplers`` module is inspired by the :class:`torch.utils.data.DataLoader` class which,
@@ -13,7 +13,7 @@ import torch
 
 
 class Sampler():
-    """Sampler base class.
+    r"""Sampler base class.
 
     A sampler is meant to be used as a generator of batches useful in training neural networks.
 
@@ -37,7 +37,7 @@ class Sampler():
 
 
 class DataSampler(Sampler):
-    """This is a standard sampler that returns batches without any particular constraint.
+    r"""This is a standard sampler that returns batches without any particular constraint.
 
     Bathes are randomly returned with the defined dimension (i.e., ``batch_size``). If ``shuffle``
     is set to ``False`` then the sampler returns batches with the same order as in the original
@@ -103,7 +103,7 @@ class DataSampler(Sampler):
 
 
 class ConditionedDataSampler(Sampler):
-    """Data sampler with conditioned filtering used by the :class:`models.CMultiVAE` model.
+    r"""Data sampler with conditioned filtering used by the :class:`models.CMultiVAE` model.
 
     This data sampler is useful when training the :class:`models.CMultiVAE` model described in
     [CVAE]_. During the training, each user must be conditioned over all the possible conditions
@@ -229,7 +229,7 @@ class ConditionedDataSampler(Sampler):
 
 
 class BalancedConditionedDataSampler(ConditionedDataSampler):
-    """Sub-sampled version of the :class:`ConditionedDataSampler`.
+    r"""Sub-sampled version of the :class:`ConditionedDataSampler`.
 
     This data sampler is useful when training the :class:`models.CMultiVAE` model described in
     [CVAE]_. During the training, each user must be conditioned over all the possible conditions
@@ -333,7 +333,7 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
 
 
 class EmptyConditionedDataSampler(Sampler):
-    """Data sampler that returns unconditioned batches used by the :class:`models.CMultiVAE` model.
+    r"""Data sampler that returns unconditioned batches used by the :class:`models.CMultiVAE` model.
 
     This data sampler is useful when training the :class:`models.CMultiVAE` model described in
     [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection that the
@@ -413,7 +413,7 @@ class EmptyConditionedDataSampler(Sampler):
 
 
 class CFGAN_TrainingSampler(Sampler):
-    """Sampler used for training the generator and discriminator of the CFGAN model.
+    r"""Sampler used for training the generator and discriminator of the CFGAN model.
 
     The peculiarity of this sampler (see for [CFGAN]_ more details) is that batches are
     continuously picked at random from all the training set.

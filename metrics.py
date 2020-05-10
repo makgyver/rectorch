@@ -1,4 +1,4 @@
-"""Module containing the definition of the evaluation metrics.
+r"""Module containing the definition of the evaluation metrics.
 
 The metrics are implemented as static methods of the class :class:`Metrics`. Up to now
 the following metrics are implemented:
@@ -19,14 +19,14 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 class Metrics:
-    """The class Metrics contains metric functions.
+    r"""The class Metrics contains metric functions.
 
     All methods are static and no object of type :class:`Metrics` is needed to compute
     the metrics.
     """
     @staticmethod
     def compute(pred_scores, ground_truth, metrics_list):
-        """Compute the given list of evaluation metrics.
+        r"""Compute the given list of evaluation metrics.
 
         The method computes all the metric listed in ``metric_list`` for all the users.
 
@@ -82,7 +82,7 @@ class Metrics:
 
     @staticmethod
     def ndcg_at_k(pred_scores, ground_truth, k=100):
-        """Compute the Normalized Discount Cumulative Gain (nDCG).
+        r"""Compute the Normalized Discount Cumulative Gain (nDCG).
 
         nDCG is a measure of ranking quality. nDCG measures the usefulness, or gain, of an
         item based on its position in the scoring list. The gain is accumulated from the top of 
@@ -145,7 +145,7 @@ class Metrics:
 
     @staticmethod
     def recall_at_k(pred_scores, ground_truth, k=100):
-        """Compute the Recall.
+        r"""Compute the Recall.
 
         The recall@k is the fraction of the relevant items that are successfully scored in the top-k
         The recall is computed over the top-k items (out of :math:`m`), where `k` is specified as a

@@ -271,13 +271,6 @@ def test_DatasetManager():
 def test_nontopn():
     """Test for the module when topn=0
     """
-    names = ['train.csv',
-             'unique_iid.txt',
-             'unique_uid.txt',
-             'validation_tr.csv',
-             'validation_te.csv',
-             'test_tr.csv',
-             'test_te.csv']
     tmp = tempfile.NamedTemporaryFile()
     with open(tmp.name, "w") as f:
         f.write("1 1 4\n1 2 5\n1 3 2\n1 5 4\n")

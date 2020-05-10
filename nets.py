@@ -1,4 +1,4 @@
-"""This module contains definitions of the neural newtork architectures used by
+r"""This module contains definitions of the neural newtork architectures used by
 the **rectorch** models.
 
 See Also
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class AE_net(nn.Module):
-    """Abstract Autoencoder network.
+    r"""Abstract Autoencoder network.
 
     This abstract class must be inherited anytime a new autoencoder network is defined.
     The following methods must be implemented in the sub-classes:
@@ -57,7 +57,7 @@ class AE_net(nn.Module):
         self.dec_dims = dec_dims
 
     def encode(self, x):
-        """Forward propagate the input in the encoder network.
+        r"""Forward propagate the input in the encoder network.
 
         Parameters
         ----------
@@ -67,7 +67,7 @@ class AE_net(nn.Module):
         raise NotImplementedError()
 
     def decode(self, z):
-        """Forward propagate the latent represenation in the decoder network.
+        r"""Forward propagate the latent represenation in the decoder network.
 
         Parameters
         ----------
@@ -77,7 +77,7 @@ class AE_net(nn.Module):
         raise NotImplementedError()
 
     def forward(self, x):
-        """Forward propagate the input in the network.
+        r"""Forward propagate the input in the network.
 
         Parameters
         ----------
@@ -88,14 +88,14 @@ class AE_net(nn.Module):
         return self.decode(z)
 
     def init_weights(self):
-        """Initialize the weights of the network.
+        r"""Initialize the weights of the network.
         """
         raise NotImplementedError()
 
 
 #TODO check this network
 class CDAE_net(AE_net):
-    """Collaborative Deonising AutoEncoder (CDAE).
+    r"""Collaborative Deonising AutoEncoder (CDAE).
 
     The CDAE network architecture follows the definition in [CDAE]_.
     Both encoder and decoder do not have any hidden layer. The dimension of
@@ -131,7 +131,7 @@ class CDAE_net(AE_net):
         self.init_weights()
 
     def encode(self, x):
-        """Apply the encoder network to the input.
+        r"""Apply the encoder network to the input.
 
         The forward operation of the CDAE encoder network computes:
 
@@ -158,7 +158,7 @@ class CDAE_net(AE_net):
         return torch.sigmoid(self.dec_layer(z))
 
     def init_weights(self):
-        """Initialize the weights of the network.
+        r"""Initialize the weights of the network.
 
         Weights are initialized with the :py:func:`torch.nn.init.xavier_uniform_` initializer,
         while biases are initalized with the :py:func:`torch.nn.init.normal_` initializer.
@@ -170,7 +170,7 @@ class CDAE_net(AE_net):
 
 
 class MultiDAE_net(AE_net):
-    """Denoising Autoencoder network for collaborative filtering.
+    r"""Denoising Autoencoder network for collaborative filtering.
 
     The network structure follows the definition as in [VAE]_. Hidden layers are fully
     connected and *tanh* activated. The output layer of both the encoder and the decoder
@@ -230,7 +230,7 @@ class MultiDAE_net(AE_net):
         return h
 
     def init_weights(self):
-        """Initialize the weights of the network.
+        r"""Initialize the weights of the network.
 
         Weights are initialized with the :py:func:`torch.nn.init.xavier_uniform_` initializer,
         while biases are initalized with the :py:func:`torch.nn.init.normal_` initializer.
@@ -245,7 +245,7 @@ class MultiDAE_net(AE_net):
 
 
 class VAE_net(AE_net):
-    """Variational Autoencoder network.
+    r"""Variational Autoencoder network.
 
     Layers are fully connected and ReLU activated with the exception of the ouput layers of
     both the encoder and decoder that are linearly activated.
@@ -267,7 +267,7 @@ class VAE_net(AE_net):
         self.init_weights()
 
     def encode(self, x):
-        """Apply the encoder network of the Variational Autoencoder.
+        r"""Apply the encoder network of the Variational Autoencoder.
 
         Parameters
         ----------
@@ -292,7 +292,7 @@ class VAE_net(AE_net):
         return mu, logvar
 
     def decode(self, z):
-        """Apply the decoder network to the sampled latent representation.
+        r"""Apply the decoder network to the sampled latent representation.
 
         Parameters
         ----------
@@ -309,7 +309,7 @@ class VAE_net(AE_net):
             h = layer(h)
             if i != len(self.dec_layers) - 1:
                 h = torch.relu(h)
-        return h
+        return torch.sigmoid(h)
 
     def _reparameterize(self, mu, var):
         std = torch.exp(0.5*var)
@@ -317,7 +317,7 @@ class VAE_net(AE_net):
         return mu + eps*std
 
     def forward(self, x):
-        """Apply the full Variational Autoencoder network to the input.
+        r"""Apply the full Variational Autoencoder network to the input.
 
         Parameters
         ----------
@@ -336,7 +336,7 @@ class VAE_net(AE_net):
         return self.decode(z), mu, logvar
 
     def init_weights(self):
-        """Initialize the weights of the network.
+        r"""Initialize the weights of the network.
 
         Weights are initialized with the :py:func:`torch.nn.init.xavier_uniform_` initializer,
         while biases are initalized with the :py:func:`torch.nn.init.normal_` initializer.
@@ -351,7 +351,7 @@ class VAE_net(AE_net):
 
 
 class MultiVAE_net(VAE_net):
-    '''Variational Autoencoder network for collaborative filtering.
+    r'''Variational Autoencoder network for collaborative filtering.
 
     The network structure follows the definition as in [VAE]_. Hidden layers are fully
     connected and *tanh* activated. The output layer of both the encoder and the decoder
@@ -415,7 +415,7 @@ class MultiVAE_net(VAE_net):
 
 
 class CMultiVAE_net(MultiVAE_net):
-    '''Conditioned Variational Autoencoder network for collaborative filtering.
+    r'''Conditioned Variational Autoencoder network for collaborative filtering.
 
     The network structure follows the definition as in [CVAE]_. Hidden layers are fully
     connected and *tanh* activated. The output layer of both the encoder and the decoder
@@ -478,7 +478,7 @@ class CMultiVAE_net(MultiVAE_net):
 
 
 class CFGAN_G_net(nn.Module):
-    """Generator network of the CFGAN model.
+    r"""Generator network of the CFGAN model.
 
     The generator newtork of CFGAN is a simple Multi Layer perceptron. Each internal layer is
     fully connected and ReLU activated. The output layer insted has a sigmoid as activation
@@ -522,7 +522,7 @@ class CFGAN_G_net(nn.Module):
         self.model.apply(self.init_weights)
 
     def forward(self, z):
-        """Apply the generator network to the input.
+        r"""Apply the generator network to the input.
 
         Parameters
         ----------
@@ -537,7 +537,7 @@ class CFGAN_G_net(nn.Module):
         return self.model(z)
 
     def init_weights(self, layer):
-        """Initialize the weights of the network.
+        r"""Initialize the weights of the network.
 
         Weights are initialized with the :py:func:`torch.nn.init.xavier_uniform_` initializer,
         while biases are initalized with the :py:func:`torch.nn.init.normal_` initializer.
@@ -548,7 +548,7 @@ class CFGAN_G_net(nn.Module):
 
 
 class CFGAN_D_net(nn.Module):
-    """Discriminator network of the CFGAN model.
+    r"""Discriminator network of the CFGAN model.
 
     The discriminator newtork of CFGAN is a simple Multi Layer perceptron. Each internal layer is
     fully connected and ReLU activated. The output layer insted has a sigmoid as activation
@@ -590,7 +590,7 @@ class CFGAN_D_net(nn.Module):
         self.model.apply(self.init_weights)
 
     def forward(self, x, cond):
-        """Apply the discriminator network to the input.
+        r"""Apply the discriminator network to the input.
 
         Parameters
         ----------
@@ -608,7 +608,7 @@ class CFGAN_D_net(nn.Module):
         return self.model(torch.cat((x, cond), dim=1))
 
     def init_weights(self, layer):
-        """Initialize the weights of the network.
+        r"""Initialize the weights of the network.
 
         Weights are initialized with the :py:func:`torch.nn.init.xavier_uniform_` initializer,
         while biases are initalized with the :py:func:`torch.nn.init.normal_` initializer.

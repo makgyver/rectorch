@@ -1,4 +1,4 @@
-"""The module contains useful classes to manage the configuration files.
+r"""The module contains useful classes to manage the configuration files.
 
 Configuration files are useful to correctly initialize the data processing and the
 recommendation engines. Configuration files must be `.json <https://www.json.org/json-en.html>`_ files with a specific
@@ -10,7 +10,7 @@ from munch import DefaultMunch
 
 
 class Singleton(type):
-    """Define an Instance operation that lets clients access its unique instance.
+    r"""Define an Instance operation that lets clients access its unique instance.
     """
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
@@ -23,7 +23,7 @@ class Singleton(type):
 
 
 class DataConfig(DefaultMunch):
-    """Class containing the configurations for reading/writing the data set.
+    r"""Class containing the configurations for reading/writing the data set.
 
     Parameters
     ----------
@@ -33,7 +33,6 @@ class DataConfig(DefaultMunch):
     Notes
     -----
     The data configuration file **must** have the structure described in :ref:`config-format`.
-
     """
 
     def __init__(self, file_path):
@@ -47,7 +46,7 @@ class DataConfig(DefaultMunch):
 
 
 class ModelConfig():
-    """Class containing the configurations for creating, training and testing
+    r"""Class containing the configurations for creating, training and testing
     the model.
 
     Parameters
@@ -73,7 +72,6 @@ class ModelConfig():
     Notes
     -----
     The data configuration file **must** have the structure described in :ref:`config-format`.
-
     """
 
     def __init__(self, file_path):
@@ -92,7 +90,7 @@ class ModelConfig():
 
 
 class ConfigManager(metaclass=Singleton):
-    """Wrapper class for both the data and model configurations.
+    r"""Wrapper class for both the data and model configurations.
 
     Parameters
     ----------
@@ -120,7 +118,7 @@ class ConfigManager(metaclass=Singleton):
 
     @classmethod
     def get(cls):
-        """Return the singleton ConfigManager instance.
+        r"""Return the singleton ConfigManager instance.
 
         Returns
         -------

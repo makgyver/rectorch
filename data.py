@@ -1,4 +1,4 @@
-"""The ``data`` module manages the reading, writing and loading of the data sets.
+r"""The ``data`` module manages the reading, writing and loading of the data sets.
 
 The supported data set format is standard `csv \
 <https://it.wikipedia.org/wiki/Comma-separated_values>`_.
@@ -42,7 +42,7 @@ logger = logging.getLogger(__name__)
 
 
 class DataProcessing:
-    """Class that manages the pre-processing of raw data sets.
+    r"""Class that manages the pre-processing of raw data sets.
 
     Data sets are expected of being `csv <https://it.wikipedia.org/wiki/Comma-separated_values>`
     files where each row represents a rating. More details about the allowed format are described
@@ -84,7 +84,7 @@ class DataProcessing:
         self.u2id = {}
 
     def process(self):
-        """Perform the entire pre-processing.
+        r"""Perform the entire pre-processing.
 
         The pre-processing relies on the configurations provided in the data configuration file.
         The full pre-processing follows a specific pipeline (the meaning of each configuration
@@ -164,6 +164,14 @@ class DataProcessing:
         tcnt = test_data[[uhead]].groupby(uhead, as_index=False).size()
         val_data = val_data.loc[val_data[uhead].isin(vcnt[vcnt >= 2].index)]
         test_data = test_data.loc[test_data[uhead].isin(tcnt[tcnt >= 2].index)]
+
+        #TODO warning
+        #vcnt_after = val_data[[uhead]].groupby(uhead, as_index=False).size()
+        #tcnt_after = test_data[[uhead]].groupby(uhead, as_index=False).size()
+        #if vcnt_after < vcnt:
+        #    logger.warning("Skipped %d users in validation set.", vcnt - vcnt_after)
+        #if tcnt_after < tcnt:
+        #    logger.warning("Skipped %d users in test set.", tcnt - tcnt_after)
 
         val_data_tr, val_data_te = self._split_train_test(val_data)
         test_data_tr, test_data_te = self._split_train_test(test_data)
@@ -253,6 +261,7 @@ class DataProcessing:
                 tr_list.append(group[np.logical_not(idx)])
                 te_list.append(group[idx])
             else:
+                # This should never be True
                 logger.warning("Skipped user in test set: number of ratings <= 1.")
 
         data_tr = pd.concat(tr_list)
@@ -261,7 +270,7 @@ class DataProcessing:
 
 
 class DataReader():
-    """Utility class for reading pre-processed dataset.
+    r"""Utility class for reading pre-processed dataset.
 
     The reader assumes that the data set has been previously pre-processed using
     :meth:`DataProcessing.process`. To avoid malfunctioning, the same configuration file used for
@@ -297,7 +306,7 @@ class DataReader():
         self.n_items = self._load_n_items()
 
     def load_data(self, datatype='train'):
-        """Load (part of) the pre-processed data set.
+        r"""Load (part of) the pre-processed data set.
 
         Load from the pre-processed file the data set, or part of it, accordingly to the
         ``datatype``.
@@ -441,7 +450,7 @@ class DatasetManager():
         self.test_set = (test_data_tr, test_data_te)
 
     def get_train_and_test(self):
-        """Return a training and a test set.
+        r"""Return a training and a test set.
 
         Load the data set into only a training and a test set. Training, validation and the training
         part of the test set are merged together to form a bigger training set.

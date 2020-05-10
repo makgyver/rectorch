@@ -1,10 +1,10 @@
-"""Module containing utility functions to evaluate recommendation engines.
+r"""Module containing utility functions to evaluate recommendation engines.
 """
 import numpy as np
 from metrics import Metrics
 
 def evaluate(model, test_loader, metric_list):
-    """Evaluate the given method.
+    r"""Evaluate the given method.
 
     The ``model`` evaluation is performed with all the provided metrics in ``metric_list``.
     The test set is loaded through the provided :class:`sampler.Sampler`
