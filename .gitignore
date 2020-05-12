@@ -10,3 +10,6 @@ crawl_*
 __pycache__
 .pytest_cache
 .coverage
+dist
+build
+rectorch.egg*
