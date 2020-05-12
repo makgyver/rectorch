@@ -6,9 +6,10 @@ State-of-the-art recsys approaches implemented in pytorch.
 Getting started
 ===============
 Installation
+~~~~~~~~~~~~
+.. code-block:: console
 
-TODO
-
+   pip3 install rectorch
 
 
 rectorch modules
