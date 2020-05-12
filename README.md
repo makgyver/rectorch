@@ -6,6 +6,8 @@
 [travis-url]: https://travis-ci.org/makgyver/rectorch
 [![Build Status][travis-img]][travis-url]
 [![Coverage Status](https://coveralls.io/repos/github/makgyver/rectorch/badge.svg?branch=master)](https://coveralls.io/github/makgyver/rectorch?branch=master)
+[docs]: https://img.shields.io/badge/docs-github.io-blue
+![docs](https://makgyver.github.io/rectorch/)
 
 [license]: https://img.shields.io/github/license/makgyver/rectorch
 [language]: https://img.shields.io/github/languages/top/makgyver/rectorch
