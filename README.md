@@ -1,4 +1,4 @@
-<img src="./docsrc/img/logo_400.png" alt="rectorch logo"
+<img src="https://github.com/makgyver/rectorch/tree/master/docsrc/img/logo_400.png" alt="rectorch logo"
 	title="rectorch logo" width="150" />
 
 [travis-img]: https://travis-ci.org/makgyver/rectorch.svg?branch=master
