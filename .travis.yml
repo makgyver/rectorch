@@ -3,9 +3,16 @@ python:
   - "3.6"      # current default Python on Travis CI
   - "3.7"
   - "3.8"
-# command to install dependencies
+
+  # command to install dependencies
 install:
   - pip install -r requirements.txt
+  - pip install pytest-cov
+  - pip install coveralls
+
 # command to run tests
 script:
   - python -m pytest
+
+after_success:
+  - coveralls
