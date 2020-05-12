@@ -8,6 +8,7 @@ import json
 from os.path import exists
 from munch import DefaultMunch
 
+__all__ = ['DataConfig', 'ModelConfig', 'ConfigManager']
 
 class Singleton(type):
     r"""Define an Instance operation that lets clients access its unique instance.

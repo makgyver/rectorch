@@ -53,6 +53,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from .metrics import Metrics
 
+__all__ = ['RecSysModel', 'TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
+    'CMultiVAE', 'EASE', 'CFGAN']
+
 logger = logging.getLogger(__name__)
 
 

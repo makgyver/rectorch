@@ -16,6 +16,8 @@ import logging
 import bottleneck as bn
 import numpy as np
 
+__all__ = ['Metrics']
+
 logger = logging.getLogger(__name__)
 
 class Metrics:

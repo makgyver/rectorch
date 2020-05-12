@@ -3,6 +3,8 @@ r"""Module containing utility functions to evaluate recommendation engines.
 import numpy as np
 from .metrics import Metrics
 
+__all__ = ['evaluate']
+
 def evaluate(model, test_loader, metric_list):
     r"""Evaluate the given method.
 
