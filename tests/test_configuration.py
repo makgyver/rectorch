@@ -7,7 +7,7 @@ import pytest
 import tempfile
 sys.path.insert(0, os.path.abspath('..'))
 
-from configuration import DataConfig, ModelConfig, ConfigManager
+from rectorch.configuration import DataConfig, ModelConfig, ConfigManager
 
 def test_DataConfig():
     """Test the :class:`DataConfig` initialization.

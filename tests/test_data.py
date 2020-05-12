@@ -8,8 +8,8 @@ import pytest
 import numpy as np
 sys.path.insert(0, os.path.abspath('..'))
 
-from data import DataProcessing, DataReader, DatasetManager
-from configuration import DataConfig
+from rectorch.data import DataProcessing, DataReader, DatasetManager
+from rectorch.configuration import DataConfig
 
 def test_DataProcessing():
     """Test for the DataProcessing class

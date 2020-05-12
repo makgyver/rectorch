@@ -9,10 +9,11 @@ import numpy as np
 from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
-from models import RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE, CMultiVAE,\
-    EASE, CFGAN
-from nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net, CFGAN_G_net
-from samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler
+from rectorch.models import RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
+    CMultiVAE, EASE, CFGAN
+from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
+    CFGAN_G_net
+from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler
 
 def test_RecSysModel():
     """Test the RecSysModel class

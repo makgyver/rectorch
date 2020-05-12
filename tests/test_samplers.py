@@ -8,8 +8,8 @@ import torch
 from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
-from samplers import Sampler, DataSampler, EmptyConditionedDataSampler, ConditionedDataSampler, \
-    CFGAN_TrainingSampler
+from rectorch.samplers import Sampler, DataSampler, EmptyConditionedDataSampler,\
+    ConditionedDataSampler, CFGAN_TrainingSampler
 
 def test_Sampler():
     """Test the Sampler class

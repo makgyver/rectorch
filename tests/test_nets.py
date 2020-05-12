@@ -6,7 +6,8 @@ import pytest
 import torch
 sys.path.insert(0, os.path.abspath('..'))
 
-from nets import AE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net, CFGAN_D_net
+from rectorch.nets import AE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net,\
+    CFGAN_D_net
 
 def test_AE_net():
     """Test the AE_net class

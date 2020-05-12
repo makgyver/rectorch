@@ -5,7 +5,7 @@ import sys
 import numpy as np
 sys.path.insert(0, os.path.abspath('..'))
 
-from metrics import Metrics
+from rectorch.metrics import Metrics
 
 
 def test_ndcg_at_k():

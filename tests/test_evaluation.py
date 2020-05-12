@@ -6,9 +6,9 @@ import numpy as np
 import torch
 sys.path.insert(0, os.path.abspath('..'))
 
-from evaluation import evaluate
-from models import RecSysModel
-from samplers import Sampler
+from rectorch.evaluation import evaluate
+from rectorch.models import RecSysModel
+from rectorch.samplers import Sampler
 
 class FakeModel(RecSysModel):
     """Fake model
