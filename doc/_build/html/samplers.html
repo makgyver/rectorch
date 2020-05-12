@@ -1,0 +1,650 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>rectorch.samplers &mdash; rectorch 0.0.1b documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+  
+  
+  
+
+  <!--- check this stuff -->
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Light.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" type="font/woff2" crossorigin="anonymous">
+
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Configuration files format" href="config-format.html" />
+    <link rel="prev" title="rectorch.models" href="models.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="index.html"></a>
+
+      <div class="main-menu">
+
+        <ul>
+           <!---
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/get-started">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/ecosystem">Ecosystem</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/blog/">Blog</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/tutorials">Tutorials</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/resources">Resources</a>
+          </li>
+          --->
+          <li>
+            <a href="https://github.com/makgyver/rectorch">Github</a>
+          </li>
+        </ul>
+
+    </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+     
+    <div>
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">rectorch.configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">rectorch.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">rectorch.evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nets.html">rectorch.nets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">rectorch.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">rectorch.models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">rectorch.samplers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config-format.html">Configuration files format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-format.html">Data sets CSV format</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+
+      <section data-toggle="wy-nav-shift" class="pytorch-content-wrap">
+        <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+          <div class="pytorch-breadcrumbs-wrapper">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+      <li>rectorch.samplers</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+          </div>
+        </div>
+
+        <div class="pytorch-content-left">
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" class="pytorch-article">
+              
+  <div class="section" id="rectorch-samplers">
+<h1>rectorch.samplers<a class="headerlink" href="#rectorch-samplers" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="class-list">
+<h2>Class list<a class="headerlink" href="#class-list" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#samplers.Sampler" title="samplers.Sampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></a>(*args, **kargs)</p></td>
+<td><p>Sampler base class.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#samplers.DataSampler" title="samplers.DataSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">samplers.DataSampler</span></code></a>(sparse_data_tr[, …])</p></td>
+<td><p>This is a standard sampler that returns batches without any particular constraint.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#samplers.ConditionedDataSampler" title="samplers.ConditionedDataSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">samplers.ConditionedDataSampler</span></code></a>(iid2cids, …)</p></td>
+<td><p>Data sampler with conditioned filtering used by the <a class="reference internal" href="models.html#models.CMultiVAE" title="models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code></a> model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#samplers.BalancedConditionedDataSampler" title="samplers.BalancedConditionedDataSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">samplers.BalancedConditionedDataSampler</span></code></a>(…)</p></td>
+<td><p>Sub-sampled version of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionedDataSampler</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#samplers.EmptyConditionedDataSampler" title="samplers.EmptyConditionedDataSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">samplers.EmptyConditionedDataSampler</span></code></a>(…[, …])</p></td>
+<td><p>Data sampler that returns unconditioned batches used by the <a class="reference internal" href="models.html#models.CMultiVAE" title="models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code></a> model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#samplers.CFGAN_TrainingSampler" title="samplers.CFGAN_TrainingSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">samplers.CFGAN_TrainingSampler</span></code></a>(sparse_data_tr)</p></td>
+<td><p>Sampler used for training the generator and discriminator of the CFGAN model.</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="module-samplers"></span><p>The <code class="docutils literal notranslate"><span class="pre">samplers</span></code> module that contains definitions of sampler classes useful when training neural
+network-based models.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">samplers</span></code> module is inspired by the <a class="reference external" href="https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.utils.data.DataLoader</span></code></a> class which,
+however, is not really efficient because it outputs a single example at a time. The idea behind the
+samplers defined in this module is to treat the data set at batches highly improving the efficiency.
+Each new sampler must extend the base class <a class="reference internal" href="#samplers.Sampler" title="samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a> implementing all the abstract special
+methods, in particular <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__len__()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__iter__()</span></code>.</p>
+<dl class="py class">
+<dt id="samplers.Sampler">
+<em class="property">class </em><code class="sig-prename descclassname">samplers.</code><code class="sig-name descname">Sampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/samplers.html#Sampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#samplers.Sampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Sampler base class.</p>
+<p>A sampler is meant to be used as a generator of batches useful in training neural networks.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Each new sampler must extend this base class implementing all the abstract
+special methods, in particular <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__len__()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__iter__()</span></code>.</p>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt id="samplers.DataSampler">
+<em class="property">class </em><code class="sig-prename descclassname">samplers.</code><code class="sig-name descname">DataSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">sparse_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/samplers.html#DataSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#samplers.DataSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#samplers.Sampler" title="samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></a></p>
+<p>This is a standard sampler that returns batches without any particular constraint.</p>
+<p>Bathes are randomly returned with the defined dimension (i.e., <code class="docutils literal notranslate"><span class="pre">batch_size</span></code>). If <code class="docutils literal notranslate"><span class="pre">shuffle</span></code>
+is set to <code class="docutils literal notranslate"><span class="pre">False</span></code> then the sampler returns batches with the same order as in the original
+dataset. When <code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> is defined then each returned batch is a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> with
+the training part of the batch and its test/validation counterpart. Otherwise, if
+<code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> then the second element of the yielded tuple will be <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the data set must bu randomly shuffled before creating the batches, by default
+<code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code> parameter.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> parameter.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> parameter.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> parameter.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="samplers.ConditionedDataSampler">
+<em class="property">class </em><code class="sig-prename descclassname">samplers.</code><code class="sig-name descname">ConditionedDataSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iid2cids</span></em>, <em class="sig-param"><span class="n">n_cond</span></em>, <em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">sparse_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/samplers.html#ConditionedDataSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#samplers.ConditionedDataSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#samplers.Sampler" title="samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></a></p>
+<p>Data sampler with conditioned filtering used by the <a class="reference internal" href="models.html#models.CMultiVAE" title="models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code></a> model.</p>
+<p>This data sampler is useful when training the <a class="reference internal" href="models.html#models.CMultiVAE" title="models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code></a> model described in
+<a class="reference internal" href="#rbca4f217f464-cvae" id="id1">[CVAE]</a>. During the training, each user must be conditioned over all the possible conditions
+(actually the ones that the user knows) so the training set must be modified accordingly.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>iid2cids</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> - value <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>Dictionary that maps each item to the list of all valid conditions for that item. Items
+are referred to with the inner id, and conditions with an integer in the range 0,
+<code class="docutils literal notranslate"><span class="pre">n_cond</span></code> -1.</p>
+</ul>
+<li><strong>n_cond</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Number of possible conditions.</p>
+</ul>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the data set must bu randomly shuffled before creating the batches, by default
+<code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="rbca4f217f464-cvae"><span class="brackets"><a class="fn-backref" href="#id1">CVAE</a></span></dt>
+<dd><p>Tommaso Carraro, Mirko Polato and Fabio Aiolli. Conditioned Variational
+Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
+<a class="reference external" href="https://arxiv.org/abs/2004.11141">https://arxiv.org/abs/2004.11141</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>iid2cids</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> - value <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">iid2cids</span></code> parameter.</p>
+</ul>
+<li><strong>n_cond</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">n_cond</span></code> parameter.</p>
+</ul>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code> parameter.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> parameter.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> parameter.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> parameter.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="samplers.BalancedConditionedDataSampler">
+<em class="property">class </em><code class="sig-prename descclassname">samplers.</code><code class="sig-name descname">BalancedConditionedDataSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iid2cids</span></em>, <em class="sig-param"><span class="n">n_cond</span></em>, <em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">sparse_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">subsample</span><span class="o">=</span><span class="default_value">0.2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/samplers.html#BalancedConditionedDataSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#samplers.BalancedConditionedDataSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#samplers.ConditionedDataSampler" title="samplers.ConditionedDataSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.ConditionedDataSampler</span></code></a></p>
+<p>Sub-sampled version of the <a class="reference internal" href="#samplers.ConditionedDataSampler" title="samplers.ConditionedDataSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionedDataSampler</span></code></a>.</p>
+<p>This data sampler is useful when training the <a class="reference internal" href="models.html#models.CMultiVAE" title="models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code></a> model described in
+<a class="reference internal" href="#rb243ca77fb70-cvae" id="id3">[CVAE]</a>. During the training, each user must be conditioned over all the possible conditions
+(actually the ones that the user knows) so the training set must be modified accordingly.
+This sampler avoids to create all possible user-condition pairs via sub-samplig. The extent
+of this sub-sampling is defined by the parameter <code class="docutils literal notranslate"><span class="pre">subsample</span></code>. The prefix ‘Balanced’ is
+due to the way the subsampling is performed. Given a user <em>u</em>, for each condition <em>c</em> only a
+<code class="docutils literal notranslate"><span class="pre">subsample</span></code> fraction of training sample is created for <em>u</em> conditioned by <em>c</em>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>iid2cids</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> - value <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>Dictionary that maps each item to the list of all valid conditions for that item. Items
+are referred to with the inner id, and conditions with an integer in the range 0,
+<code class="docutils literal notranslate"><span class="pre">n_cond</span></code> -1.</p>
+</ul>
+<li><strong>n_cond</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Number of possible conditions.</p>
+</ul>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the data set must bu randomly shuffled before creating the batches, by default
+<code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</ul>
+<li><strong>subsample</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The size of the dimension. It must be a float between (0, 1], by default 0.2.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="rb243ca77fb70-cvae"><span class="brackets"><a class="fn-backref" href="#id3">CVAE</a></span></dt>
+<dd><p>Tommaso Carraro, Mirko Polato and Fabio Aiolli. Conditioned Variational
+Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
+<a class="reference external" href="https://arxiv.org/abs/2004.11141">https://arxiv.org/abs/2004.11141</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>iid2cids</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> - value <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">iid2cids</span></code> parameter.</p>
+</ul>
+<li><strong>n_cond</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">n_cond</span></code> parameter.</p>
+</ul>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code> parameter.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> parameter.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> parameter.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> parameter.</p>
+</ul>
+<li><strong>subsample</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">subsample</span></code> parameter.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="samplers.EmptyConditionedDataSampler">
+<em class="property">class </em><code class="sig-prename descclassname">samplers.</code><code class="sig-name descname">EmptyConditionedDataSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cond_size</span></em>, <em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">sparse_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/samplers.html#EmptyConditionedDataSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#samplers.EmptyConditionedDataSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#samplers.Sampler" title="samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></a></p>
+<p>Data sampler that returns unconditioned batches used by the <a class="reference internal" href="models.html#models.CMultiVAE" title="models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code></a> model.</p>
+<p>This data sampler is useful when training the <a class="reference internal" href="models.html#models.CMultiVAE" title="models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code></a> model described in
+<a class="reference internal" href="#r6ed36746c122-cvae" id="id5">[CVAE]</a>. This sampler is very similar to <a class="reference internal" href="#samplers.DataSampler" title="samplers.DataSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataSampler</span></code></a> with the expection that the
+yielded batches have appended a zero matrix of the size <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> <span class="math notranslate nohighlight">\(\\times\)</span>
+<code class="docutils literal notranslate"><span class="pre">n_cond</span></code>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>n_cond</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Number of possible conditions.</p>
+</ul>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the data set must bu randomly shuffled before creating the batches, by default
+<code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r6ed36746c122-cvae"><span class="brackets"><a class="fn-backref" href="#id5">CVAE</a></span></dt>
+<dd><p>Tommaso Carraro, Mirko Polato and Fabio Aiolli. Conditioned Variational
+Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
+<a class="reference external" href="https://arxiv.org/abs/2004.11141">https://arxiv.org/abs/2004.11141</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>n_cond</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">n_cond</span></code> parameter.</p>
+</ul>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code> parameter.</p>
+</ul>
+<li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> parameter.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> parameter.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">shuffle</span></code> parameter.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="samplers.CFGAN_TrainingSampler">
+<em class="property">class </em><code class="sig-prename descclassname">samplers.</code><code class="sig-name descname">CFGAN_TrainingSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">64</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/samplers.html#CFGAN_TrainingSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#samplers.CFGAN_TrainingSampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#samplers.Sampler" title="samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></a></p>
+<p>Sampler used for training the generator and discriminator of the CFGAN model.</p>
+<p>The peculiarity of this sampler (see for <a class="reference internal" href="#r085f57c6871d-cfgan" id="id7">[CFGAN]</a> more details) is that batches are
+continuously picked at random from all the training set.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 64</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r085f57c6871d-cfgan"><span class="brackets"><a class="fn-backref" href="#id7">CFGAN</a></span></dt>
+<dd><p>Dong-Kyu Chae, Jin-Soo Kang, Sang-Wook Kim, and Jung-Tae Lee. 2018.
+CFGAN: A Generic Collaborative Filtering Framework based on Generative Adversarial Networks.
+In Proceedings of the 27th ACM International Conference on Information and Knowledge
+Management (CIKM ’18). Association for Computing Machinery, New York, NY, USA, 137–146.
+DOI: <a class="reference external" href="https://doi.org/10.1145/3269206.3271743">https://doi.org/10.1145/3269206.3271743</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code> parameter.</p>
+</ul>
+<li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> parameter.</p>
+</ul>
+<li><strong>idxlist</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Shuffled list of indexes. After an iteration over the sampler, or after a call to the
+<a class="reference external" href="https://docs.python.org/3/library/functions.html#next" title="(in Python v3.8)"><code class="xref py py-func docutils literal notranslate"><span class="pre">next()</span></code></a> function, the <code class="docutils literal notranslate"><span class="pre">idxlist</span></code> contains, in the first <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> positions,
+the indexes of the examples that are contained in the current batch.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+</div>
+
+
+             </article>
+             
+            </div>
+            <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="config-format.html" class="btn btn-neutral float-right" title="Configuration files format" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+      
+      
+        <a href="models.html" class="btn btn-neutral" title="rectorch.models" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mirko Polato.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">rectorch.samplers</a><ul>
+<li><a class="reference internal" href="#class-list">Class list</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    </div>
+    
+
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:'./',
+          VERSION:'0.0.1b',
+          LANGUAGE:'None',
+          COLLAPSE_INDEX:false,
+          FILE_SUFFIX:'.html',
+          LINK_SUFFIX:'.html',
+          HAS_SOURCE:  true,
+          SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+
+    
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+
+    <script type="text/javascript" src="_static/js/vendor/popper.min.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/js/theme.js"></script> 
+
+
+    <script type="text/javascript" src="_static/js/_utilities.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
+    <script type="text/javascript" src="_static/js/pytorch-anchors.js"></script>
+    <script type="text/javascript" src="_static/js/scroll-to-anchor.js"></script>
+    <script type="text/javascript" src="_static/js/side-menus.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-menu.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-toc.js"></script>
+    <script type="text/javascript" src="_static/js/main-menu-dropdown.js"></script>
+    <script type="text/javascript" src="_static/js/highlight-navigation.js"></script>
+
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+
+
+    <script type="text/javascript">
+        mobileTOC.bind();
+        pytorchAnchors.bind();
+        //sideMenus.bind();
+        highlightNavigation.bind();
+        mainMenuDropdown.bind();
+        //filterTags.bind();
+
+        $(window).on("load", function() {
+          sideMenus.bind();
+          scrollToAnchor.bind();
+          highlightNavigation.bind();
+        })
+
+        // Add class to links that have code blocks, since we cannot create links in code blocks
+        $("article.pytorch-article a span.pre").each(function(e) {
+          $(this).closest("a").addClass("has-code");
+        });
+    </script>
+</body>
+</html>
