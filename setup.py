@@ -13,7 +13,7 @@ setup(
         "numpy",
         "scipy",
         "torch",
-        "bottleneck",
+        "Bottleneck",
         "munch"
     ],
     python_requires='>=3.6',
