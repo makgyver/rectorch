@@ -1,0 +1,10 @@
+{
+    "num_epochs": 200,
+    "batch_size": 250,
+    "learning_rate": 0.001,
+    "verbose": 1,
+    "lam": 0.2,
+    "best_path": "",
+    "valid_metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"],
+    "test_metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"]
+}

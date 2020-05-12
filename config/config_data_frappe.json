@@ -1,0 +1,13 @@
+{
+    "data_path": "datasets/frappe/ratings.csv",
+    "proc_path": "datasets/frappe/preproc",
+    "seed": 98765,
+    "threshold": 0,
+    "header": 0,
+    "separator": ",",
+    "u_min": 2,
+    "i_min": 0,
+    "heldout": 75,
+    "test_prop": 0.5,
+    "topn": 1
+}

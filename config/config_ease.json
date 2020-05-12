@@ -1,0 +1,4 @@
+{
+    "lam": 100,
+    "test_metrics": ["ndcg@100", "ndcg@10", "recall@20", "recall@50"]
+}

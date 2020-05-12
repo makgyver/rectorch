@@ -5,3 +5,8 @@ datasets
 log
 out
 tex
+crawl_*
+.vscode*
+__pycache__
+.pytest_cache
+.coverage
