@@ -51,7 +51,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from metrics import Metrics
+from .metrics import Metrics
 
 logger = logging.getLogger(__name__)
 

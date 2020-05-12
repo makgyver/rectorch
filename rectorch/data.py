@@ -31,7 +31,7 @@ import sys
 import numpy as np
 import pandas as pd
 from scipy import sparse
-from configuration import DataConfig
+from .configuration import DataConfig
 
 logging.basicConfig(level=logging.INFO,
                     format="[%(asctime)s]  %(message)s",

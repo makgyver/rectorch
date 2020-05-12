@@ -6,15 +6,17 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='prl',
-    packages=find_packages(exclude=['build', 'doc', 'templates']),
+    name='rectorch',
+    #packages=find_packages(exclude=['build', 'doc', 'templates']),
     version='0.01b',
     install_requires=[
         "numpy",
         "scipy",
-        "pytorch",
-        "bottleneck"
+        "torch",
+        "bottleneck",
+        "munch"
     ],
+    packages=["rectorch", "rectorch.tests"],
     license="MIT",
     description='rectorch: state-of-the-art recsys approaches implemented in pytorch.',
     long_description=long_description,
@@ -23,7 +25,7 @@ setup(
     author_email='mak1788@gmail.com',
     url='https://github.com/makgyver/rectorch',
     download_url='https://github.com/makgyver/rectorch',
-    keywords=['preference-learning', 'game-theory', 'machine-learning', 'algorithm'],
+    keywords=['recommender-system', 'pytorch', 'machine-learning', 'algorithm'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3.7',
