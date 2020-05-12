@@ -12,7 +12,7 @@ install:
 
 # command to run tests
 script:
-  - python -m pytest
+  - python -m pytest --cov=rectorch
 
 after_success:
   - coveralls
