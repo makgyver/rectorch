@@ -6,4 +6,6 @@
 
 [![Build Status][travis-img]][travis-url]
 
+[![Coverage Status](https://coveralls.io/repos/github/makgyver/rectorch/badge.svg?branch=master)](https://coveralls.io/github/makgyver/rectorch?branch=master)
+
 State-of-the-art recsys approaches implemented in pytorch
