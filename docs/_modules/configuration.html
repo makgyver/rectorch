@@ -1,0 +1,492 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>configuration &mdash; rectorch 0.0.1b documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.png"/>
+  
+  
+  
+
+  <!--- check this stuff -->
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Light.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" type="font/woff2" crossorigin="anonymous">
+
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="../_static/pygments.css" type="text/css" /> -->
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="index.html"></a>
+
+      <div class="main-menu">
+
+        <ul>
+           <!---
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/get-started">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/ecosystem">Ecosystem</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/blog/">Blog</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/tutorials">Tutorials</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/resources">Resources</a>
+          </li>
+          --->
+          <li>
+            <a href="https://github.com/makgyver/rectorch">Github</a>
+          </li>
+        </ul>
+
+    </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+     
+    <div>
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../configuration.html">rectorch.configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data.html">rectorch.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../evaluation.html">rectorch.evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../nets.html">rectorch.nets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../metrics.html">rectorch.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models.html">rectorch.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../samplers.html">rectorch.samplers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../config-format.html">Configuration files format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../csv-format.html">Data sets CSV format</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+
+      <section data-toggle="wy-nav-shift" class="pytorch-content-wrap">
+        <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+          <div class="pytorch-breadcrumbs-wrapper">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="../index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+          <li><a href="index.html">Module code</a> &gt;</li>
+        
+      <li>configuration</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+          </div>
+        </div>
+
+        <div class="pytorch-content-left">
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" class="pytorch-article">
+              
+  <h1>Source code for configuration</h1><div class="highlight"><pre>
+<span></span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;The module contains useful classes to manage the configuration files.</span>
+
+<span class="sd">Configuration files are useful to correctly initialize the data processing and the</span>
+<span class="sd">recommendation engines. Configuration files must be `.json &lt;https://www.json.org/json-en.html&gt;`_</span>
+<span class="sd">files with a specific format. Details about the file formats are described in :ref:`config-format`.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">munch</span> <span class="kn">import</span> <span class="n">DefaultMunch</span>
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;DataConfig&#39;</span><span class="p">,</span> <span class="s1">&#39;ModelConfig&#39;</span><span class="p">,</span> <span class="s1">&#39;ConfigManager&#39;</span><span class="p">]</span>
+
+<span class="k">class</span> <span class="nc">Singleton</span><span class="p">(</span><span class="nb">type</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Define an Instance operation that lets clients access its unique instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">bases</span><span class="p">,</span> <span class="n">attrs</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__call__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+
+
+<div class="viewcode-block" id="DataConfig"><a class="viewcode-back" href="../configuration.html#configuration.DataConfig">[docs]</a><span class="k">class</span> <span class="nc">DataConfig</span><span class="p">(</span><span class="n">DefaultMunch</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Class containing the configurations for reading/writing the data set.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : :obj:`str`</span>
+<span class="sd">        The path to the data configuration `.json &lt;https://www.json.org/json-en.html&gt;`_ file.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The data configuration file **must** have the structure described in :ref:`config-format`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">DataConfig</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;DataConfig(&quot;</span> <span class="o">+</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="p">[</span><span class="n">k</span><span class="p">])</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ModelConfig"><a class="viewcode-back" href="../configuration.html#configuration.ModelConfig">[docs]</a><span class="k">class</span> <span class="nc">ModelConfig</span><span class="p">():</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Class containing the configurations for creating, training and testing</span>
+<span class="sd">    the model.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    file_path : :obj:`str`</span>
+<span class="sd">        The path to the model configuration `.json &lt;https://www.json.org/json-en.html&gt;`_ file.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model : `DefaultMunch &lt;https://github.com/Infinidat/munch&gt;`_</span>
+<span class="sd">        Munch object containing the model&#39;s configurations according to the</span>
+<span class="sd">        ``model`` key in the ``file_path`` json file.</span>
+<span class="sd">    train : `DefaultMunch &lt;https://github.com/Infinidat/munch&gt;`_</span>
+<span class="sd">        Munch object containing the model training&#39;s configurations according</span>
+<span class="sd">        to the ``train`` key in the ``file_path`` json file.</span>
+<span class="sd">    test : `DefaultMunch &lt;https://github.com/Infinidat/munch&gt;`_</span>
+<span class="sd">        Munch object containing the test configurations according to the</span>
+<span class="sd">        ``test`` key in the ``file_path`` json file.</span>
+<span class="sd">    sampler : `DefaultMunch &lt;https://github.com/Infinidat/munch&gt;`_</span>
+<span class="sd">        Munch object containing the sampler configurations according to the</span>
+<span class="sd">        ``model`` key in the ``file_path`` json file.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The data configuration file **must** have the structure described in :ref:`config-format`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_path</span><span class="p">):</span>
+        <span class="n">json_cfg</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">DefaultMunch</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_cfg</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">DefaultMunch</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_cfg</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">test</span> <span class="o">=</span> <span class="n">DefaultMunch</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_cfg</span><span class="p">[</span><span class="s2">&quot;test&quot;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span> <span class="o">=</span> <span class="n">DefaultMunch</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">json_cfg</span><span class="p">[</span><span class="s2">&quot;sampler&quot;</span><span class="p">])</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;ModelConfig(model=</span><span class="si">{}</span><span class="s2">, train=</span><span class="si">{}</span><span class="s2">, test=</span><span class="si">{}</span><span class="s2">, sampler=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">test</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampler</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="ConfigManager"><a class="viewcode-back" href="../configuration.html#configuration.ConfigManager">[docs]</a><span class="k">class</span> <span class="nc">ConfigManager</span><span class="p">(</span><span class="n">metaclass</span><span class="o">=</span><span class="n">Singleton</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Wrapper class for both the data and model configurations.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_config_path : :obj:`str`</span>
+<span class="sd">        The path to the data configuration `.json &lt;https://www.json.org/json-en.html&gt;`_ file.</span>
+<span class="sd">    model_config_path : :obj:`str`</span>
+<span class="sd">        The path to the model configuration `.json &lt;https://www.json.org/json-en.html&gt;`_ file.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data_config : :class:`DataConfig`</span>
+<span class="sd">        Object containing the configurations for reading/writing the data set.</span>
+<span class="sd">    model_config : :class:`ModelConfig`</span>
+<span class="sd">        Object containing the configurations for creating, training and testing</span>
+<span class="sd">        the model.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Initializing the :class:`ConfigManager` singleton:</span>
+
+<span class="sd">    &gt;&gt;&gt; from rectorch.configuration import ConfigManager</span>
+<span class="sd">    &gt;&gt;&gt; ConfigManager(&quot;path/to/the/dataconfig/file&quot;, &quot;path/to/the/modelconfig/file&quot;)</span>
+<span class="sd">    ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ConfigManager.get"><a class="viewcode-back" href="../configuration.html#configuration.ConfigManager.get">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Return the singleton ConfigManager instance.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :class:`ConfigManager`</span>
+<span class="sd">            The singletion :class:`ConfigManager` instance.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        :class:`Exception`</span>
+<span class="sd">            Raised when the singleton :class:`ConfigManager` object has not been</span>
+<span class="sd">            previously created. To initialize the :class:`ConfigManager` simply call</span>
+<span class="sd">            its constructor. Please, see **Examples**.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; from rectorch.configuration import ConfigManager</span>
+<span class="sd">        &gt;&gt;&gt; man = ConfigManager.get()</span>
+<span class="sd">        Exception: Singleton object not instantiated!</span>
+
+<span class="sd">        The :class:`ConfigManager` singleton object must be initialized to get it.</span>
+
+<span class="sd">        &gt;&gt;&gt; ConfigManager(&quot;path/to/the/dataconfig/file&quot;, &quot;path/to/the/modelconfig/file&quot;)</span>
+<span class="sd">        ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))</span>
+<span class="sd">        &gt;&gt;&gt; man = ConfigManager.get()</span>
+<span class="sd">        &gt;&gt;&gt; man</span>
+<span class="sd">        ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))</span>
+
+<span class="sd">        Getting the configuration objects is as easy as getting an attribute</span>
+
+<span class="sd">        &gt;&gt;&gt; man.data_config</span>
+<span class="sd">        DataConfig(...)</span>
+<span class="sd">        &gt;&gt;&gt; man.model_config</span>
+<span class="sd">        ModelConfig(...)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_instance</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Singleton object not instantiated!&quot;</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_config_path</span><span class="p">,</span> <span class="n">model_config_path</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">data_config_path</span><span class="p">),</span> <span class="s2">&quot;Data config file does not exist.&quot;</span>
+        <span class="k">assert</span> <span class="n">exists</span><span class="p">(</span><span class="n">model_config_path</span><span class="p">),</span> <span class="s2">&quot;Model config file does not exist.&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data_config</span> <span class="o">=</span> <span class="n">DataConfig</span><span class="p">(</span><span class="n">data_config_path</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="p">(</span><span class="n">model_config_path</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;ConfigManager(data_config=</span><span class="si">%s</span><span class="s2">, model_config=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data_config</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_config</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+</pre></div>
+
+             </article>
+             
+            </div>
+            <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mirko Polato.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    </div>
+    
+
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:'../',
+          VERSION:'0.0.1b',
+          LANGUAGE:'None',
+          COLLAPSE_INDEX:false,
+          FILE_SUFFIX:'.html',
+          LINK_SUFFIX:'.html',
+          HAS_SOURCE:  true,
+          SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+
+    
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="../_static/language_data.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+
+    <script type="text/javascript" src="../_static/js/vendor/popper.min.js"></script>
+    <script type="text/javascript" src="../_static/js/vendor/bootstrap.min.js"></script>
+    <script type="text/javascript" src="../_static/js/theme.js"></script> 
+
+
+    <script type="text/javascript" src="_static/js/_utilities.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
+    <script type="text/javascript" src="_static/js/pytorch-anchors.js"></script>
+    <script type="text/javascript" src="_static/js/scroll-to-anchor.js"></script>
+    <script type="text/javascript" src="_static/js/side-menus.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-menu.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-toc.js"></script>
+    <script type="text/javascript" src="_static/js/main-menu-dropdown.js"></script>
+    <script type="text/javascript" src="_static/js/highlight-navigation.js"></script>
+
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+
+
+    <script type="text/javascript">
+        mobileTOC.bind();
+        pytorchAnchors.bind();
+        //sideMenus.bind();
+        highlightNavigation.bind();
+        mainMenuDropdown.bind();
+        //filterTags.bind();
+
+        $(window).on("load", function() {
+          sideMenus.bind();
+          scrollToAnchor.bind();
+          highlightNavigation.bind();
+        })
+
+        // Add class to links that have code blocks, since we cannot create links in code blocks
+        $("article.pytorch-article a span.pre").each(function(e) {
+          $(this).closest("a").addClass("has-code");
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,605 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>rectorch.data &mdash; rectorch 0.0.1b documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+  
+  
+  
+
+  <!--- check this stuff -->
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Light.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" type="font/woff2" crossorigin="anonymous">
+
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="rectorch.evaluation" href="evaluation.html" />
+    <link rel="prev" title="rectorch.configuration" href="configuration.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="index.html"></a>
+
+      <div class="main-menu">
+
+        <ul>
+           <!---
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/get-started">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/ecosystem">Ecosystem</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/blog/">Blog</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/tutorials">Tutorials</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/resources">Resources</a>
+          </li>
+          --->
+          <li>
+            <a href="https://github.com/makgyver/rectorch">Github</a>
+          </li>
+        </ul>
+
+    </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+     
+    <div>
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">rectorch.configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">rectorch.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">rectorch.evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nets.html">rectorch.nets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">rectorch.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">rectorch.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samplers.html">rectorch.samplers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config-format.html">Configuration files format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-format.html">Data sets CSV format</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+
+      <section data-toggle="wy-nav-shift" class="pytorch-content-wrap">
+        <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+          <div class="pytorch-breadcrumbs-wrapper">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+      <li>rectorch.data</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+          </div>
+        </div>
+
+        <div class="pytorch-content-left">
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" class="pytorch-article">
+              
+  <div class="section" id="rectorch-data">
+<h1>rectorch.data<a class="headerlink" href="#rectorch-data" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="class-list">
+<h2>Class list<a class="headerlink" href="#class-list" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.data.DataProcessing" title="rectorch.data.DataProcessing"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.data.DataProcessing</span></code></a>(data_config)</p></td>
+<td><p>Class that manages the pre-processing of raw data sets.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rectorch.data.DataReader" title="rectorch.data.DataReader"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.data.DataReader</span></code></a>(data_config)</p></td>
+<td><p>Utility class for reading pre-processed dataset.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.data.DatasetManager" title="rectorch.data.DatasetManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.data.DatasetManager</span></code></a>(config_file)</p></td>
+<td><p>Helper class for handling data sets.</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="module-rectorch.data"></span><p>The <code class="docutils literal notranslate"><span class="pre">data</span></code> module manages the reading, writing and loading of the data sets.</p>
+<p>The supported data set format is standard <a class="reference external" href="https://it.wikipedia.org/wiki/Comma-separated_values">csv </a>.
+For more information about the expected data set fromat please visit <a class="reference internal" href="csv-format.html#csv-format"><span class="std std-ref">Data sets CSV format</span></a>.
+The data processing and loading configurations are managed through the configuration files
+as described in <a class="reference internal" href="config-format.html#config-format"><span class="std std-ref">Configuration files format</span></a>.
+The data pre-processing phase is highly inspired by <a class="reference external" href="https://github.com/dawenl/vae_cf">VAE-CF source code</a>, which has been lately used on several other research works.</p>
+<p class="rubric">Examples</p>
+<p>This module is mainly meant to be used in the following way:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rectorch.data</span> <span class="kn">import</span> <span class="n">DataProcessing</span><span class="p">,</span> <span class="n">DatasetManager</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dproc</span> <span class="o">=</span> <span class="n">DataProcessing</span><span class="p">(</span><span class="s2">&quot;/path/to/the/config/file&quot;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dproc</span><span class="o">.</span><span class="n">process</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">man</span> <span class="o">=</span> <span class="n">DatasetManager</span><span class="p">(</span><span class="n">dproc</span><span class="o">.</span><span class="n">cfg</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Research paper: <a class="reference external" href="https://arxiv.org/pdf/1802.05814.pdf">Variational Autoencoders for Collaborative Filtering</a></p>
+<p>Module:
+<a class="reference internal" href="configuration.html#module-configuration" title="configuration"><code class="xref py py-mod docutils literal notranslate"><span class="pre">configuration</span></code></a></p>
+</div>
+<dl class="py class">
+<dt id="rectorch.data.DataProcessing">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.data.</code><code class="sig-name descname">DataProcessing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DataProcessing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DataProcessing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Class that manages the pre-processing of raw data sets.</p>
+<p>Data sets are expected of being <cite>csv &lt;https://it.wikipedia.org/wiki/Comma-separated_values&gt;</cite>
+files where each row represents a rating. More details about the allowed format are described
+in <a class="reference internal" href="csv-format.html#csv-format"><span class="std std-ref">Data sets CSV format</span></a>. The pre-processing is performed following the parameters settings defined
+in the data configuration file (see <a class="reference internal" href="config-format.html#config-format"><span class="std std-ref">Configuration files format</span></a> for more information).</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
+When <code class="docutils literal notranslate"><span class="pre">type(data_config)</span> <span class="pre">==</span> <span class="pre">str</span></code> is expected to be the path to the data configuration file.
+In that case a <a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> object is contextually created.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code></a></li><ul><p>Raises when the type of the input parameter is incorrect.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>cfg</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a></span></li><ul><p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code> object containing the pre-processing configurations.</p>
+</ul>
+<li><strong>i2id</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key - <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, value - <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>Dictionary which maps the raw item id, i.e., as in the raw <cite>csv</cite> file, to an internal id
+which is an integer between 0 and the total number of items -1.</p>
+</ul>
+<li><strong>u2id</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key - <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, value - <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>Dictionary which maps the raw user id, i.e., as in the raw <cite>csv</cite> file, to an internal id
+which is an integer between 0 and the total number of users -1.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.data.DataProcessing.process">
+<code class="sig-name descname">process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DataProcessing.process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DataProcessing.process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the entire pre-processing.</p>
+<p>The pre-processing relies on the configurations provided in the data configuration file.
+The full pre-processing follows a specific pipeline (the meaning of each configuration
+parameter is defined in <a class="reference internal" href="config-format.html#config-format"><span class="std std-ref">Configuration files format</span></a>):</p>
+<ol class="arabic simple">
+<li><p>Reading the CSV file named <code class="docutils literal notranslate"><span class="pre">data_path</span></code>;</p></li>
+<li><p>Filtering the ratings on the basis of the <code class="docutils literal notranslate"><span class="pre">threshold</span></code>;</p></li>
+<li><p>Filtering the users and items according to <code class="docutils literal notranslate"><span class="pre">u_min</span></code> and <code class="docutils literal notranslate"><span class="pre">i_min</span></code>, respectively;</p></li>
+<li><p>Splitting the users in training, validation and test sets;</p></li>
+<li><dl class="simple">
+<li>Splitting the validation and test set user ratings in training and test items according</li><ul><p>to <code class="docutils literal notranslate"><span class="pre">test_prop</span></code>;</p>
+</ul>
+</dl>
+</li>
+<li><p>Creating the id mappings (see <code class="xref py py-attr docutils literal notranslate"><span class="pre">i2id</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">u2id</span></code>);</p></li>
+<li><p>Saving the pre-processed data set files in <code class="docutils literal notranslate"><span class="pre">proc_path</span></code> folder.</p></li>
+</ol>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In step (4) there is the possibility that users in the validation or test sethave less than 2 ratings making step (5) inconsistent for those users. For this reason,this set of users is simply discarded.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>In step (5) there is the possibility that users in the validation or test sethave a number of items which could cause problems in applying the diviion betweentraining items and test items (e.g., users with 2 ratings and <code class="docutils literal notranslate"><span class="pre">test_prop</span></code> = 0.1).In these cases, it is always guaranteed that there is at least one item in the test partof the users.</p>
+</div>
+<p>The output consists of a series of files saved in <code class="docutils literal notranslate"><span class="pre">proc_path</span></code>:</p>
+<ul>
+<li><dl>
+<li><code class="docutils literal notranslate"><span class="pre">train.csv</span></code><span class="classifier">(<cite>csv</cite> file) the training ratings corresponding to all ratings of the</span></li><ul><p>training users;</p>
+</ul>
+</dl>
+</li>
+<li><dl>
+<li><code class="docutils literal notranslate"><span class="pre">validation_tr.csv</span></code><span class="classifier">(<cite>csv</cite> file) the training ratings corresponding to the validation</span></li><ul><p>users;</p>
+</ul>
+</dl>
+</li>
+<li><dl>
+<li><code class="docutils literal notranslate"><span class="pre">validation_te.csv</span></code><span class="classifier">(<cite>csv</cite> file) the test ratings corresponding to the validation</span></li><ul><p>users;</p>
+</ul>
+</dl>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_tr.csv</span></code> : (<cite>csv</cite> file) the training ratings corresponding to the test users;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">test_te.csv</span></code> : (<cite>csv</cite> file) the test ratings corresponding to the test users;</p></li>
+<li><dl>
+<li><code class="docutils literal notranslate"><span class="pre">unique_uid.txt</span></code><span class="classifier">(<cite>txt</cite> file) with the user id mapping. Line numbers represent the</span></li><ul><p>internal id, while the string on the corresponding line is the raw id;</p>
+</ul>
+</dl>
+</li>
+<li><dl>
+<li><code class="docutils literal notranslate"><span class="pre">unique_iid.txt</span></code><span class="classifier">(<cite>txt</cite> file) with the item id mapping. Line numbers represent the</span></li><ul><p>internal id, while the string on the corresponding line is the raw id;</p>
+</ul>
+</dl>
+</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.data.DataReader">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.data.</code><code class="sig-name descname">DataReader</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DataReader"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DataReader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utility class for reading pre-processed dataset.</p>
+<p>The reader assumes that the data set has been previously pre-processed using
+<a class="reference internal" href="#rectorch.data.DataProcessing.process" title="rectorch.data.DataProcessing.process"><code class="xref py py-meth docutils literal notranslate"><span class="pre">DataProcessing.process()</span></code></a>. To avoid malfunctioning, the same configuration file used for
+the pre-processing should be used to load the data set. Once a reader is created it is possible
+to load to the training, validation and test set using <a class="reference internal" href="#rectorch.data.DataReader.load_data" title="rectorch.data.DataReader.load_data"><code class="xref py py-meth docutils literal notranslate"><span class="pre">load_data()</span></code></a>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
+When <code class="docutils literal notranslate"><span class="pre">type(data_config)</span> <span class="pre">==</span> <span class="pre">str</span></code> is expected to be the path to the data configuration file.
+In that case a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code> object is contextually created.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code></a></li><ul><p>Raised when <code class="docutils literal notranslate"><span class="pre">data_config</span></code> is neither a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> nor a <a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a>.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>cfg</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a></span></li><ul><p>Object containing the loading configurations.</p>
+</ul>
+<li><strong>n_items</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The number of items in the data set.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.data.DataReader.load_data">
+<code class="sig-name descname">load_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">datatype</span><span class="o">=</span><span class="default_value">'train'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DataReader.load_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DataReader.load_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load (part of) the pre-processed data set.</p>
+<p>Load from the pre-processed file the data set, or part of it, accordingly to the
+<code class="docutils literal notranslate"><span class="pre">datatype</span></code>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>datatype</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> in the set {<code class="docutils literal notranslate"><span class="pre">'train'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validation'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, <code class="docutils literal notranslate"><span class="pre">'full'</span></code>},</span></li><ul><p>[optional]
+String representing the type of data that has to be loaded, by default <code class="docutils literal notranslate"><span class="pre">'train'</span></code>.
+When <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is equal to <code class="docutils literal notranslate"><span class="pre">'full'</span></code> the entire data set is loaded into a sparse
+matrix.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></li><ul><p>The data set or part of it. When <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is <code class="docutils literal notranslate"><span class="pre">'full'</span></code> or <code class="docutils literal notranslate"><span class="pre">'train'</span></code> a single
+sparse matrix is returned representing the full data set or the training set,
+respectively. While, if <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is <code class="docutils literal notranslate"><span class="pre">'validation'</span></code> or <code class="docutils literal notranslate"><span class="pre">'test'</span></code> a pair of
+sparse matrices is returned. The first matrix is the training part (i.e., for each
+user its training set of items), and the second matrix is the test part (i.e., for each
+user its test set of items).</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></li><ul><p>Raised when <code class="docutils literal notranslate"><span class="pre">datatype</span></code> does not match any of the valid strings.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.data.DatasetManager">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.data.</code><code class="sig-name descname">DatasetManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">config_file</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DatasetManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DatasetManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper class for handling data sets.</p>
+<p>Given the configuration file, <a class="reference internal" href="#rectorch.data.DatasetManager" title="rectorch.data.DatasetManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">DatasetManager</span></code></a> automatically load training, validation,
+and test sets that will be accessible from its attributes. It also gives the possibility of
+loading the data set into only a training and a test set. In this latter case, training,
+validation and the training part of the test set are merged together to form a bigger training
+set. The test set will be only the test part of the test set.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>config_file</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
+When <code class="docutils literal notranslate"><span class="pre">type(config_file)</span> <span class="pre">==</span> <span class="pre">str</span></code> is expected to be the path to the data configuration file.
+In that case a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code> object is contextually created.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl>
+<li><strong>n_items</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Number of items in the data set.</p>
+</ul>
+<li><strong>training_set</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The first matrix is the sparse training set matrix, while the  second element of the tuple
+is :obj:<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</ul>
+<li><strong>validation_set</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The first matrix is the training part of the validation set (i.e., for each user its
+training set of items), and the second matrix is the test part of the validation set (i.e.,
+for each user its test set of items).</p>
+</ul>
+<li><strong>test_set</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The first matrix is the training part of the test set (i.e., for each user its
+training set of items), and the second matrix is the test part of the test set (i.e.,
+for each user its test set of items).</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.data.DatasetManager.get_train_and_test">
+<code class="sig-name descname">get_train_and_test</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DatasetManager.get_train_and_test"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DatasetManager.get_train_and_test" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a training and a test set.</p>
+<p>Load the data set into only a training and a test set. Training, validation and the training
+part of the test set are merged together to form a bigger training set.
+The test set will be only the test part of the test set. The training part of the test users
+are the last <code class="docutils literal notranslate"><span class="pre">t</span></code> rows of the training matrix, where <code class="docutils literal notranslate"><span class="pre">t</span></code> is the number of test users.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></li><ul><p>The first matrix is the training set, the second one is the test set.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+             </article>
+             
+            </div>
+            <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="evaluation.html" class="btn btn-neutral float-right" title="rectorch.evaluation" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+      
+      
+        <a href="configuration.html" class="btn btn-neutral" title="rectorch.configuration" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mirko Polato.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">rectorch.data</a><ul>
+<li><a class="reference internal" href="#class-list">Class list</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    </div>
+    
+
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:'./',
+          VERSION:'0.0.1b',
+          LANGUAGE:'None',
+          COLLAPSE_INDEX:false,
+          FILE_SUFFIX:'.html',
+          LINK_SUFFIX:'.html',
+          HAS_SOURCE:  true,
+          SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+
+    
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+
+    <script type="text/javascript" src="_static/js/vendor/popper.min.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/js/theme.js"></script> 
+
+
+    <script type="text/javascript" src="_static/js/_utilities.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
+    <script type="text/javascript" src="_static/js/pytorch-anchors.js"></script>
+    <script type="text/javascript" src="_static/js/scroll-to-anchor.js"></script>
+    <script type="text/javascript" src="_static/js/side-menus.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-menu.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-toc.js"></script>
+    <script type="text/javascript" src="_static/js/main-menu-dropdown.js"></script>
+    <script type="text/javascript" src="_static/js/highlight-navigation.js"></script>
+
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+
+
+    <script type="text/javascript">
+        mobileTOC.bind();
+        pytorchAnchors.bind();
+        //sideMenus.bind();
+        highlightNavigation.bind();
+        mainMenuDropdown.bind();
+        //filterTags.bind();
+
+        $(window).on("load", function() {
+          sideMenus.bind();
+          scrollToAnchor.bind();
+          highlightNavigation.bind();
+        })
+
+        // Add class to links that have code blocks, since we cannot create links in code blocks
+        $("article.pytorch-article a span.pre").each(function(e) {
+          $(this).closest("a").addClass("has-code");
+        });
+    </script>
+</body>
+</html>

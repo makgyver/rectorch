@@ -1,0 +1,492 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>rectorch.metrics &mdash; rectorch 0.0.1b documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+  
+  
+  
+
+  <!--- check this stuff -->
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Light.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" type="font/woff2" crossorigin="anonymous">
+
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="rectorch.models" href="models.html" />
+    <link rel="prev" title="rectorch.nets" href="nets.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="index.html"></a>
+
+      <div class="main-menu">
+
+        <ul>
+           <!---
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/get-started">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/ecosystem">Ecosystem</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/blog/">Blog</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/tutorials">Tutorials</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/resources">Resources</a>
+          </li>
+          --->
+          <li>
+            <a href="https://github.com/makgyver/rectorch">Github</a>
+          </li>
+        </ul>
+
+    </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+     
+    <div>
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">rectorch.configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">rectorch.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">rectorch.evaluation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="nets.html">rectorch.nets</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">rectorch.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">rectorch.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samplers.html">rectorch.samplers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config-format.html">Configuration files format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-format.html">Data sets CSV format</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+
+      <section data-toggle="wy-nav-shift" class="pytorch-content-wrap">
+        <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+          <div class="pytorch-breadcrumbs-wrapper">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+      <li>rectorch.metrics</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+          </div>
+        </div>
+
+        <div class="pytorch-content-left">
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" class="pytorch-article">
+              
+  <div class="section" id="rectorch-metrics">
+<h1>rectorch.metrics<a class="headerlink" href="#rectorch-metrics" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<span class="target" id="module-rectorch.metrics"></span><p>Module containing the definition of the evaluation metrics.</p>
+<p>The metrics are implemented as static methods of the class <a class="reference internal" href="#rectorch.metrics.Metrics" title="rectorch.metrics.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a>. Up to now
+the following metrics are implemented:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#rectorch.metrics.Metrics.ndcg_at_k" title="rectorch.metrics.Metrics.ndcg_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">nDCG&#64;k</span></code></a></p></li>
+<li><p><a class="reference internal" href="#rectorch.metrics.Metrics.recall_at_k" title="rectorch.metrics.Metrics.recall_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">recall&#64;k</span></code></a></p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Modules:
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">evaluation</span></code></p>
+</div>
+<dl class="py class">
+<dt id="rectorch.metrics.Metrics">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.metrics.</code><code class="sig-name descname">Metrics</code><a class="reference internal" href="_modules/rectorch/metrics.html#Metrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.metrics.Metrics" title="Permalink to this definition">¶</a></dt>
+<dd><p>The class Metrics contains metric functions.</p>
+<p>All methods are static and no object of type <a class="reference internal" href="#rectorch.metrics.Metrics" title="rectorch.metrics.Metrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">Metrics</span></code></a> is needed to compute
+the metrics.</p>
+<dl class="py method">
+<dt id="rectorch.metrics.Metrics.compute">
+<em class="property">static </em><code class="sig-name descname">compute</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred_scores</span></em>, <em class="sig-param"><span class="n">ground_truth</span></em>, <em class="sig-param"><span class="n">metrics_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/metrics.html#Metrics.compute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.metrics.Metrics.compute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the given list of evaluation metrics.</p>
+<p>The method computes all the metric listed in <code class="docutils literal notranslate"><span class="pre">metric_list</span></code> for all the users.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>pred_scores</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>The array with the predicted scores. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>ground_truth</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>Binary array with the ground truth. 1 means the item is relevant for the user
+and 0 not relevant. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>metrics_list</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></span></li><ul><p>The list of metrics to compute. Metrics are indicated by strings formed in the
+following way:</p>
+<p><code class="docutils literal notranslate"><span class="pre">matric_name</span></code> &#64; <code class="docutils literal notranslate"><span class="pre">k</span></code></p>
+<p>where <code class="docutils literal notranslate"><span class="pre">matric_name</span></code> must correspond to one of the
+method names without the suffix ‘_at_k’, and <code class="docutils literal notranslate"><span class="pre">k</span></code> is the corresponding parameter of
+the method and it must be an integer value. For example: <code class="docutils literal notranslate"><span class="pre">ndcg&#64;10</span></code> is a valid metric
+name and it corresponds to the method <a class="reference internal" href="#rectorch.metrics.Metrics.ndcg_at_k" title="rectorch.metrics.Metrics.ndcg_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">ndcg_at_k()</span></code></a> with <code class="docutils literal notranslate"><span class="pre">k=10</span></code>.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> of <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></li><ul><p>Dictionary with the results for each metric in <code class="docutils literal notranslate"><span class="pre">metric_list</span></code>. Keys are string
+representing the metric, while the value is an array with the value of the metric
+computed on the users.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rectorch.metrics</span> <span class="kn">import</span> <span class="n">Metrics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">groud_truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">met_list</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;recall@2&quot;</span><span class="p">,</span> <span class="s2">&quot;recall@3&quot;</span><span class="p">,</span> <span class="s2">&quot;ndcg@2&quot;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="n">met_list</span><span class="p">)</span>
+<span class="go">{&#39;recall@2&#39;: array([1.]),</span>
+<span class="go"> &#39;recall@3&#39;: array([0.66666667]),</span>
+<span class="go"> &#39;ndcg@2&#39;: array([1.])}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.metrics.Metrics.ndcg_at_k">
+<em class="property">static </em><code class="sig-name descname">ndcg_at_k</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred_scores</span></em>, <em class="sig-param"><span class="n">ground_truth</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/metrics.html#Metrics.ndcg_at_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.metrics.Metrics.ndcg_at_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Normalized Discount Cumulative Gain (nDCG).</p>
+<p>nDCG is a measure of ranking quality. nDCG measures the usefulness, or gain, of an
+item based on its position in the scoring list. The gain is accumulated from the top of
+the result list to the bottom, with the gain of each result discounted at lower ranks.</p>
+<p>The nDCG is computed over the top-k items (out of <span class="math notranslate nohighlight">\(m\)</span>), where <cite>k</cite> is specified as a
+parameter, for all users independently.
+The nDCG&#64;k (<span class="math notranslate nohighlight">\(k \in [1,2,\dots,m]\)</span>) is computed with the following formula:</p>
+<p><span class="math notranslate nohighlight">\(nDCG&#64;k = \\frac{\\textrm{DCG}&#64;k}{\\textrm{IDCG}&#64;k}\)</span></p>
+<p>where</p>
+<p><span class="math notranslate nohighlight">\(\\textrm{DCG}&#64;k = \sum\limits_{i=1}^k \\frac{2^{rel_i}-1}{\log_2 (i+1)},\)</span></p>
+<p><span class="math notranslate nohighlight">\(\\textrm{IDCG}&#64;k = \sum\limits_{i=1}^{\min(k,R)} \\frac{1}{\log_2 (i+1)}\)</span></p>
+<p>with
+<span class="math notranslate nohighlight">\(rel_i \in \{0,1\}\)</span>
+indicates whether the item at <em>i</em>-th position in the ranking is relevant or not,
+and <em>R</em> is the number of relevant items.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>pred_scores</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>The array with the predicted scores. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>ground_truth</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>Binary array with the ground truth items. 1 means the item is relevant for the user
+and 0 not relevant. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>k</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The number of top items to considers, by default 100</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></li><ul><p>An array containing the <em>ndcg&#64;k</em> value for each user.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rectorch.metrics</span> <span class="kn">import</span> <span class="n">Metrics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ground_truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">ndcg_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">np.array([0.306573596])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.metrics.Metrics.recall_at_k">
+<em class="property">static </em><code class="sig-name descname">recall_at_k</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred_scores</span></em>, <em class="sig-param"><span class="n">ground_truth</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/metrics.html#Metrics.recall_at_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.metrics.Metrics.recall_at_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Recall.</p>
+<p>The recall&#64;k is the fraction of the relevant items that are successfully scored in the top-k
+The recall is computed over the top-k items (out of <span class="math notranslate nohighlight">\(m\)</span>), where <cite>k</cite> is specified as a
+parameter, for all users independently.</p>
+<p>Recall&#64;k is computed as</p>
+<p><span class="math notranslate nohighlight">\(\\textrm{recall}&#64;k = \\frac{\\textrm{TP}}{\\textrm{TP}+\\textrm{FN}}\)</span></p>
+<p>where TP and FN are the true positive and the false negative retrieved items, respectively.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>pred_scores</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>The array with the predicted scores. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>ground_truth</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>Binary array with the ground truth. 1 means the item is relevant for the user
+and 0 not relevant. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>k</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The number of top items to considers, by default 100</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></li><ul><p>An array containing the <em>recall&#64;k</em> value for each user.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rectorch.metrics</span> <span class="kn">import</span> <span class="n">Metrics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ground_truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">ndcg_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">np.array([0.306573596])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+             </article>
+             
+            </div>
+            <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="models.html" class="btn btn-neutral float-right" title="rectorch.models" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+      
+      
+        <a href="nets.html" class="btn btn-neutral" title="rectorch.nets" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mirko Polato.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">rectorch.metrics</a></li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    </div>
+    
+
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:'./',
+          VERSION:'0.0.1b',
+          LANGUAGE:'None',
+          COLLAPSE_INDEX:false,
+          FILE_SUFFIX:'.html',
+          LINK_SUFFIX:'.html',
+          HAS_SOURCE:  true,
+          SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+
+    
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+
+    <script type="text/javascript" src="_static/js/vendor/popper.min.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/js/theme.js"></script> 
+
+
+    <script type="text/javascript" src="_static/js/_utilities.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
+    <script type="text/javascript" src="_static/js/pytorch-anchors.js"></script>
+    <script type="text/javascript" src="_static/js/scroll-to-anchor.js"></script>
+    <script type="text/javascript" src="_static/js/side-menus.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-menu.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-toc.js"></script>
+    <script type="text/javascript" src="_static/js/main-menu-dropdown.js"></script>
+    <script type="text/javascript" src="_static/js/highlight-navigation.js"></script>
+
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+
+
+    <script type="text/javascript">
+        mobileTOC.bind();
+        pytorchAnchors.bind();
+        //sideMenus.bind();
+        highlightNavigation.bind();
+        mainMenuDropdown.bind();
+        //filterTags.bind();
+
+        $(window).on("load", function() {
+          sideMenus.bind();
+          scrollToAnchor.bind();
+          highlightNavigation.bind();
+        })
+
+        // Add class to links that have code blocks, since we cannot create links in code blocks
+        $("article.pytorch-article a span.pre").each(function(e) {
+          $(this).closest("a").addClass("has-code");
+        });
+    </script>
+</body>
+</html>

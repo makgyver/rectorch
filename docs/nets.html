@@ -1,0 +1,913 @@
+
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>rectorch.nets &mdash; rectorch 0.0.1b documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.png"/>
+  
+  
+  
+
+  <!--- check this stuff -->
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Light.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Medium.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-Regular.woff2" type="font/woff2" crossorigin="anonymous">
+  <link rel="preload" as="font" href="_static/fonts/IBMPlexMono/IBMPlexMono-SemiBold.woff2" type="font/woff2" crossorigin="anonymous">
+
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!-- <link rel="stylesheet" href="_static/pygments.css" type="text/css" /> -->
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="rectorch.metrics" href="metrics.html" />
+    <link rel="prev" title="rectorch.evaluation" href="evaluation.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+</head>
+
+<div class="container-fluid header-holder tutorials-header" id="header-holder">
+  <div class="container">
+    <div class="header-container">
+      <a class="header-logo" href="index.html"></a>
+
+      <div class="main-menu">
+
+        <ul>
+           <!---
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/get-started">Get Started</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/features">Features</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/ecosystem">Ecosystem</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/blog/">Blog</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/tutorials">Tutorials</a>
+          </li>
+
+          <li>
+            <a href="https://pytorch.org/docs/stable/index.html">Docs</a>
+          </li>
+
+          <li>
+            <a href="https://shiftlab.github.io/pytorch/resources">Resources</a>
+          </li>
+          --->
+          <li>
+            <a href="https://github.com/makgyver/rectorch">Github</a>
+          </li>
+        </ul>
+
+    </div>
+
+      <a class="main-menu-open-button" href="#" data-behavior="open-mobile-menu"></a>
+    </div>
+
+  </div>
+</div>
+
+
+<body class="pytorch-body">
+
+     
+    <div>
+
+    
+
+    <div class="table-of-contents-link-wrapper">
+      <span>Table of Contents</span>
+      <a href="#" class="toggle-table-of-contents" data-behavior="toggle-table-of-contents"></a>
+    </div>
+
+    <nav data-toggle="wy-nav-shift" class="pytorch-left-menu" id="pytorch-left-menu">
+      <div class="pytorch-side-scroll">
+        <div class="pytorch-menu pytorch-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          <div class="pytorch-left-menu-search">
+            
+
+            
+              
+              
+            
+
+            
+
+
+  
+
+
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search Docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+            
+          </div>
+
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">rectorch.configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data.html">rectorch.data</a></li>
+<li class="toctree-l1"><a class="reference internal" href="evaluation.html">rectorch.evaluation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">rectorch.nets</a></li>
+<li class="toctree-l1"><a class="reference internal" href="metrics.html">rectorch.metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models.html">rectorch.models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="samplers.html">rectorch.samplers</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="config-format.html">Configuration files format</a></li>
+<li class="toctree-l1"><a class="reference internal" href="csv-format.html">Data sets CSV format</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <div class="pytorch-container">
+
+      <section data-toggle="wy-nav-shift" class="pytorch-content-wrap">
+        <div class="pytorch-page-level-bar" id="pytorch-page-level-bar">
+          <div class="pytorch-breadcrumbs-wrapper">
+            
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="pytorch-breadcrumbs">
+    
+      <li>
+        <a href="index.html">
+          
+            Docs
+          
+        </a> &gt;
+      </li>
+
+        
+      <li>rectorch.nets</li>
+    
+    
+      <li class="pytorch-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+</div>
+          </div>
+        </div>
+
+        <div class="pytorch-content-left">
+          
+          <div class="rst-content">
+          
+            <div role="main" class="main-content" itemscope="itemscope" itemtype="http://schema.org/Article">
+             <article itemprop="articleBody" class="pytorch-article">
+              
+  <div class="section" id="rectorch-nets">
+<h1>rectorch.nets<a class="headerlink" href="#rectorch-nets" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+</div>
+<div class="section" id="class-list">
+<h2>Class list<a class="headerlink" href="#class-list" title="Permalink to this headline">¶</a></h2>
+<table class="longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.AE_net</span></code></a>(dec_dims[, enc_dims])</p></td>
+<td><p>Abstract Autoencoder network.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rectorch.nets.MultiDAE_net" title="rectorch.nets.MultiDAE_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.MultiDAE_net</span></code></a>(dec_dims[, …])</p></td>
+<td><p>Denoising Autoencoder network for collaborative filtering.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.nets.VAE_net" title="rectorch.nets.VAE_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.VAE_net</span></code></a>(dec_dims[, enc_dims])</p></td>
+<td><p>Variational Autoencoder network.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rectorch.nets.MultiVAE_net" title="rectorch.nets.MultiVAE_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.MultiVAE_net</span></code></a>(dec_dims[, …])</p></td>
+<td><p>Variational Autoencoder network for collaborative filtering.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.nets.CMultiVAE_net" title="rectorch.nets.CMultiVAE_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.CMultiVAE_net</span></code></a>(cond_dim, dec_dims)</p></td>
+<td><p>Conditioned Variational Autoencoder network for collaborative filtering.</p></td>
+</tr>
+</tbody>
+</table>
+<span class="target" id="module-rectorch.nets"></span><p>This module contains definitions of the neural newtork architectures used by
+the <strong>rectorch</strong> models.</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>Modules:
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">models</span></code></p>
+</div>
+<dl class="py class">
+<dt id="rectorch.nets.AE_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">AE_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dec_dims</span></em>, <em class="sig-param"><span class="n">enc_dims</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#AE_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.AE_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Abstract Autoencoder network.</p>
+<p>This abstract class must be inherited anytime a new autoencoder network is defined.
+The following methods must be implemented in the sub-classes:</p>
+<ul class="simple">
+<li><p><a class="reference internal" href="#rectorch.nets.AE_net.encode" title="rectorch.nets.AE_net.encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">encode()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#rectorch.nets.AE_net.decode" title="rectorch.nets.AE_net.decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">decode()</span></code></a></p></li>
+<li><p><a class="reference internal" href="#rectorch.nets.AE_net.init_weights" title="rectorch.nets.AE_net.init_weights"><code class="xref py py-meth docutils literal notranslate"><span class="pre">init_weights()</span></code></a></p></li>
+</ul>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>dec_dims</strong><span class="classifier">list or array_like</span></li><ul><p>Dimensions of the decoder network. <code class="docutils literal notranslate"><span class="pre">dec_dims[0]</span></code> indicates the dimension of the latent
+space, and <code class="docutils literal notranslate"><span class="pre">dec_dims[-1]</span></code> indicates the dimension of the input space.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier">list, array_like or <code class="docutils literal notranslate"><span class="pre">None</span></code> [optional]</span></li><ul><p>Dimensions of the encoder network. <code class="docutils literal notranslate"><span class="pre">end_dims[0]</span></code> indicates the dimension of the input
+space, and <code class="docutils literal notranslate"><span class="pre">end_dims[-1]</span></code> indicates the dimension of the latent space.
+If evaluates to False, <code class="docutils literal notranslate"><span class="pre">enc_dims</span> <span class="pre">=</span> <span class="pre">dec_dims[::-1]</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">dec_dims</span></code> parameter.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">end_dims</span></code> parameter.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.nets.AE_net.decode">
+<code class="sig-name descname">decode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#AE_net.decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.AE_net.decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward propagate the latent represenation in the decoder network.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>z</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The latent tensor</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.AE_net.encode">
+<code class="sig-name descname">encode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#AE_net.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.AE_net.encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward propagate the input in the encoder network.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.AE_net.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#AE_net.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.AE_net.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward propagate the input in the network.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor to feed to the network.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.AE_net.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#AE_net.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.AE_net.init_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the weights of the network.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.nets.MultiDAE_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">MultiDAE_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dec_dims</span></em>, <em class="sig-param"><span class="n">enc_dims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#MultiDAE_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.MultiDAE_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.nets.AE_net</span></code></a></p>
+<p>Denoising Autoencoder network for collaborative filtering.</p>
+<p>The network structure follows the definition as in <a class="reference internal" href="#r2dd2e16d1ef4-vae" id="id1"><span>[R2dd2e16d1ef4-VAE]</span></a>. Hidden layers are fully
+connected and <em>tanh</em> activated. The output layer of both the encoder and the decoder
+are linearly activated.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>, array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> or None [optional]</span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+<li><strong>dropout</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a>, optional</span></li><ul><p>The dropout probability (in the range [0,1]), by default 0.5.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r2dd2e16d1ef4-vae"><span class="brackets"><a class="fn-backref" href="#id1">R2dd2e16d1ef4-VAE</a></span></dt>
+<dd><p>Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
+Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
+World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
+Committee, Republic and Canton of Geneva, CHE, 689–698.
+DOI: <a class="reference external" href="https://doi.org/10.1145/3178876.3186150">https://doi.org/10.1145/3178876.3186150</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">dec_dims</span></code> parameter.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">end_dims</span></code> parameter.</p>
+</ul>
+<li><strong>dropout</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a></span></li><ul><p>The dropout layer that is applied to the input during the <a class="reference internal" href="#rectorch.nets.AE_net.forward" title="rectorch.nets.AE_net.forward"><code class="xref py py-meth docutils literal notranslate"><span class="pre">AE_net.forward()</span></code></a>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.nets.MultiDAE_net.decode">
+<code class="sig-name descname">decode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#MultiDAE_net.decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.MultiDAE_net.decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward propagate the latent represenation in the decoder network.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>z</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The latent tensor</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.MultiDAE_net.encode">
+<code class="sig-name descname">encode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#MultiDAE_net.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.MultiDAE_net.encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Forward propagate the input in the encoder network.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.MultiDAE_net.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#MultiDAE_net.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.MultiDAE_net.init_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the weights of the network.</p>
+<p>Weights are initialized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.xavier_uniform_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.xavier_uniform_()</span></code></a> initializer,
+while biases are initalized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.normal_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.normal_()</span></code></a> initializer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.nets.VAE_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">VAE_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dec_dims</span></em>, <em class="sig-param"><span class="n">enc_dims</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#VAE_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.VAE_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.nets.AE_net</span></code></a></p>
+<p>Variational Autoencoder network.</p>
+<p>Layers are fully connected and ReLU activated with the exception of the ouput layers of
+both the encoder and decoder that are linearly activated.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a> for parameters and attributes.</p>
+</div>
+<dl class="py method">
+<dt id="rectorch.nets.VAE_net.decode">
+<code class="sig-name descname">decode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#VAE_net.decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.VAE_net.decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the decoder network to the sampled latent representation.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>z</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The sampled (trhough the reparameterization trick) latent tensor.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></li><ul><p>The output tensor of the decoder network.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.VAE_net.encode">
+<code class="sig-name descname">encode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#VAE_net.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.VAE_net.encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the encoder network of the Variational Autoencoder.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<li><strong>mu, logvar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The tensors in the latent space representing the mean and standard deviation (actually
+the logarithm of the variance) of the probability distributions over the
+latent variables.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.VAE_net.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#VAE_net.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.VAE_net.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the full Variational Autoencoder network to the input.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<li><strong>x’, mu, logvar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The reconstructed input (x’) along with the intermediate tensors in the latent space
+representing the mean and standard deviation (actually the logarithm of the variance)
+of the probability distributions over the latent variables.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.VAE_net.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#VAE_net.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.VAE_net.init_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the weights of the network.</p>
+<p>Weights are initialized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.xavier_uniform_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.xavier_uniform_()</span></code></a> initializer,
+while biases are initalized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.normal_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.normal_()</span></code></a> initializer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.nets.MultiVAE_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">MultiVAE_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dec_dims</span></em>, <em class="sig-param"><span class="n">enc_dims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#MultiVAE_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.MultiVAE_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.nets.VAE_net" title="rectorch.nets.VAE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.nets.VAE_net</span></code></a></p>
+<p>Variational Autoencoder network for collaborative filtering.</p>
+<p>The network structure follows the definition as in <a class="reference internal" href="#rb6211bc148e3-vae" id="id3"><span>[Rb6211bc148e3-VAE]</span></a>. Hidden layers are fully
+connected and <em>tanh</em> activated. The output layer of both the encoder and the decoder
+are linearly activated.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>, array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> or None [optional]</span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+<li><strong>dropout</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a>, optional</span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.VAE_net" title="rectorch.nets.VAE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">VAE_net</span></code></a></p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="rb6211bc148e3-vae"><span class="brackets"><a class="fn-backref" href="#id3">Rb6211bc148e3-VAE</a></span></dt>
+<dd><p>Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
+Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
+World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
+Committee, Republic and Canton of Geneva, CHE, 689–698.
+DOI: <a class="reference external" href="https://doi.org/10.1145/3178876.3186150">https://doi.org/10.1145/3178876.3186150</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">dec_dims</span></code> parameter.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">end_dims</span></code> parameter.</p>
+</ul>
+<li><strong>dropout</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a></span></li><ul><p>The dropout layer that is applied to the input during the <a class="reference internal" href="#rectorch.nets.VAE_net.forward" title="rectorch.nets.VAE_net.forward"><code class="xref py py-meth docutils literal notranslate"><span class="pre">VAE_net.forward()</span></code></a>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.nets.MultiVAE_net.decode">
+<code class="sig-name descname">decode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#MultiVAE_net.decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.MultiVAE_net.decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the decoder network to the sampled latent representation.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>z</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The sampled (trhough the reparameterization trick) latent tensor.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></li><ul><p>The output tensor of the decoder network.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.MultiVAE_net.encode">
+<code class="sig-name descname">encode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#MultiVAE_net.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.MultiVAE_net.encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the encoder network of the Variational Autoencoder.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<li><strong>mu, logvar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The tensors in the latent space representing the mean and standard deviation (actually
+the logarithm of the variance) of the probability distributions over the
+latent variables.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.nets.CMultiVAE_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">CMultiVAE_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cond_dim</span></em>, <em class="sig-param"><span class="n">dec_dims</span></em>, <em class="sig-param"><span class="n">enc_dims</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">dropout</span><span class="o">=</span><span class="default_value">0.5</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CMultiVAE_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CMultiVAE_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.nets.MultiVAE_net" title="rectorch.nets.MultiVAE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.nets.MultiVAE_net</span></code></a></p>
+<p>Conditioned Variational Autoencoder network for collaborative filtering.</p>
+<p>The network structure follows the definition as in <a class="reference internal" href="#r9611bc073931-cvae" id="id5"><span>[R9611bc073931-CVAE]</span></a>. Hidden layers are fully
+connected and <em>tanh</em> activated. The output layer of both the encoder and the decoder
+are linearly activated.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>cond_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The size of the condition vector.</p>
+</ul>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>, array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> or None [optional]</span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+<li><strong>dropout</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a>, optional</span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.VAE_net" title="rectorch.nets.VAE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">VAE_net</span></code></a>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r9611bc073931-cvae"><span class="brackets"><a class="fn-backref" href="#id5">R9611bc073931-CVAE</a></span></dt>
+<dd><p>Tommaso Carraro, Mirko Polato and Fabio Aiolli. Conditioned Variational
+Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
+<a class="reference external" href="https://arxiv.org/abs/2004.11141">https://arxiv.org/abs/2004.11141</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>cond_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">cond_dim</span></code> parameter.</p>
+</ul>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">dec_dims</span></code> parameter.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like</span></li><ul><p>See <code class="xref py py-attr docutils literal notranslate"><span class="pre">end_dims</span></code> parameter.</p>
+</ul>
+<li><strong>dropout</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a></span></li><ul><p>The dropout layer that is applied to the input during the <a class="reference internal" href="#rectorch.nets.VAE_net.forward" title="rectorch.nets.VAE_net.forward"><code class="xref py py-meth docutils literal notranslate"><span class="pre">VAE_net.forward()</span></code></a>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.nets.CMultiVAE_net.encode">
+<code class="sig-name descname">encode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CMultiVAE_net.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CMultiVAE_net.encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the encoder network of the Variational Autoencoder.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<li><strong>mu, logvar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The tensors in the latent space representing the mean and standard deviation (actually
+the logarithm of the variance) of the probability distributions over the
+latent variables.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.nets.CFGAN_G_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">CFGAN_G_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">layers_dim</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CFGAN_G_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CFGAN_G_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Generator network of the CFGAN model.</p>
+<p>The generator newtork of CFGAN is a simple Multi Layer perceptron. Each internal layer is
+fully connected and ReLU activated. The output layer insted has a sigmoid as activation
+funciton. See <a class="reference internal" href="#r6425608c9e5d-cfgan" id="id7"><span>[R6425608c9e5d-CFGAN]</span></a> for a full description.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>layers_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The dimension of the layers of the network ordered from the input to the output.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r6425608c9e5d-cfgan"><span class="brackets"><a class="fn-backref" href="#id7">R6425608c9e5d-CFGAN</a></span></dt>
+<dd><p>Dong-Kyu Chae, Jin-Soo Kang, Sang-Wook Kim, and Jung-Tae Lee. 2018.
+CFGAN: A Generic Collaborative Filtering Framework based on Generative Adversarial Networks.
+In Proceedings of the 27th ACM International Conference on Information and Knowledge
+Management (CIKM ’18). Association for Computing Machinery, New York, NY, USA, 137–146.
+DOI: <a class="reference external" href="https://doi.org/10.1145/3269206.3271743">https://doi.org/10.1145/3269206.3271743</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>layers_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See the <code class="xref py py-attr docutils literal notranslate"><span class="pre">layers_dim</span></code> parameter.</p>
+</ul>
+<li><strong>input_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The dimension of the output of the generator, i.e., the input of the discriminator.</p>
+</ul>
+<li><strong>latent_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The dimension of the latent space, i.e., the dimension of the input of the generator.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.nets.CFGAN_G_net.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CFGAN_G_net.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CFGAN_G_net.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the generator network to the input.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor to be forwarded.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></li><ul><p>The output tensor results of the application of the generator network.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.CFGAN_G_net.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">layer</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CFGAN_G_net.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CFGAN_G_net.init_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the weights of the network.</p>
+<p>Weights are initialized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.xavier_uniform_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.xavier_uniform_()</span></code></a> initializer,
+while biases are initalized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.normal_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.normal_()</span></code></a> initializer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.nets.CFGAN_D_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">CFGAN_D_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">layers_dim</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CFGAN_D_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CFGAN_D_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.modules.module.Module</span></code></p>
+<p>Discriminator network of the CFGAN model.</p>
+<p>The discriminator newtork of CFGAN is a simple Multi Layer perceptron. Each internal layer is
+fully connected and ReLU activated. The output layer insted has a sigmoid as activation
+funciton. See <a class="reference internal" href="#r59de8c9a4ef6-cfgan" id="id9"><span>[R59de8c9a4ef6-CFGAN]</span></a> for a full description.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>layers_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The dimension of the layers of the network ordered from the input to the output.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r59de8c9a4ef6-cfgan"><span class="brackets"><a class="fn-backref" href="#id9">R59de8c9a4ef6-CFGAN</a></span></dt>
+<dd><p>Dong-Kyu Chae, Jin-Soo Kang, Sang-Wook Kim, and Jung-Tae Lee. 2018.
+CFGAN: A Generic Collaborative Filtering Framework based on Generative Adversarial Networks.
+In Proceedings of the 27th ACM International Conference on Information and Knowledge
+Management (CIKM ’18). Association for Computing Machinery, New York, NY, USA, 137–146.
+DOI: <a class="reference external" href="https://doi.org/10.1145/3269206.3271743">https://doi.org/10.1145/3269206.3271743</a></p>
+</dd>
+</dl>
+<dl class="field-list">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl>
+<li><strong>layers_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See the <code class="xref py py-attr docutils literal notranslate"><span class="pre">layers_dim</span></code> parameter.</p>
+</ul>
+<li><strong>input_dim</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The dimension of the input of the discriminator.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.nets.CFGAN_D_net.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">cond</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CFGAN_D_net.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CFGAN_D_net.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the discriminator network to the input.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor to be forwarded.</p>
+</ul>
+<li><strong>cond</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The condition tensor. Note that must hold that <code class="docutils literal notranslate"><span class="pre">x.shape[0]</span> <span class="pre">==</span> <span class="pre">cond.shape[0]</span></code>.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></li><ul><p>The output tensor results of the application of the discriminator to the input
+concatenated with the condition.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.CFGAN_D_net.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">layer</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CFGAN_D_net.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CFGAN_D_net.init_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the weights of the network.</p>
+<p>Weights are initialized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.xavier_uniform_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.xavier_uniform_()</span></code></a> initializer,
+while biases are initalized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.normal_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.normal_()</span></code></a> initializer.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+             </article>
+             
+            </div>
+            <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="metrics.html" class="btn btn-neutral float-right" title="rectorch.metrics" accesskey="n" rel="next">Next <img src="_static/images/chevron-right-orange.svg" class="next-page"></a>
+      
+      
+        <a href="evaluation.html" class="btn btn-neutral" title="rectorch.evaluation" accesskey="p" rel="prev"><img src="_static/images/chevron-right-orange.svg" class="previous-page"> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2020, Mirko Polato.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+          </div>
+        </div>
+
+        <div class="pytorch-content-right" id="pytorch-content-right">
+          <div class="pytorch-right-menu" id="pytorch-right-menu">
+            <div class="pytorch-side-scroll" id="pytorch-side-scroll-right">
+              <ul>
+<li><a class="reference internal" href="#">rectorch.nets</a><ul>
+<li><a class="reference internal" href="#class-list">Class list</a></li>
+</ul>
+</li>
+</ul>
+
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    </div>
+    
+
+
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+          URL_ROOT:'./',
+          VERSION:'0.0.1b',
+          LANGUAGE:'None',
+          COLLAPSE_INDEX:false,
+          FILE_SUFFIX:'.html',
+          LINK_SUFFIX:'.html',
+          HAS_SOURCE:  true,
+          SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+
+    
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/2.7-latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+    
+
+    <script type="text/javascript" src="_static/js/vendor/popper.min.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/bootstrap.min.js"></script>
+    <script type="text/javascript" src="_static/js/theme.js"></script> 
+
+
+    <script type="text/javascript" src="_static/js/_utilities.js"></script>
+    <script type="text/javascript" src="_static/js/vendor/anchor.min.js"></script>
+    <script type="text/javascript" src="_static/js/pytorch-anchors.js"></script>
+    <script type="text/javascript" src="_static/js/scroll-to-anchor.js"></script>
+    <script type="text/javascript" src="_static/js/side-menus.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-menu.js"></script>
+    <script type="text/javascript" src="_static/js/mobile-toc.js"></script>
+    <script type="text/javascript" src="_static/js/main-menu-dropdown.js"></script>
+    <script type="text/javascript" src="_static/js/highlight-navigation.js"></script>
+
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+
+
+    <script type="text/javascript">
+        mobileTOC.bind();
+        pytorchAnchors.bind();
+        //sideMenus.bind();
+        highlightNavigation.bind();
+        mainMenuDropdown.bind();
+        //filterTags.bind();
+
+        $(window).on("load", function() {
+          sideMenus.bind();
+          scrollToAnchor.bind();
+          highlightNavigation.bind();
+        })
+
+        // Add class to links that have code blocks, since we cannot create links in code blocks
+        $("article.pytorch-article a span.pre").each(function(e) {
+          $(this).closest("a").addClass("has-code");
+        });
+    </script>
+</body>
+</html>

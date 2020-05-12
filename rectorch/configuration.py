@@ -1,8 +1,8 @@
 r"""The module contains useful classes to manage the configuration files.
 
 Configuration files are useful to correctly initialize the data processing and the
-recommendation engines. Configuration files must be `.json <https://www.json.org/json-en.html>`_ files with a specific
-format. Details about the file formats are described in :ref:`config-format`.
+recommendation engines. Configuration files must be `.json <https://www.json.org/json-en.html>`_
+files with a specific format. Details about the file formats are described in :ref:`config-format`.
 """
 import json
 from os.path import exists
