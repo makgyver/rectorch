@@ -10,7 +10,7 @@
 [license]: https://img.shields.io/github/license/makgyver/rectorch
 [language]: https://img.shields.io/github/languages/top/makgyver/rectorch
 [issues]: https://img.shields.io/github/issues/makgyver/rectorch
-[![license]]
+![license] ![language] ![issue]
 
 State-of-the-art recsys approaches implemented in pytorch
 
