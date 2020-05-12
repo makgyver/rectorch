@@ -7,8 +7,8 @@ with open("README.md", "r") as fh:
 
 setup(
     name='rectorch',
-    #packages=find_packages(exclude=['build', 'doc', 'templates']),
-    version='0.01b',
+    packages=find_packages(exclude=['build', 'doc', 'templates']),
+    version='0.0.1b',
     install_requires=[
         "numpy",
         "scipy",
@@ -16,7 +16,7 @@ setup(
         "bottleneck",
         "munch"
     ],
-    packages=["rectorch", "rectorch.tests"],
+    python_requires='>=3.6',
     license="MIT",
     description='rectorch: state-of-the-art recsys approaches implemented in pytorch.',
     long_description=long_description,
