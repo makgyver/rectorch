@@ -7,9 +7,10 @@
 [![Build Status][travis-img]][travis-url]
 [![Coverage Status](https://coveralls.io/repos/github/makgyver/rectorch/badge.svg?branch=master)](https://coveralls.io/github/makgyver/rectorch?branch=master)
 
-https://img.shields.io/github/license/makgyver/rectorch
-https://img.shields.io/github/languages/top/makgyver/rectorch
-https://img.shields.io/github/issues/makgyver/rectorch
+[license]: https://img.shields.io/github/license/makgyver/rectorch
+[language]: https://img.shields.io/github/languages/top/makgyver/rectorch
+[issues]: https://img.shields.io/github/issues/makgyver/rectorch
+[![license]]
 
 State-of-the-art recsys approaches implemented in pytorch
 
