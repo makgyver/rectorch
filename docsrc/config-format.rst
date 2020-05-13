@@ -3,7 +3,7 @@
 Configuration files format
 ==========================
 
-In **rectorch**, te configuration of the data set pre-processing, and the models' training/test 
+In **rectorch**, the configuration of the data set pre-processing, and the models' training/test 
 is performed via `.json <https://www.json.org/json-en.html>`_ files.
 
 
@@ -45,7 +45,7 @@ This is an example of a valid data configuration file:
 The example above is a valid configuration for the `Movielens 100k dataset <https://grouplens.org/datasets/movielens/100k/>`_
 where ratings less than 3.5 stars are discarded as well as users with less than 4 ratings.
 The heldout set has size 100 users (100 for validation set and 100 for the test set).
-The portion of ratings kept in the testinng part of each users is 20%. Top-N is the task so the
+The portion of ratings kept in the testing part of each users is 20%. Top-N is the task so the
 remaining positive ratings are set equal to 1.
 
 Model configuration file
