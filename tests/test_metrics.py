@@ -39,6 +39,28 @@ def test_recall_at_k():
         "recall@3 should be 0.3333333"
 
 
+def test_hit_at_k():
+    """Test Metric.hit_at_k
+    """
+    scores = np.array([[4., 3., 2., 1.], [1., 2., 3., 4.]])
+    ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.]])
+    t1 = Metrics.hit_at_k(scores, ground_truth, 3)
+    t2 = Metrics.hit_at_k(scores, ground_truth, 2)
+    assert np.all(t1 == np.array([1., 1.]))
+    assert np.all(t2 == np.array([0., 1.]))
+
+
+def test_mrr_at_k():
+    """Test Metric.mrr_at_k
+    """
+    scores = np.array([[4., 2., 3., 1.], [1., 2., 3., 4.]])
+    ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.]])
+    t1 = Metrics.mrr_at_k(scores, ground_truth, 3)
+    t2 = Metrics.mrr_at_k(scores, ground_truth, 1)
+    assert np.all(t1 == np.array([.5, 1.]))
+    assert np.all(t2 == np.array([0., 1.]))
+
+
 def test_compute():
     """Test Metric.compute
     """
@@ -58,4 +80,3 @@ def test_compute():
 
     res = Metrics.compute(scores, gt, ["precision@10", "precision_at_k"])
     assert not res, "res should be empty"
-
