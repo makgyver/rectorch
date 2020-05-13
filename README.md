@@ -1,4 +1,6 @@
-<img src="./docsrc/img/logo_400.png" alt="rectorch logo" title="rectorch logo" width="150" />
+[logo]: ./docsrc/img/logo_150w.svg
+![logo]
+
 
 [travis-img]: https://travis-ci.org/makgyver/rectorch.svg?branch=master
 [travis-url]: https://travis-ci.org/makgyver/rectorch
