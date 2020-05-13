@@ -103,14 +103,12 @@ def one_plus_random(model, test_loader, metric_list, r=1000):
         heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
 
         users, items = heldout.nonzero()
-        rows, cols = [], []
+        rows = []
         for u, i in zip(users, items):
-            print(heldout[u].nonzero())
             rnd = random.sample(tot - set(list(heldout[u].nonzero()[0])), r)
-            rows += [u]
-            cols += [i] + list(rnd)
+            rows.append(list(recon_batch[u][[i] + list(rnd)]))
 
-        pred = recon_batch[rows, :][:, cols]
+        pred = np.array(rows)
         ground_truth = np.zeros_like(pred)
         ground_truth[:, 0] = 1
         res = Metrics.compute(pred, ground_truth, metric_list)
