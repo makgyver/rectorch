@@ -97,7 +97,7 @@ def one_plus_random(model, test_loader, metric_list, r=1000):
     """
     results = {m:[] for m in metric_list}
     for _, (data_tr, heldout) in enumerate(test_loader):
-        tot = set(range(data_tr.shape[1]))
+        tot = set(range(heldout.shape[1]))
         data_tensor = data_tr.view(data_tr.shape[0], -1)
         recon_batch = model.predict(data_tensor)[0].cpu().numpy()
         heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
