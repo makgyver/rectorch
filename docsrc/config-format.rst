@@ -46,7 +46,8 @@ The example above is a valid configuration for the `Movielens 100k dataset <http
 where ratings less than 3.5 stars are discarded as well as users with less than 4 ratings.
 The heldout set has size 100 users (100 for validation set and 100 for the test set).
 The portion of ratings kept in the testing part of each users is 20%. Top-N is the task so the
-remaining positive ratings are set equal to 1.
+remaining positive ratings are set equal to 1. Some examples of data configuration files are
+available in `GitHub <https://github.com/makgyver/rectorch/tree/master/config>`_.
 
 Model configuration file
 ------------------------
@@ -81,3 +82,5 @@ The `.json <https://www.json.org/json-en.html>`_ model configuration file must h
         }
     }
 
+Some examples of model configuration files are available in
+`GitHub <https://github.com/makgyver/rectorch/tree/master/config>`_.
