@@ -1,4 +1,4 @@
-[logo]: ./docsrc/img/logo_150w.svg
+[logo]: https://raw.githubusercontent.com/makgyver/rectorch/master/docsrc/img/logo_150w.svg
 ![logo]
 
 
