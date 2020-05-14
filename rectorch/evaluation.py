@@ -40,6 +40,9 @@ class ValidFunc():
     >>> opr = ValidFunc(one_plus_random, r=5)
     >>> opr
     ValidFunc(fun='one_plus_random', params={'r': 5})
+
+    To call the validation function, simply call the :class:`ValidFunc` object with the required
+    arguments.
     """
     def __init__(self, func, **kwargs):
         self.func_name = func.__name__
@@ -49,6 +52,9 @@ class ValidFunc():
         assert args == ["model", "test_loader", "metric_list"],\
             "A (partial) validation function must have the following kwargs: model, test_loader and\
             metric_list"
+
+    def __call__(self, model, test_loader, metric_list):
+        return self.function(model, test_loader, metric_list)
 
     def __str__(self):
         kwdefargs = inspect.getfullargspec(self.function).kwonlydefaults

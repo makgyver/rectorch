@@ -77,7 +77,7 @@ def test_ValidFunc():
 
     model = FakeModel()
     sampl = FakeSampler()
-    res = vfun.function(model, sampl, ["mrr@1", "hit@1"])
+    res = vfun(model, sampl, ["mrr@1", "hit@1"])
 
     assert isinstance(res, dict), "'res' should be e dictionary"
     assert "mrr@1" in res, "'mrr@1' should be in 'res'"
@@ -98,5 +98,5 @@ def test_ValidFunc():
             return a + b + c + d
         ValidFunc(addfun, b=3)
 
-    vfun2 = ValidFunc(evaluate)
+    ValidFunc(evaluate)
     assert repr(vfun) == str(vfun)
