@@ -1337,31 +1337,6 @@ class CFGAN(RecSysModel):
                 pred[tuple(x_tensor.nonzero().t())] = -np.inf
         return (pred, )
 
-    def validate(self, valid_data, metric):
-        r"""Validation procedure for the current CFGAN model.
-
-        Parameters
-        ----------
-        valid_data : :class:`samplers.Sampler`
-            The sampler object that load the validation set in mini-batches.
-        metric : :obj:`str`
-            The metric used during the validation to select the best model.
-            To see the valid strings for the metric please see the module :mod:`metrics`.
-
-        Returns
-        -------
-        :obj:`numpy.array`
-            Numpy array containing the value of the metric for each user.
-        """
-        results = []
-        for _, (data_tensor, heldout) in enumerate(valid_data):
-            data_tensor = data_tensor.view(data_tensor.shape[0], -1)
-            recon_batch = self.predict(data_tensor)[0].cpu().numpy()
-            heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
-            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
-
-        return np.concatenate(results)
-
     def __str__(self):
         s = self.__class__.__name__ + "(\n"
         for k, v in self.__dict__.items():
