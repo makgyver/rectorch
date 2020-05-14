@@ -102,10 +102,6 @@ def test_AETrainer():
 
     sampler = DataSampler(train, train, batch_size=1, shuffle=False)
 
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
-
 def test_VAE():
     """Test the VAE class
     """
@@ -158,12 +154,6 @@ def test_VAE():
     torch.manual_seed(12345)
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
-
-    sampler = DataSampler(train, train, batch_size=1, shuffle=False)
-
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
 
 def test_MultiDAE():
     """Test the MultiDAE class
@@ -218,11 +208,6 @@ def test_MultiDAE():
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
-    sampler = DataSampler(train, train, batch_size=1, shuffle=False)
-
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
 
 def test_MultiVAE():
     """Test the MultiVAE class
@@ -279,14 +264,14 @@ def test_MultiVAE():
 
     sampler = DataSampler(train, train, batch_size=1, shuffle=False)
 
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
-
     tmp2 = tempfile.NamedTemporaryFile()
     net = MultiVAE_net([1, 2], [2, 1], .1)
     model = MultiVAE(net, 1., 5)
-    model.train(sampler, sampler, "ndcg@1", 10, tmp2.name)
+    model.train(sampler,
+                valid_data=sampler,
+                valid_metric="ndcg@1",
+                num_epochs=10,
+                best_path=tmp2.name)
 
     net2 = MultiVAE_net([1, 2], [2, 1], .1)
     model2 = MultiVAE(net2, 1., 5)
@@ -352,14 +337,14 @@ def test_CMultiVAE():
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should be a numpy array"
-    assert len(res) == 6, "results should be of length 6"
-
     tmp2 = tempfile.NamedTemporaryFile()
     net = CMultiVAE_net(2, [1, 3], [3, 1], .1)
     model = CMultiVAE(net, 1., 5)
-    model.train(sampler, sampler, "ndcg@1", 10, tmp2.name)
+    model.train(sampler,
+                valid_data=sampler,
+                valid_metric="ndcg@1",
+                num_epochs=10,
+                best_path=tmp2.name)
 
     net2 = CMultiVAE_net(2, [1, 3], [3, 1], .1)
     model2 = CMultiVAE(net2, 1., 5)

@@ -51,6 +51,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+from .evaluation import ValidFunc, evaluate
 from .metrics import Metrics
 
 __all__ = ['RecSysModel', 'TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
@@ -216,6 +217,7 @@ class TorchNNTrainer(RecSysModel):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=100,
               verbose=1,
               **kwargs):
@@ -232,6 +234,9 @@ class TorchNNTrainer(RecSysModel):
             The metric used during the validation to select the best model, by default ``None``.
             If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
             To see the valid strings for the metric please see the module :mod:`metrics`.
+        valid_func : :class:`evaluation.ValidFunc` [optional]
+            The validation function, by default a standard validation procedure, i.e.,
+            :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
         verbose : :obj:`int` [optional]
@@ -286,24 +291,6 @@ class TorchNNTrainer(RecSysModel):
         **kwargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             training on the batch.
-
-        Raises
-        ------
-        :class:`NotImplementedError`
-            Raised when not implemeneted in the sub-class.
-        """
-        raise NotImplementedError()
-
-    def validate(self, valid_data, metric):
-        r"""Validation procedure for the current model.
-
-        Parameters
-        ----------
-        valid_data : :class:`samplers.Sampler`
-            The sampler object that load the validation set in mini-batches.
-        metric : :obj:`str`
-            The metric used during the validation to select the best model.
-            To see the valid strings for the metric please see the module :mod:`metrics`.
 
         Raises
         ------
@@ -385,6 +372,7 @@ class AETrainer(TorchNNTrainer):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=100,
               verbose=1):
         try:
@@ -393,7 +381,7 @@ class AETrainer(TorchNNTrainer):
                 if valid_data is not None:
                     assert valid_metric is not None, \
                                 "In case of validation 'valid_metric' must be provided"
-                    valid_res = self.validate(valid_data, valid_metric)
+                    valid_res = valid_func(self, valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                     logger.info('| epoch %d | %s %.3f (%.4f) |',
@@ -475,31 +463,6 @@ class AETrainer(TorchNNTrainer):
             if remove_train:
                 recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
             return (recon_x, )
-
-    def validate(self, test_loader, metric):
-        r"""Validation procedure for the current model.
-
-        Parameters
-        ----------
-        valid_data : :class:`samplers.Sampler`
-            The sampler object that load the validation set in mini-batches.
-        metric : :obj:`str`
-            The metric used during the validation to select the best model.
-            To see the valid strings for the metric please see the module :mod:`metrics`.
-
-        Returns
-        -------
-        :obj:`numpy.array`
-            Numpy array containing the value of the metric for each user.
-        """
-        results = []
-        for _, (data_tr, heldout) in enumerate(test_loader):
-            data_tensor = data_tr.view(data_tr.shape[0], -1)
-            recon_batch = self.predict(data_tensor)[0].cpu().numpy()
-            heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
-            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
-
-        return np.concatenate(results)
 
     def save_model(self, filepath, cur_epoch):
         r"""Save the model to file.
@@ -867,6 +830,7 @@ class MultiVAE(VAE):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=200,
               best_path="chkpt_best.pth",
               verbose=1):
@@ -889,6 +853,9 @@ class MultiVAE(VAE):
             The metric used during the validation to select the best model, by default ``None``.
             If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
             To see the valid strings for the metric please see the module :mod:`metrics`.
+        valid_func : :class:`evaluation.ValidFunc` [optional]
+            The validation function, by default a standard validation procedure, i.e.,
+            :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
         best_path : :obj:`str` [optional]
@@ -906,7 +873,7 @@ class MultiVAE(VAE):
                 if valid_data:
                     assert valid_metric is not None, \
                                 "In case of validation 'valid_metric' must be provided"
-                    valid_res = self.validate(valid_data, valid_metric)
+                    valid_res = valid_func(self, valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                     logger.info('| epoch %d | %s %.3f (%.4f) |',
@@ -1204,6 +1171,7 @@ class CFGAN(RecSysModel):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=1000,
               g_steps=5,
               d_steps=5,
@@ -1224,6 +1192,9 @@ class CFGAN(RecSysModel):
             The metric used during the validation to select the best model, by default ``None``.
             If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
             To see the valid strings for the metric please see the module :mod:`metrics`.
+        valid_func : :class:`evaluation.ValidFunc` [optional]
+            The validation function, by default a standard validation procedure, i.e.,
+            :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 1000.
         g_steps : :obj:`int` [optional]
@@ -1261,7 +1232,7 @@ class CFGAN(RecSysModel):
                     if valid_data is not None:
                         assert valid_metric is not None, \
                                     "In case of validation 'valid_metric' must be provided"
-                        valid_res = self.validate(valid_data, valid_metric)
+                        valid_res = valid_func(self, valid_data, valid_metric)
                         mu_val = np.mean(valid_res)
                         std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                         logger.info('| epoch %d | %s %.3f (%.4f) |',

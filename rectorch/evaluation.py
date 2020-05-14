@@ -53,8 +53,8 @@ class ValidFunc():
             "A (partial) validation function must have the following kwargs: model, test_loader and\
             metric_list"
 
-    def __call__(self, model, test_loader, metric_list):
-        return self.function(model, test_loader, metric_list)
+    def __call__(self, model, test_loader, metric):
+        return self.function(model, test_loader, [metric])[metric]
 
     def __str__(self):
         kwdefargs = inspect.getfullargspec(self.function).kwonlydefaults
