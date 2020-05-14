@@ -1,10 +1,63 @@
 r"""Module containing utility functions to evaluate recommendation engines.
 """
+from functools import partial
+import inspect
 import random
 import numpy as np
 from .metrics import Metrics
 
-__all__ = ['evaluate', 'one_plus_random']
+__all__ = ['ValidFunc', 'evaluate', 'one_plus_random']
+
+class ValidFunc():
+    """Wrapper class for validation functions.
+
+    When a validation function is passed to the method ``train`` of a
+    :class:`rectorch.models.RecSysModel` must have e specific signature, that is three parameters:
+    ``model``, ``test_loader`` and ``metric_list``. This class has to be used to adapt any
+    evaluation function to this signature by partially initializing potential additional
+    arguments.
+
+    Parameters
+    ----------
+    func : :obj:`function`
+        Evaluation function that has to be wrapped. The evaluation function must match the signature
+        ``func(model, test_loader, metric_list, **kwargs)``.
+
+    Attributes
+    ----------
+    func_name : :obj:`str`
+        The name of the evalutaion function.
+    function : :obj:`function`
+        The wrapped evaluation function.
+
+    Examples
+    --------
+    The :func:`one_plus_random` function has an additional argument ``r`` that must be initialized
+    before using as a validation function inside a ``train`` method of a
+    :class:`rectorch.models.RecSysModel`.
+
+    >>> from rectorch.evaluation import ValidFunc, one_plus_random
+    >>> opr = ValidFunc(one_plus_random, r=5)
+    >>> opr
+    ValidFunc(fun='one_plus_random', params={'r': 5})
+    """
+    def __init__(self, func, **kwargs):
+        self.func_name = func.__name__
+        self.function = partial(func, **kwargs)
+
+        args = inspect.getfullargspec(self.function).args
+        assert args == ["model", "test_loader", "metric_list"],\
+            "A (partial) validation function must have the following kwargs: model, test_loader and\
+            metric_list"
+
+    def __str__(self):
+        kwdefargs = inspect.getfullargspec(self.function).kwonlydefaults
+        return "ValidFunc(fun='%s', params=%s)" %(self.func_name, kwdefargs)
+
+    def __repr__(self):
+        return str(self)
+
+
 
 def evaluate(model, test_loader, metric_list):
     r"""Evaluate the given method.

@@ -396,7 +396,7 @@ class AETrainer(TorchNNTrainer):
                     valid_res = self.validate(valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                    logger.info('| epoch %d | %s %.3f (%.4f) |', 
+                    logger.info('| epoch %d | %s %.3f (%.4f) |',
                                 epoch, valid_metric, mu_val, std_err_val)
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
