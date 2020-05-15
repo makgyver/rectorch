@@ -15,6 +15,7 @@ Currently the implemented training algorithms are:
 * :class:`CMultiVAE`: Conditioned Variational Autoencoder (in the paper *C-VAE*) [CVAE]_;
 * :class:`CFGAN`: Collaborative Filtering with Generative Adversarial Networks [CFGAN]_;
 * :class:`EASE`: Embarrassingly shallow autoencoder for sparse data [EASE]_.
+* :class:`ADMM_Slim`: ADMM SLIM: Sparse Recommendations for Many Users [ADMMS]_.
 
 It is also implemented a generic Variational autoencoder trainer (:class:`VAE`) based on the classic
 loss function *cross-entropy* based reconstruction loss, plus the KL loss.
@@ -43,6 +44,10 @@ References
 .. [EASE] Harald Steck. 2019. Embarrassingly Shallow Autoencoders for Sparse Data.
    In The World Wide Web Conference (WWW ’19). Association for Computing Machinery,
    New York, NY, USA, 3251–3257. DOI: https://doi.org/10.1145/3308558.3313710
+.. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
+   ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
+   Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+   New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774
 """
 import logging
 import os
