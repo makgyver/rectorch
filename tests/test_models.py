@@ -379,6 +379,8 @@ def test_EASE():
     assert repr(ease) == str(ease)
 
 def test_CFGAN():
+    """Test of the CFGAN class
+    """
     n_items = 3
     gen = CFGAN_G_net([n_items, 5, n_items])
     disc = CFGAN_D_net([n_items*2, 5, 1])
