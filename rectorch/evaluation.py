@@ -151,7 +151,7 @@ def one_plus_random(model, test_loader, metric_list, r=1000):
     ----------
     .. [OPR] Alejandro Bellogin, Pablo Castells, and Ivan Cantador. Precision-oriented Evaluation of
        Recommender Systems: An Algorithmic Comparison. In Proceedings of the Fifth ACM Conference on
-       Recommender Systems (RecSys ’11). ACM, New York, NY, USA, 333–336, 2011.
+       Recommender Systems (RecSys '11). ACM, New York, NY, USA, 333–336, 2011.
        DOI: https://doi.org/10.1145/2043932.2043996
     """
     results = {m:[] for m in metric_list}

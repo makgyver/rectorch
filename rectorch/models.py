@@ -52,7 +52,6 @@ import torch
 import torch.nn.functional as F
 import torch.optim as optim
 from .evaluation import ValidFunc, evaluate
-from .metrics import Metrics
 
 __all__ = ['RecSysModel', 'TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
     'CMultiVAE', 'EASE', 'CFGAN']
@@ -996,6 +995,13 @@ class EASE(RecSysModel):
         self.model = None
 
     def train(self, train_data):
+        """Training of the EASE model.
+
+        Parameters
+        ----------
+        train_data : :class:`scipy.sparse.csr_matrix`
+            The training data.
+        """
         logger.info("EASE - start tarining (lam=%.4f)", self.lam)
         X = train_data.todense()
         G = np.dot(X.T, X)
@@ -1369,3 +1375,191 @@ class CFGAN(RecSysModel):
         self.opt_d.load_state_dict(checkpoint['optimizer_d'])
         logger.info("Model checkpoint loaded!")
         return checkpoint
+
+
+class ADMM_Slim(RecSysModel):
+    r"""ADMM SLIM: Sparse Recommendations for Many Users.
+
+    ADMM SLIM [ADMMS]_ is a model similar to SLIM [SLIM]_ in which the objective function is solved
+    using Alternating Directions Method of Multipliers (ADMM). In particular,
+    given the rating matrix :math:`\mathbf{X} \in \mathbb{R}^{n \times m}` with *n* users and *m*
+    items, ADMM SLIM aims at solving the following optimization problem:
+
+    :math:`\min_{B,C,\Gamma} \frac{1}{2}\|X-X B\|_{F}^{2}+\frac{\lambda_{2}}{2} \cdot\|B\|_{F}^{2}+\
+    \lambda_{1} \cdot\|C\|_{1} +\
+    \langle\Gamma, B-C\rangle_{F}+\frac{\rho}{2} \cdot\|B-C\|_{F}^{2}`
+
+    with :math:`\textrm{diag}(B)=0`, :math:`\Gamma \in \mathbb{R}^{m \times m}, and the entry of
+    *C* are all greater or equal than 0.
+
+    The prediction for a user-item pair *(u,j)* is then computed by
+    :math:`S_{u j}=\mathbf{X}_{u,:} \cdot \mathbf{B}_{:, j}`.
+
+    Parameters
+    ----------
+    lambda1 : :obj:`float` [optional]
+        Elastic net regularization hyper-parameters :math:`\lambda_1`, by default 5.
+    lambda2 : :obj:`float` [optional]
+        Elastic net regularization hyper-parameters :math:`\lambda_2`, by default 1e3.
+    rho : :obj:`float` [optional]
+        The penalty hyper-parameter :math:`\rho>0` that applies to :math:`\|B-C\|^2_F`,
+        by default 1e5.
+    nn_constr : :obj:`bool` [optional]
+        Whether to keep the non-negativity constraint, by default ``True``.
+    l1_penalty : :obj:`bool` [optional]
+        Whether to keep the L1 penalty, by default ``True``. When ``l1_penalty = False`` then
+        is like to set :math:`\lambda_1 = 0`.
+    item_bias : :obj:`bool` [optional]
+        Whether to model the item biases, by default ``False``. When ``item_bias = True`` then
+        the scoring function for the user-item pair *(u,i)* becomes:
+        :math:`S_{ui}=(\mathbf{X}_{u,:} - \mathbf{b})\cdot \mathbf{B}_{:, i} + \mathbf{b}_i`.
+
+    Attributes
+    ----------
+    See the parameters section.
+
+    References
+    ----------
+    .. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
+       ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
+       Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+       New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774
+    .. [SLIM] X. Ning and G. Karypis. 2011. SLIM: Sparse Linear Methods for Top-N Recommender
+       Systems. In Proceedings of the IEEE 11th International Conference on Data Mining,
+       Vancouver,BC, 2011, pp. 497-506. DOI: https://doi.org/10.1109/ICDM.2011.134.
+    """
+    def __init__(self,
+                 lambda1=5.,
+                 lambda2=1e3,
+                 rho=1e5,
+                 nn_constr=True,
+                 l1_penalty=True,
+                 item_bias=False):
+        self.lambda1 = lambda1
+        self.lambda2 = lambda2
+        self.rho = rho
+        self.nn_constr = nn_constr
+        self.l1_penalty = l1_penalty
+        self.item_bias = item_bias
+        self.model = None
+
+
+    def train(self, train_data, num_iter=50, verbose=1):
+        r"""Training of ADMM SLIM.
+
+        The training procedure of ADMM SLIM highly depends on the setting of the
+        hyper-parameters. By setting them in specific ways it is possible to define different
+        variants of the algorithm. That are:
+
+        1. (Vanilla) ADMM SLIM - :math:`\lambda_1, \lambda_2, \rho>0`, :math:`item_bias`=``False``,\
+            and both :attr:`nn_constr` and :attr:`l1_penalty` set to ``True``;
+        2. ADMM SLIM w/o non-negativity constraint over C - :attr:`nn_constr` = ``False`` and\
+            :attr:`l1_penalty` set to ``True``;
+        3. ADMM SLIM w/o the L1 penalty - :attr:`l1_penalty` = ``False`` and\
+            :attr:`nn_constr` set to ``True``;
+        4. ADMM SLIM w/o L1 penalty and non-negativity constraint: :attr:`nn_constr` =\
+            :attr:`l1_penalty` = ``False``.
+
+        All these variants can also be combined with the inclusion of the item biases by setting
+        :attr:`item_bias` to ``True``.
+
+        Parameters
+        ----------
+        train_data : :class:`scipy.sparse.csr_matrix`
+            The training data.
+        num_iter : :obj:`int` [optional]
+            Maximum number of training iterations, by default 50. This argument has no effect
+            if both :attr:`nn_constr` and :attr:`l1_penalty` are set to ``False``.
+        verbose : :obj:`int` [optional]
+            The level of verbosity of the logging, by default 1. The level can have any integer
+            value greater than 0. However, after reaching a maximum (that depends on the size of
+            the training set) verbosity higher values will not have any effect.
+        """
+        def _soft_threshold(a, k):
+            return np.maximum(0., a - k) - np.maximum(0., -a - k)
+
+        X = train_data.todense()
+        if self.item_bias:
+            b = X.sum(axis=0)
+            X = X - np.dot(np.ones((X.shape[0], 1)), b)
+
+        XtX = X.T.dot(X)
+        logger.info("ADMM_Slim - linear kernel computed")
+        diag_indices = np.diag_indices(XtX.shape[0])
+        XtX[diag_indices] += self.lambda2 + self.rho
+        P = np.linalg.inv(XtX)
+        logger.info("ADMM_Slim - inverse of XtX computed")
+
+        if not self.nn_constr and not self.l1_penalty:
+            C = np.eye(P.shape[0]) - P * np.diag(1. / np.diag(P))
+        else:
+            XtX[diag_indices] -= self.lambda2 + self.rho
+            B_aux = P.dot(XtX)
+            Gamma = np.zeros(XtX.shape, dtype=float)
+            C = np.zeros(XtX.shape, dtype=float)
+
+            log_delay = max(5, num_iter // (10*verbose))
+            for j in range(num_iter):
+                B_tilde = B_aux + P.dot(self.rho * C - Gamma)
+                gamma = np.diag(B_tilde) / np.diag(P)
+                B = B_tilde - P * np.diag(gamma)
+                C = _soft_threshold(B + Gamma / self.rho, self.lambda1 / self.rho)
+                if self.nn_constr and self.l1_penalty:
+                    C = np.maximum(C, 0.)
+                elif self.nn_constr and not self.l1_penalty:
+                    C = np.maximum(B, 0.)
+                Gamma += self.rho * (B - C)
+                if not (j+1) % log_delay:
+                    logger.info("| iteration %d/%d |", j+1, num_iter)
+
+        self.model = np.dot(X, C)
+        if self.item_bias:
+            self.model += b
+
+    def predict(self, ids_te_users, test_tr, remove_train=True):
+        pred = self.model[ids_te_users, :]
+        if remove_train:
+            pred[test_tr.nonzero()] = -np.inf
+        return (pred, )
+
+    def save_model(self, filepath):
+        state = {'lambda1': self.lambda1,
+                 'lambda2': self.lambda2,
+                 'rho' : self.rho,
+                 'model': self.model,
+                 'nn_constr' : self.nn_constr,
+                 'l1_penalty' : self.l1_penalty,
+                 'item_bias' : self.item_bias
+                }
+        logger.info("Saving ADMM_Slim model to %s...", filepath)
+        np.save(filepath, state)
+        logger.info("Model saved!")
+
+    def load_model(self, filepath):
+        assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
+        logger.info("Loading ADMM_Slim model from %s...", filepath)
+        state = np.load(filepath, allow_pickle=True)[()]
+        self.lambda1 = state["lambda1"]
+        self.lambda2 = state["lambda2"]
+        self.rho = state["rho"]
+        self.nn_constr = state["nn_constr"]
+        self.l1_penalty = state["l1_penalty"]
+        self.item_bias = state["item_bias"]
+        self.model = state["model"]
+        logger.info("Model loaded!")
+        return state
+
+    def __str__(self):
+        s = "ADMM_Slim(lambda1=%.4f, lamdba2=%.4f" %(self.lambda1, self.lambda2)
+        s += ", rho=%.4f" %self.rho
+        s += ", non_negativity=%s" %self.nn_constr
+        s += ", L1_penalty=%s" %self.l1_penalty
+        s += ", item_bias=%s" %self.item_bias
+        if self.model is not None:
+            s += ", model size=(%d, %d))" %self.model.shape
+        else:
+            s += ") - not trained yet!"
+        return s
+
+    def __repr__(self):
+        return str(self)
