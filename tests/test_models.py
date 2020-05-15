@@ -10,7 +10,7 @@ from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.models import RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
-    CMultiVAE, EASE, CFGAN
+    CMultiVAE, EASE, CFGAN, ADMM_Slim
 from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
     CFGAN_G_net
 from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler
@@ -434,3 +434,50 @@ def test_CFGAN():
     assert cfgan2.generator != gen
     assert cfgan2.discriminator != disc
     assert str(cfgan) == repr(cfgan)
+
+def test_ADMM_Slim():
+    """Test the ADMM_Slim class
+    """
+    slim = ADMM_Slim(lambda1=5.,
+                     lambda2=1e3,
+                     rho=1e5,
+                     nn_constr=True,
+                     l1_penalty=True,
+                     item_bias=False)
+    assert hasattr(slim, "lambda1"), "admm_slim should have the attribute lambda1"
+    assert hasattr(slim, "lambda2"), "admm_slim should have the attribute lambda2"
+    assert hasattr(slim, "rho"), "admm_slim should have the attribute rho"
+    assert hasattr(slim, "l1_penalty"), "admm_slim should have the attribute l1_penalty"
+    assert hasattr(slim, "nn_constr"), "admm_slim should have the attribute nn_constr"
+    assert hasattr(slim, "item_bias"), "admm_slim should have the attribute item_bias"
+    assert hasattr(slim, "model"), "sladmm_slimim should have the attribute model"
+    assert slim.lambda1 == 5, "lambda1 should be 5"
+    assert slim.lambda2 == 1e3, "lambda2 should be 1000"
+    assert slim.rho == 1e5, "rho should be 10000"
+    assert slim.nn_constr, "nn_constr should be True"
+    assert slim.l1_penalty, "l1_penalty should be True"
+    assert not slim.item_bias, "item_bias should be False"
+    assert slim.model is None, "before the training the inner model should be None"
+    assert repr(slim) == str(slim)
+
+    X = csr_matrix(np.random.randint(2, size=(10, 5)), dtype="float64")
+    slim.train(X)
+    assert isinstance(slim.model, np.ndarray), "after training the model should be a numpy matrix"
+    pr = slim.predict([2, 4, 5], X[[2, 4, 5]])[0]
+    assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
+    tmp = tempfile.NamedTemporaryFile()
+    slim.save_model(tmp.name)
+    slim2 = ADMM_Slim()
+    slim2.load_model(tmp.name + ".npy")
+    assert np.all(slim2.model == slim.model), "the two model should be the same"
+    os.remove(tmp.name + ".npy")
+    assert repr(slim) == str(slim)
+
+    slim2 = ADMM_Slim(nn_constr=False, l1_penalty=True, item_bias=False)
+    slim2.train(X)
+    slim2 = ADMM_Slim(nn_constr=True, l1_penalty=False, item_bias=False)
+    slim2.train(X)
+    slim2 = ADMM_Slim(nn_constr=False, l1_penalty=False, item_bias=False)
+    slim2.train(X)
+    slim2 = ADMM_Slim(nn_constr=False, l1_penalty=False, item_bias=True)
+    slim2.train(X)

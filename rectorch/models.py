@@ -1003,7 +1003,7 @@ class EASE(RecSysModel):
             The training data.
         """
         logger.info("EASE - start tarining (lam=%.4f)", self.lam)
-        X = train_data.todense()
+        X = train_data.toarray()
         G = np.dot(X.T, X)
         logger.info("EASE - linear kernel computed")
         diag_idx = np.diag_indices(G.shape[0])
@@ -1416,7 +1416,7 @@ class ADMM_Slim(RecSysModel):
 
     Attributes
     ----------
-    See the parameters section.
+    See the parameters' section.
 
     References
     ----------
@@ -1478,10 +1478,10 @@ class ADMM_Slim(RecSysModel):
         def _soft_threshold(a, k):
             return np.maximum(0., a - k) - np.maximum(0., -a - k)
 
-        X = train_data.todense()
+        X = train_data.toarray()
         if self.item_bias:
             b = X.sum(axis=0)
-            X = X - np.dot(np.ones((X.shape[0], 1)), b)
+            X = X - np.outer(np.ones(X.shape[0]), b)
 
         XtX = X.T.dot(X)
         logger.info("ADMM_Slim - linear kernel computed")
