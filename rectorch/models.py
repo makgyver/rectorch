@@ -23,8 +23,8 @@ loss function *cross-entropy* based reconstruction loss, plus the KL loss.
 See Also
 --------
 Modules:
-:mod:`nets <nets>`
-:mod:`samplers <samplers>`
+:mod:`nets <rectorch.nets>`
+:mod:`samplers <rectorch.samplers>`
 
 References
 ----------
@@ -75,10 +75,10 @@ class RecSysModel():
 
         Parameters
         ----------
-        train_data : :class:`samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
+        train_data : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
             :class:`torch.Tensor`
             This object represents the training data. If the training procedure is based on
-            mini-batches, then ``train_data`` should be a :class:`samplers.Sampler`.
+            mini-batches, then ``train_data`` should be a :class:`rectorch.samplers.Sampler`.
         **kargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             training.
@@ -98,7 +98,7 @@ class RecSysModel():
 
         Parameters
         ----------
-        x : :class:`samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or :class:`torch.Tensor`
+        x : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or :class:`torch.Tensor`
             The input for which the prediction has to be computed.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for performing the
@@ -229,9 +229,9 @@ class TorchNNTrainer(RecSysModel):
 
         Parameters
         ----------
-        train_data : :class:`samplers.Sampler`
+        train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
-        valid_data : :class:`samplers.Sampler` [optional]
+        valid_data : :class:`rectorch.samplers.Sampler` [optional]
             The sampler object that load the validation set in mini-batches, by default ``None``.
             If the model does not have any validation procedure set this parameter to ``None``.
         valid_metric : :obj:`str` [optional]
@@ -262,7 +262,7 @@ class TorchNNTrainer(RecSysModel):
         ----------
         epoch : :obj:`int`
             Epoch's number.
-        train_data : :class:`samplers.Sampler`
+        train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for performing the
@@ -848,9 +848,9 @@ class MultiVAE(VAE):
 
         Parameters
         ----------
-        train_data : :class:`samplers.Sampler`
+        train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
-        valid_data : :class:`samplers.Sampler` [optional]
+        valid_data : :class:`rectorch.samplers.Sampler` [optional]
             The sampler object that load the validation set in mini-batches, by default ``None``.
             If the model does not have any validation procedure set this parameter to ``None``.
         valid_metric : :obj:`str` [optional]
@@ -1394,7 +1394,7 @@ class ADMM_Slim(RecSysModel):
     \lambda_{1} \cdot\|C\|_{1} +\
     \langle\Gamma, B-C\rangle_{F}+\frac{\rho}{2} \cdot\|B-C\|_{F}^{2}`
 
-    with :math:`\textrm{diag}(B)=0`, :math:`\Gamma \in \mathbb{R}^{m \times m}, and the entry of
+    with :math:`\textrm{diag}(B)=0`, :math:`\Gamma \in \mathbb{R}^{m \times m}`, and the entry of
     *C* are all greater or equal than 0.
 
     The prediction for a user-item pair *(u,j)* is then computed by
@@ -1456,14 +1456,17 @@ class ADMM_Slim(RecSysModel):
         hyper-parameters. By setting them in specific ways it is possible to define different
         variants of the algorithm. That are:
 
-        1. (Vanilla) ADMM SLIM - :math:`\lambda_1, \lambda_2, \rho>0`, :math:`item_bias`=``False``,\
-            and both :attr:`nn_constr` and :attr:`l1_penalty` set to ``True``;
-        2. ADMM SLIM w/o non-negativity constraint over C - :attr:`nn_constr` = ``False`` and\
-            :attr:`l1_penalty` set to ``True``;
-        3. ADMM SLIM w/o the L1 penalty - :attr:`l1_penalty` = ``False`` and\
-            :attr:`nn_constr` set to ``True``;
-        4. ADMM SLIM w/o L1 penalty and non-negativity constraint: :attr:`nn_constr` =\
-            :attr:`l1_penalty` = ``False``.
+        1. (Vanilla) ADMM SLIM - :math:`\lambda_1, \lambda_2, \rho>0`, :attr:`item_bias` =
+        ``False``, and both :attr:`nn_constr` and :attr:`l1_penalty` set to ``True``;
+
+        2. ADMM SLIM w/o non-negativity constraint over C - :attr:`nn_constr` = ``False`` and
+        :attr:`l1_penalty` set to ``True``;
+
+        3. ADMM SLIM w/o the L1 penalty - :attr:`l1_penalty` = ``False`` and
+        :attr:`nn_constr` set to ``True``;
+
+        4. ADMM SLIM w/o L1 penalty and non-negativity constraint: :attr:`nn_constr` =
+        :attr:`l1_penalty` = ``False``.
 
         All these variants can also be combined with the inclusion of the item biases by setting
         :attr:`item_bias` to ``True``.
