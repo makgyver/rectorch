@@ -11,7 +11,7 @@ the following metrics are implemented:
 See Also
 --------
 Modules:
-:mod:`evaluation <evaluation>`
+:mod:`evaluation <rectorch.evaluation>`
 """
 
 import logging
@@ -96,13 +96,13 @@ class Metrics:
         parameter, for all users independently.
         The nDCG@k (:math:`k \in [1,2,\dots,m]`) is computed with the following formula:
 
-        :math:`nDCG@k = \\frac{\\textrm{DCG}@k}{\\textrm{IDCG}@k}`
+        :math:`nDCG@k = \frac{\textrm{DCG}@k}{\textrm{IDCG}@k}`
 
         where
 
-        :math:`\\textrm{DCG}@k = \sum\limits_{i=1}^k \\frac{2^{rel_i}-1}{\log_2 (i+1)},`
+        :math:`\textrm{DCG}@k = \sum\limits_{i=1}^k \frac{2^{rel_i}-1}{\log_2 (i+1)},`
 
-        :math:`\\textrm{IDCG}@k = \sum\limits_{i=1}^{\min(k,R)} \\frac{1}{\log_2 (i+1)}`
+        :math:`\textrm{IDCG}@k = \sum\limits_{i=1}^{\min(k,R)} \frac{1}{\log_2 (i+1)}`
 
         with
         :math:`rel_i \in \{0,1\}`
@@ -156,7 +156,7 @@ class Metrics:
 
         Recall@k is computed as
 
-        :math:`\\textrm{recall}@k = \\frac{\\textrm{TP}}{\\textrm{TP}+\\textrm{FN}}`
+        :math:`\textrm{recall}@k = \frac{\textrm{TP}}{\textrm{TP}+\textrm{FN}}`
 
         where TP and FN are the true positive and the false negative retrieved items, respectively.
 

@@ -5,7 +5,7 @@ The ``samplers`` module is inspired by the :class:`torch.utils.data.DataLoader` 
 however, is not really efficient because it outputs a single example at a time. The idea behind the
 samplers defined in this module is to treat the data set at batches highly improving the efficiency.
 Each new sampler must extend the base class :class:`Sampler` implementing all the abstract special
-methods, in particular :meth:`Sampler.__len__` and :meth:`Sampler.__iter__`.
+methods, in particular :meth:`samplers.Sampler.__len__` and :meth:`samplers.Sampler.__iter__`.
 """
 import numpy as np
 from scipy.sparse import csr_matrix, hstack
@@ -22,7 +22,8 @@ class Sampler():
     Notes
     -----
     Each new sampler must extend this base class implementing all the abstract
-    special methods, in particular :meth:`Sampler.__len__` and :meth:`Sampler.__iter__`.
+    special methods, in particular :meth:`rectorch.samplers.Sampler.__len__` and
+    :meth:`rectorch.samplers.Sampler.__iter__`.
     """
     def __init__(self, *args, **kargs):
         pass
@@ -45,7 +46,8 @@ class DataSampler(Sampler):
     is set to ``False`` then the sampler returns batches with the same order as in the original
     dataset. When ``sparse_data_te`` is defined then each returned batch is a :obj:`tuple` with
     the training part of the batch and its test/validation counterpart. Otherwise, if
-    ``sparse_data_te`` is ``None`` then the second element of the yielded tuple will be ``None``.
+    ``sparse_data_te`` is :obj:`None` then the second element of the yielded tuple will be
+    :obj:`None`.
 
     Parameters
     ----------
@@ -53,7 +55,7 @@ class DataSampler(Sampler):
         The training sparse user-item rating matrix.
     sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
         The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default ``None``.
+        ``sparse_data_tr``. By default :obj:`None`.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
@@ -105,10 +107,11 @@ class DataSampler(Sampler):
 
 
 class ConditionedDataSampler(Sampler):
-    r"""Data sampler with conditioned filtering used by the :class:`models.CMultiVAE` model.
+    r"""Data sampler with conditioned filtering used by the
+    :class:`rectorch.models.CMultiVAE` model.
 
-    This data sampler is useful when training the :class:`models.CMultiVAE` model described in
-    [CVAE]_. During the training, each user must be conditioned over all the possible conditions
+    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described
+    in [CVAE]_. During the training, each user must be conditioned over all the possible conditions
     (actually the ones that the user knows) so the training set must be modified accordingly.
 
     Parameters
@@ -123,7 +126,7 @@ class ConditionedDataSampler(Sampler):
         The training sparse user-item rating matrix.
     sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
         The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default ``None``.
+        ``sparse_data_tr``. By default :obj:`None`.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
@@ -204,7 +207,7 @@ class ConditionedDataSampler(Sampler):
             values = np.ones(len(rows))
             cond_matrix = csr_matrix((values, (rows, cols)), shape=(len(ex), self.n_cond))
 
-            rows_ = [r for r,_ in ex]
+            rows_ = [r for r, _ in ex]
             data_tr = hstack([self.sparse_data_tr[rows_], cond_matrix], format="csr")
 
             if self.sparse_data_te is None:
@@ -233,8 +236,8 @@ class ConditionedDataSampler(Sampler):
 class BalancedConditionedDataSampler(ConditionedDataSampler):
     r"""Sub-sampled version of the :class:`ConditionedDataSampler`.
 
-    This data sampler is useful when training the :class:`models.CMultiVAE` model described in
-    [CVAE]_. During the training, each user must be conditioned over all the possible conditions
+    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described
+    in [CVAE]_. During the training, each user must be conditioned over all the possible conditions
     (actually the ones that the user knows) so the training set must be modified accordingly.
     This sampler avoids to create all possible user-condition pairs via sub-samplig. The extent
     of this sub-sampling is defined by the parameter ``subsample``. The prefix 'Balanced' is
@@ -253,7 +256,7 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
         The training sparse user-item rating matrix.
     sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
         The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default ``None``.
+        ``sparse_data_tr``. By default :obj:`None`.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
@@ -335,11 +338,12 @@ class BalancedConditionedDataSampler(ConditionedDataSampler):
 
 
 class EmptyConditionedDataSampler(Sampler):
-    r"""Data sampler that returns unconditioned batches used by the :class:`models.CMultiVAE` model.
+    r"""Data sampler that returns unconditioned batches used by the
+    :class:`rectorch.models.CMultiVAE` model.
 
-    This data sampler is useful when training the :class:`models.CMultiVAE` model described in
-    [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection that the
-    yielded batches have appended a zero matrix of the size ``batch_size`` :math:`\\times`
+    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described
+    in [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection that the
+    yielded batches have appended a zero matrix of the size ``batch_size`` :math:`\times`
     ``n_cond``.
 
     Parameters
@@ -350,7 +354,7 @@ class EmptyConditionedDataSampler(Sampler):
         The training sparse user-item rating matrix.
     sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
         The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default ``None``.
+        ``sparse_data_tr``. By default :obj:`None`.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]

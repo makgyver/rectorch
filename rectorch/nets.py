@@ -34,10 +34,10 @@ class AE_net(nn.Module):
     dec_dims : list or array_like
         Dimensions of the decoder network. ``dec_dims[0]`` indicates the dimension of the latent
         space, and ``dec_dims[-1]`` indicates the dimension of the input space.
-    enc_dims : list, array_like or ``None`` [optional]
+    enc_dims : list, array_like or :obj:`None` [optional]
         Dimensions of the encoder network. ``end_dims[0]`` indicates the dimension of the input
         space, and ``end_dims[-1]`` indicates the dimension of the latent space.
-        If evaluates to False, ``enc_dims = dec_dims[::-1]``. By default ``None``.
+        If evaluates to False, ``enc_dims = dec_dims[::-1]``. By default :obj:`None`.
 
     Attributes
     ----------
@@ -138,7 +138,7 @@ class CDAE_net(AE_net):
 
         The forward operation of the CDAE encoder network computes:
 
-        :math:`h(W^\\top \\tilde{\mathbf{x}_i} + \mathbf{x}_u + \mathbf{b})`
+        :math:`h(W^\top \tilde{\mathbf{x}_i} + \mathbf{x}_u + \mathbf{b})`
 
         Parameters
         ----------
@@ -288,7 +288,7 @@ class VAE_net(AE_net):
         for i, layer in enumerate(self.enc_layers):
             h = layer(h)
             if i != len(self.enc_layers) - 1:
-                h = F.relu(h)
+                h = torch.tanh(h)
             else:
                 mu = h[:, :self.enc_dims[-1]]
                 logvar = h[:, self.enc_dims[-1]:]
@@ -311,7 +311,7 @@ class VAE_net(AE_net):
         for i, layer in enumerate(self.dec_layers):
             h = layer(h)
             if i != len(self.dec_layers) - 1:
-                h = torch.relu(h)
+                h = torch.tanh(h)
         return torch.sigmoid(h)
 
     def _reparameterize(self, mu, var):
@@ -324,7 +324,7 @@ class VAE_net(AE_net):
 
         Parameters
         ----------
-        x : :py:class:`torch.Tensor`
+        x : :class:`torch.Tensor`
             The input tensor
 
         Returns
@@ -529,12 +529,12 @@ class CFGAN_G_net(nn.Module):
 
         Parameters
         ----------
-        x : :py:class:`torch.Tensor`
+        x : :class:`torch.Tensor`
             The input tensor to be forwarded.
 
         Returns
         -------
-        :py:class:`torch.Tensor`
+        :class:`torch.Tensor`
             The output tensor results of the application of the generator network.
         """
         return self.model(z)

@@ -1,6 +1,6 @@
 r"""The ``data`` module manages the reading, writing and loading of the data sets.
 
-The supported data set format is standard `csv \
+The supported data set format is standard `csv
 <https://it.wikipedia.org/wiki/Comma-separated_values>`_.
 For more information about the expected data set fromat please visit :ref:`csv-format`.
 The data processing and loading configurations are managed through the configuration files
@@ -46,14 +46,14 @@ logger = logging.getLogger(__name__)
 class DataProcessing:
     r"""Class that manages the pre-processing of raw data sets.
 
-    Data sets are expected of being `csv <https://it.wikipedia.org/wiki/Comma-separated_values>`
+    Data sets are expected of being `csv <https://it.wikipedia.org/wiki/Comma-separated_values>`_
     files where each row represents a rating. More details about the allowed format are described
     in :ref:`csv-format`. The pre-processing is performed following the parameters settings defined
     in the data configuration file (see :ref:`config-format` for more information).
 
     Parameters
     ----------
-    data_config : :class:`configuration.DataConfig` or :obj:`str`:
+    data_config : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
         Represents the data pre-processing configurations.
         When ``type(data_config) == str`` is expected to be the path to the data configuration file.
         In that case a :class:`configuration.DataConfig` object is contextually created.
@@ -65,8 +65,9 @@ class DataProcessing:
 
     Attributes
     ----------
-    cfg : :class:`configuration.DataConfig`
-        The :class:`DataConfig` object containing the pre-processing configurations.
+    cfg : :class:`rectorch.configuration.DataConfig`
+        The :class:`rectorch.configuration.DataConfig` object containing the pre-processing
+        configurations.
     i2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
         Dictionary which maps the raw item id, i.e., as in the raw `csv` file, to an internal id
         which is an integer between 0 and the total number of items -1.
@@ -281,14 +282,14 @@ class DataReader():
 
     Parameters
     ----------
-    data_config : :class:`configuration.DataConfig` or :obj:`str`:
+    data_config : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
         Represents the data pre-processing configurations.
         When ``type(data_config) == str`` is expected to be the path to the data configuration file.
         In that case a :class:`DataConfig` object is contextually created.
 
     Attributes
     ----------
-    cfg : :class:`configuration.DataConfig`
+    cfg : :class:`rectorch.configuration.DataConfig`
         Object containing the loading configurations.
     n_items : :obj:`int`
         The number of items in the data set.
@@ -296,7 +297,8 @@ class DataReader():
     Raises
     ------
     :class:`TypeError`
-        Raised when ``data_config`` is neither a :obj:`str` nor a :class:`configuration.DataConfig`.
+        Raised when ``data_config`` is neither a :obj:`str` nor a
+        :class:`rectorch.configuration.DataConfig`.
     """
     def __init__(self, data_config):
         if isinstance(data_config, DataConfig):
@@ -315,8 +317,7 @@ class DataReader():
 
         Parameters
         ----------
-        datatype : :obj:`str` in the set {``'train'``, ``'validation'``, ``'test'``, ``'full'``},\
-            [optional]
+        datatype : :obj:`str` in {``'train'``,``'validation'``,``'test'``,``'full'``} [optional]
             String representing the type of data that has to be loaded, by default ``'train'``.
             When ``datatype`` is equal to ``'full'`` the entire data set is loaded into a sparse
             matrix.
@@ -419,7 +420,7 @@ class DatasetManager():
 
     Parameters
     ----------
-    config_file : :class:`configuration.DataConfig` or :obj:`str`:
+    config_file : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
         Represents the data pre-processing configurations.
         When ``type(config_file) == str`` is expected to be the path to the data configuration file.
         In that case a :class:`DataConfig` object is contextually created.
@@ -430,7 +431,7 @@ class DatasetManager():
         Number of items in the data set.
     training_set : :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
         The first matrix is the sparse training set matrix, while the  second element of the tuple
-        is :obj:``None``.
+        is :obj:`None`.
     validation_set : :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
         The first matrix is the training part of the validation set (i.e., for each user its
         training set of items), and the second matrix is the test part of the validation set (i.e.,

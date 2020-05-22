@@ -64,19 +64,18 @@ class ValidFunc():
         return str(self)
 
 
-
 def evaluate(model, test_loader, metric_list):
     r"""Evaluate the given method.
 
     The ``model`` evaluation is performed with all the provided metrics in ``metric_list``.
-    The test set is loaded through the provided :class:`sampler.Sampler`
+    The test set is loaded through the provided :class:`rectorch.samplers.Sampler`
     (i.e.,  ``test_loader``).
 
     Parameters
     ----------
-    model : :class:`models.RecSysModel`
+    model : :class:`rectorch.models.RecSysModel`
         The model to evaluate.
-    test_loader : :class:`sampler.Sampler`
+    test_loader : :class:`rectorch.samplers.Sampler`
         The test set loader.
     metric_list : :obj:`list` of :obj:`str`
         The list of metrics to compute. Metrics are indicated by strings formed in the
@@ -87,8 +86,8 @@ def evaluate(model, test_loader, metric_list):
         where ``matric_name`` must correspond to one of the
         method names without the suffix '_at_k', and ``k`` is the corresponding parameter of
         the method and it must be an integer value. For example: ``ndcg@10`` is a valid metric
-        name and it corresponds to the method :py:func:`ndcg_at_k <metrics.Metrics.ndcg_at_k>`
-        with ``k=10``.
+        name and it corresponds to the method
+        :func:`ndcg_at_k <rectorch.metrics.Metrics.ndcg_at_k>` with ``k=10``.
 
     Returns
     -------
@@ -115,16 +114,16 @@ def one_plus_random(model, test_loader, metric_list, r=1000):
     r"""One plus random evaluation.
 
     The ``model`` evaluation is performed with all the provided metrics in ``metric_list``.
-    The test set is loaded through the provided :class:`sampler.Sampler`
+    The test set is loaded through the provided :class:`rectorch.samplers.Sampler`
     (i.e.,  ``test_loader``). The evaluation methodology is one-plus-random [OPR]_ that can be
     summarized as follows. For each user, and for each test items, ``r`` random negative items are
     chosen and the metrics are computed w.r.t. to this subset of items (``r`` + 1 items in total).
 
     Parameters
     ----------
-    model : :class:`models.RecSysModel`
+    model : :class:`rectorch.models.RecSysModel`
         The model to evaluate.
-    test_loader : :class:`sampler.Sampler`
+    test_loader : :class:`rectorch.samplers.Sampler`
         The test set loader.
     metric_list : :obj:`list` of :obj:`str`
         The list of metrics to compute. Metrics are indicated by strings formed in the
@@ -135,8 +134,8 @@ def one_plus_random(model, test_loader, metric_list, r=1000):
         where ``matric_name`` must correspond to one of the
         method names without the suffix '_at_k', and ``k`` is the corresponding parameter of
         the method and it must be an integer value. For example: ``ndcg@10`` is a valid metric
-        name and it corresponds to the method :py:func:`ndcg_at_k <metrics.Metrics.ndcg_at_k>`
-        with ``k=10``.
+        name and it corresponds to the method
+        :func:`ndcg_at_k <rectorch.metrics.Metrics.ndcg_at_k>` with ``k=10``.
     r : :obj:`int`
         Number of negative items to consider in the "random" part.
 

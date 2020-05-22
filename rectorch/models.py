@@ -8,10 +8,8 @@ we plan to improve the structure of the library creating sub-modules.
 
 Currently the implemented training algorithms are:
 
-* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior\
-    (in the paper *Mult-DAE*) [VAE]_;
-* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior\
-    (in the paper *Mult-VAE*) [VAE]_;
+* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-DAE*) [VAE]_;
+* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-VAE*) [VAE]_;
 * :class:`CMultiVAE`: Conditioned Variational Autoencoder (in the paper *C-VAE*) [CVAE]_;
 * :class:`CFGAN`: Collaborative Filtering with Generative Adversarial Networks [CFGAN]_;
 * :class:`EASE`: Embarrassingly shallow autoencoder for sparse data [EASE]_.
@@ -98,7 +96,8 @@ class RecSysModel():
 
         Parameters
         ----------
-        x : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or :class:`torch.Tensor`
+        x : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
+            :class:`torch.Tensor`
             The input for which the prediction has to be computed.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for performing the
