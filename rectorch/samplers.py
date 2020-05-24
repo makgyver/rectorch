@@ -10,9 +10,10 @@ methods, in particular :meth:`samplers.Sampler.__len__` and :meth:`samplers.Samp
 import numpy as np
 from scipy.sparse import csr_matrix, hstack
 import torch
+from torch.autograd import Variable
 
 __all__ = ['Sampler', 'DataSampler', 'ConditionedDataSampler', 'EmptyConditionedDataSampler',\
-    'BalancedConditionedDataSampler', 'CFGAN_TrainingSampler']
+    'BalancedConditionedDataSampler', 'CFGAN_TrainingSampler', 'SVAE_Sampler']
 
 class Sampler():
     r"""Sampler base class.
@@ -59,7 +60,7 @@ class DataSampler(Sampler):
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
-        Whether the data set must bu randomly shuffled before creating the batches, by default
+        Whether the data set must by randomly shuffled before creating the batches, by default
         ``True``.
 
     Attributes
@@ -469,3 +470,93 @@ class CFGAN_TrainingSampler(Sampler):
         np.random.shuffle(self.idxlist)
         data_tr = self.sparse_data_tr[self.idxlist[:self.batch_size]]
         return torch.FloatTensor(data_tr.toarray())
+
+class SVAE_Sampler(Sampler):
+    """Sampler used for training SVAE.
+
+    This sampler yields pairs (``x``,``y``) where ``x`` is the tensor of indexes of the
+    positive items, and ``y`` the target tensor with the (multi-hot) ground truth items.
+
+    Parameters
+    ----------
+    num_items : :obj:`int`
+        Number of items.
+    dict_data_tr : :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`)
+        Dictionary containing the training set. Keys are the users, while the values are the lists
+        of items rated by the users in a specific (often cronological) odrer.
+    dict_data_te : :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`) or :obj:`None` [optional]
+        Dictionary containing the test part of the data set. Keys are the users, while the values
+        are the lists of items rated by the users in a specific (often cronological) odrer,
+        by default :obj:`None`. If :obj:`None` it is not considered in the batch creation, otherwise
+        is used in the construction of the ground truth. Not that ``dict_data_te`` must be valued
+        only in the case of validation/test, i.e., when ``is_training`` is ``False``.
+    pred_type : :obj:`str` in the set {``'next_k'``,``'next'``,``'postfix'``} [optional]
+        The variant of loss used by the model, by default ``'next_k'``. If ``'next'`` then
+        only the next item must be predicted, if ``'next_k'`` the next *k* items are considered in
+        the ground truth, otherwise (=``'postfix'``) all the remaining items are taken as ground
+        truth.
+    k : :obj:`int` [optional]
+        The number of item to predict in the ``'next_k'`` variant, by default 1. This parameter
+        is not considered when ``pred_type`` is not ``'next_k'``.
+    shuffle : :obj:`bool` [optional]
+        Whether the data set must by randomly shuffled before creating the batches, by default
+        ``True``.
+    is_training : :obj:`bool` [optional]
+        Whether the sampler is used during training, by default ``True``.
+    
+    Attributes
+    ----------
+    See *Parameters* section.
+    """
+    def __init__(self,
+                 num_items,
+                 dict_data_tr,
+                 dict_data_te=None,
+                 pred_type="next_k", #next, postfix
+                 k=1,
+                 shuffle=True,
+                 is_training=True):
+        super(SVAE_Sampler, self).__init__()
+        assert pred_type == "next_k" and k >= 1
+        self.pred_type = pred_type
+        self.dict_data_tr = dict_data_tr
+        self.dict_data_te = dict_data_te
+        self.shuffle = shuffle
+        self.num_items = num_items
+        self.k = k
+        self.is_training = is_training
+
+    def __len__(self):
+        return len(self.dict_data_tr)
+
+    def __iter__(self):
+        idxlist = list(range(len(self.dict_data_tr)))
+        if self.shuffle:
+            np.random.shuffle(idxlist)
+
+        for _, user in enumerate(idxlist):
+            ulen = len(self.dict_data_tr[user])
+            y_batch_s = torch.zeros(1, ulen - 1, self.num_items)
+
+            if self.is_training:
+                if self.pred_type == 'next':
+                    for timestep in range(ulen - 1):
+                        idx = self.dict_data_tr[user][timestep + 1]
+                        y_batch_s[0, timestep, idx] = 1.
+                elif self.pred_type == 'next_k':
+                    for timestep in range(ulen - 1):
+                        idx = self.dict_data_tr[user][timestep + 1:][:self.k]
+                        y_batch_s[0, timestep, idx] = 1.
+                elif self.pred_type == 'postfix':
+                    for timestep in range(ulen - 1):
+                        idx = self.dict_data_tr[user][timestep + 1:]
+                        y_batch_s[0, timestep, idx] = 1.
+            else:
+                y_batch_s = torch.zeros(1, 1, self.num_items)
+                y_batch_s[0, 0, self.dict_data_te[user]] = 1.
+
+            x_batch = [self.dict_data_tr[user][:-1]]
+            x = Variable(torch.LongTensor(x_batch)).cuda() #check this
+            y = Variable(y_batch_s, requires_grad=False).cuda() #check this
+
+            yield x, y

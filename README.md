@@ -13,6 +13,7 @@
 
 [![Build Status][travis-img]][travis-url]
 [![PyPi][pypi-image]][pypi]
+[![DOI](https://zenodo.org/badge/241092441.svg)](https://zenodo.org/badge/latestdoi/241092441)
 [![Coverage Status](https://coveralls.io/repos/github/makgyver/rectorch/badge.svg?branch=master)](https://coveralls.io/github/makgyver/rectorch?branch=master)
 [![docs](https://img.shields.io/badge/docs-github.io-blue)](https://makgyver.github.io/rectorch/)
 ![version] ![issues] ![license]
@@ -20,7 +21,7 @@
 **rectorch** is a pytorch-based framework for top-N recommendation.
 It includes several state-of-the-art top-N recommendation approaches implemented in [pytorch](https://pytorch.org/).
 
-### Included Methods
+### Included methods
 
 The latest PyPi release contains the following methods.
 
@@ -51,7 +52,7 @@ pip3 install rectorch
 
 ## Requirements
 
-If you install **rectorch** by cloning this repository make sure to install all requirements.
+If you install **rectorch** by cloning this repository make sure to install all the requirements.
 ```
 pip3 install -r requirements.txt
 ```
@@ -80,7 +81,7 @@ recommendation methods using **rectorch**.
 The full documentation of the **rectorch** APIs is available at https://makgyver.github.io/rectorch/.
 
 ## Testing
-The easiest way to test rectorch is using [pytest](https://docs.pytest.org/en/latest/).
+The easiest way to test **rectorch** is using [pytest](https://docs.pytest.org/en/latest/).
 
 ```
 git clone https://github.com/makgyver/rectorch.git
@@ -97,11 +98,10 @@ coverage report -m
 
 # Dev branch
 
-**rectorch** is developed using a test-driven approach. The *master* branch (i.e., the pypi package) is the up-to-date
+**rectorch** is developed using a test-driven approach. The *master* branch (i.e., the pypi release) is the up-to-date
 version of the framework where each module has been fully tested. However, new untested
 or under development features are available in the *dev* branch. The *dev* version of **rectorch**
-can be used by cloning the branch
-
+can be used by cloning the branch.
 
 ```
 git clone -b dev https://github.com/makgyver/rectorch.git
@@ -129,16 +129,15 @@ If you are using **rectorch** in your work, please consider citing this reposito
 ```
 @misc{rectorch,
     author = {Mirko Polato},
-    title = {rectorch: pytorch-based framework for top-N recommendation},
+    title = {{rectorch: pytorch-based framework for top-N recommendation}},
     year = {2020},
-    publisher = {GitHub},
-    journal = {GitHub repository},
-    howpublished = {\url{https://github.com/makgyver/rectorch}},
-    commit = {5dff2bba1cc315473b9cc1efc034385b93907b0e}
+    month = {may},
+    doi = {10.5281/zenodo.3841898},
+    version = {1.0},
+    publisher = {Zenodo},
+    url = {https://doi.org/10.5281/zenodo.153841898991}
 }
 ```
-
-Offical releases are coming and this citation will be soon updated with a DOI.
 
 ## References
 <a id="1">[1]</a>

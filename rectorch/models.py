@@ -14,6 +14,7 @@ Currently the implemented training algorithms are:
 * :class:`CFGAN`: Collaborative Filtering with Generative Adversarial Networks [CFGAN]_;
 * :class:`EASE`: Embarrassingly shallow autoencoder for sparse data [EASE]_.
 * :class:`ADMM_Slim`: ADMM SLIM: Sparse Recommendations for Many Users [ADMMS]_.
+* :class:`SVAE`: Sequential Variational Autoencoders for Collaborative Filtering [SVAE]_.
 
 It is also implemented a generic Variational autoencoder trainer (:class:`VAE`) based on the classic
 loss function *cross-entropy* based reconstruction loss, plus the KL loss.
@@ -46,6 +47,10 @@ References
    ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
    Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
    New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774
+.. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+   Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the Twelfth
+   ACM International Conference on Web Search and Data Mining (WSDM ’19). Association for Computing
+   Machinery, New York, NY, USA, 600–608. DOI: https://doi.org/10.1145/3289600.3291007
 """
 import logging
 import os
@@ -57,7 +62,7 @@ import torch.optim as optim
 from .evaluation import ValidFunc, evaluate
 
 __all__ = ['RecSysModel', 'TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
-    'CMultiVAE', 'EASE', 'CFGAN']
+    'CMultiVAE', 'EASE', 'CFGAN', 'SVAE']
 
 logger = logging.getLogger(__name__)
 
@@ -1570,3 +1575,61 @@ class ADMM_Slim(RecSysModel):
 
     def __repr__(self):
         return str(self)
+
+
+#TODO documentation
+class SVAE(MultiVAE):
+    r"""Sequential Variational Autoencoders for Collaborative Filtering.
+
+    **UNDOCUMENTED** [SVAE]_
+
+    Parameters
+    ----------
+    mvae_net : :class:`torch.nn.Module`
+        The variational autoencoder neural network.
+    beta : :obj:`float` [optional]
+        The :math:`\beta` hyper-parameter of Multi-VAE. When ``anneal_steps > 0`` then this
+        value is the value to anneal starting from 0, otherwise the ``beta`` will be fixed to
+        the given value for the duration of the training. By default 1.
+    anneal_steps : :obj:`int` [optional]
+        Number of annealing step for reaching the target value ``beta``, by default 0.
+        0 means that no annealing will be performed and the regularization parameter will be
+        fixed to ``beta``.
+    learning_rate : :obj:`float` [optional]
+        The learning rate for the optimizer, by default 1e-3.
+
+    References
+    ----------
+    .. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+        Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the
+        Twelfth ACM International Conference on Web Search and Data Mining (WSDM ’19).
+        Association for Computing Machinery, New York, NY, USA, 600–608.
+        DOI: https://doi.org/10.1145/3289600.3291007
+    """
+    def __init__(self,
+                 svae_net,
+                 beta=1.,
+                 anneal_steps=0,
+                 learning_rate=1e-3):
+        super(SVAE, self).__init__(svae_net, 
+                                   beta=beta,
+                                   anneal_steps=anneal_steps,
+                                   learning_rate=learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(),
+                                    lr=learning_rate,
+                                    weight_decay=5e-3)
+
+    def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
+        likelihood_n = -torch.sum(torch.sum(F.log_softmax(recon_x, -1) * x.view(recon_x.shape), -1))
+        likelihood_d = float(torch.sum(x[0, :recon_x.shape[2]]))
+        KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=-1))
+        return likelihood_n / likelihood_d + beta * KLD
+
+    def predict(self, x, remove_train=True):
+        self.network.eval()
+        with torch.no_grad():
+            x_tensor = x.to(self.device)
+            recon_x, mu, logvar = self.network(x_tensor)
+            if remove_train:
+                recon_x[0, -1, x_tensor] = -np.inf
+            return recon_x[:, -1, :], mu, logvar

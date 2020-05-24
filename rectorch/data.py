@@ -457,7 +457,7 @@ class DataReader():
 
         Returns
         -------
-        :obj:`dict` or :obj:`tuple` of :obj:`dict`
+        :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`) or :obj:`tuple` of :obj:`dict`
             When ``datatype`` is ``'train'`` a single dictionary is returned representing the
             training set. While, if ``datatype`` is ``'validation'`` or ``'test'`` a pair of
             dictionaries returned. The first dictionary is the training part (i.e., for each
