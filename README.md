@@ -20,7 +20,7 @@
 **rectorch** is a pytorch-based framework for top-N recommendation.
 It includes several state-of-the-art top-N recommendation approaches implemented in [pytorch](https://pytorch.org/).
 
-### Included Methods
+### Included methods
 
 The latest PyPi release contains the following methods.
 
