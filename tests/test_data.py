@@ -268,6 +268,16 @@ def test_DatasetManager():
         assert np.all(r == np.array([0]))
         assert np.all(c == np.array([1]))
 
+        tr, te = man.get_train_and_test()
+        r, c = tr.nonzero()
+        assert np.all(r == np.array([0, 0, 1, 1, 2, 2, 3]))
+        assert np.all(c == np.array([0, 1, 1, 2, 0, 1, 0]))
+
+        r, c = te.nonzero()
+        assert np.all(r == np.array([3]))
+        assert np.all(c == np.array([1]))
+
+
 def test_nontopn():
     """Test for the module when topn=0
     """
@@ -347,3 +357,63 @@ def test_nontopn():
         r, c = sp_data.nonzero()
         assert np.all(r == np.array([0, 0, 1, 1, 2, 2, 3, 3]))
         assert np.all(c == np.array([0, 1, 1, 2, 0, 1, 0, 1]))
+
+def test_DataReaderAsDict():
+    """Test for the DataReaderAsDict class
+    """
+    names = ['train.csv',
+             'unique_iid.txt',
+             'unique_uid.txt',
+             'validation_tr.csv',
+             'validation_te.csv',
+             'test_tr.csv',
+             'test_te.csv']
+    files = ['uid,iid,timestamp\n0,0,1\n0,1,2\n1,2,3\n1,1,4\n',
+             '2\n5\n3\n',
+             '2\n4\n1\n3\n',
+             'uid,iid,timestamp\n2,0,5\n',
+             'uid,iid,timestamp\n2,1,6\n',
+             'uid,iid,timestamp\n3,0,7\n',
+             'uid,iid,timestamp\n3,1,8\n']
+
+    with tempfile.TemporaryDirectory() as tmp_folder:
+        tmp_d = tempfile.NamedTemporaryFile()
+        cfg_d = {
+            "data_path": "NOT USED",
+            "proc_path": tmp_folder,
+            "seed": 42,
+            "threshold": 2.5,
+            "separator": " ",
+            "u_min": 1,
+            "i_min": 1,
+            "heldout": 1,
+            "test_prop": 0.5,
+            "topn": 0
+        }
+        json.dump(cfg_d, open(tmp_d.name, "w"))
+
+        for i, f in enumerate(files):
+            with open(tmp_folder + "/" + names[i], "w") as tf:
+                tf.write(f)
+
+        with pytest.raises(TypeError):
+            DataReader(1)
+
+        reader = DataReader(tmp_d.name)
+        reader2 = DataReader(DataConfig(tmp_d.name))
+        assert reader.n_items == 3, "number of items should be 3"
+        assert reader.cfg == reader2.cfg, "reader and reader2 should be equal"
+
+        with pytest.raises(ValueError):
+            reader.load_data("training")
+
+        d_train = reader.load_data_as_dict("train")
+        d_vtr, d_vte = reader.load_data_as_dict("validation")
+        d_ttr, d_tte = reader.load_data_as_dict("test")
+
+        assert d_train[0] == [0,1], "d_train[0] should be [0,1] one"
+        assert d_train[1] == [2,1], "d_train[1] should be [2,1] one"
+        assert d_vtr[0] == [0], "d_vtr[1] should be [0] one"
+        assert d_vte[0] == [1], "d_vte[1] should be [1] one"
+        assert d_ttr[0] == [0], "d_ttr[1] should be [0] one"
+        assert d_tte[0] == [1], "d_tte[1] should be [1] one"

@@ -245,7 +245,7 @@ class DataProcessing:
             dic_data = {'uid': uid, 'iid': iid}
             for c in data.columns.values[2:]:
                 dic_data[c] = data[c]
-            cols = ['uid', 'iid'] + list(data.columns.values[2:])
+            cols = ['uid', 'iid'] + list(data.columns[2:])
             return pd.DataFrame(data=dic_data, columns=cols)
 
     def _split_train_test(self, data):
@@ -328,7 +328,7 @@ class DataReader():
             The data set or part of it. When ``datatype`` is ``'full'`` or ``'train'`` a single
             sparse matrix is returned representing the full data set or the training set,
             respectively. While, if ``datatype`` is ``'validation'`` or ``'test'`` a pair of
-            sparse matrices is returned. The first matrix is the training part (i.e., for each
+            sparse matrices are returned. The first matrix is the training part (i.e., for each
             user its training set of items), and the second matrix is the test part (i.e., for each
             user its test set of items).
 
@@ -408,6 +408,83 @@ class DataReader():
         #keep_idx = tr_idx * te_idx
         return data_tr[tr_idx], data_te[tr_idx]
 
+    def _to_dict(self, data, col="timestamp"):
+        data = data.sort_values(col)
+        imin = data["uid"].min()
+        #ugly but it works
+        grouped = data.groupby(by="uid")
+        grouped = grouped.apply(lambda x: x.sort_values(col)).reset_index(drop=True)
+        grouped = grouped.groupby(by="uid")
+        return {idx - imin : list(group["iid"]) for idx, group in grouped}
+
+    def _split_train_test(self, data, col):
+        np.random.seed(self.cfg.seed)
+        test_prop = float(self.cfg.test_prop) if self.cfg.test_prop else 0.2
+        uhead = data.columns.values[0]
+        #ugly but it works
+        data_grouped_by_user = data.groupby(uhead)
+        data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(col))
+        data_grouped_by_user = data_grouped_by_user.reset_index(drop=True)
+        data_grouped_by_user = data_grouped_by_user.groupby(uhead)
+        tr_list, te_list = [], []
+
+        for _, group in data_grouped_by_user:
+            n_items_u = len(group)
+            idx = np.zeros(n_items_u, dtype='bool')
+            sz = max(int(test_prop * n_items_u), 1)
+            idx[-sz:] = True
+            tr_list.append(group[np.logical_not(idx)])
+            te_list.append(group[idx])
+
+        data_tr = pd.concat(tr_list)
+        data_te = pd.concat(te_list)
+        return data_tr, data_te
+
+    def load_data_as_dict(self, datatype='train', col="timestamp"):
+        """Load the data as a dictionary
+
+        The loaded dictionary has users as keys and lists of items as values. An entry
+        of the dictionary represents the list of rated items (sorted by ``col``) by the user,
+        i.e., the key.
+
+        Parameters
+        ----------
+        datatype : :obj:`str` in {``'train'``,``'validation'``,``'test'``} [optional]
+            String representing the type of data that has to be loaded, by default ``'train'``.
+        col : :obj:`str` of :obj:`None` [optional]
+            The name of the column on which items are ordered, by default "timestamp". If 
+            :obj:`None` no ordered is applied.
+
+        Returns
+        -------
+        :obj:`dict` or :obj:`tuple` of :obj:`dict`
+            When ``datatype`` is ``'train'`` a single dictionary is returned representing the
+            training set. While, if ``datatype`` is ``'validation'`` or ``'test'`` a pair of
+            dictionaries returned. The first dictionary is the training part (i.e., for each
+            user its training set of items), and the second dictionart is the test part (i.e., for
+            each user its test set of items).
+        """
+        if datatype == 'train':
+            path = os.path.join(self.cfg.proc_path, 'train.csv')
+            data = pd.read_csv(path)
+            return self._to_dict(data, col)
+        elif datatype == 'validation':
+            path_tr = os.path.join(self.cfg.proc_path, 'validation_tr.csv')
+            path_te = os.path.join(self.cfg.proc_path, 'validation_te.csv')
+        elif datatype == 'test':
+            path_tr = os.path.join(self.cfg.proc_path, 'test_tr.csv')
+            path_te = os.path.join(self.cfg.proc_path, 'test_te.csv')
+        #TODO full
+
+        data_tr = pd.read_csv(path_tr)
+        data_te = pd.read_csv(path_te)
+
+        combined = pd.concat([data_tr, data_te], ignore_index=True)
+        combined = combined.sort_values(col)
+        data_tr, data_te = self._split_train_test(combined, col)
+
+        return self._to_dict(data_tr, col), self._to_dict(data_te, col)
+
 
 class DatasetManager():
     """Helper class for handling data sets.
@@ -466,5 +543,6 @@ class DatasetManager():
             The first matrix is the training set, the second one is the test set.
         """
         tr = sparse.vstack([self.training_set[0], sum(self.validation_set), self.test_set[0]])
-        te = self.test_set[1]
+        shape = tr.shape[0] - self.test_set[1].shape[0], tr.shape[1]
+        te = sparse.vstack([sparse.csr_matrix(shape), self.test_set[1]])
         return tr, te

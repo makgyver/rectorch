@@ -7,7 +7,7 @@ import torch
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.nets import AE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net,\
-    CFGAN_D_net
+    CFGAN_D_net, SVAE_net
 
 def test_AE_net():
     """Test the AE_net class
@@ -130,3 +130,34 @@ def test_CFGAN_D_net():
     assert net.input_dim == 4, "input_dim should be 4"
     assert net.layers_dim == [4, 3, 1], "layers_dim should be [4, 3, 1]"
     assert y.shape == torch.Size([2, 1]), "The shape of y should be torch.Size([2, 1])"
+
+def test_SVAE_net():
+    """Test the SVAE_net class
+    """
+    total_items = 3
+    net = SVAE_net(n_items=total_items,
+                   embed_size=2,
+                   rnn_size=2,
+                   dec_dims=[2, total_items],
+                   enc_dims=[2, 2])
+    x = torch.LongTensor([[0, 2]])
+    torch.manual_seed(98765)
+    y, mu, logvar = net(x)
+
+    assert hasattr(net, "enc_dims"), "Missing enc_dims attribute"
+    assert hasattr(net, "dec_dims"), "Missing dec_dims attribute"
+    assert hasattr(net, "dec_layers"), "Missing dec_layers attribute"
+    assert hasattr(net, "enc_layers"), "Missing end_layers attribute"
+    assert hasattr(net, "n_items"), "Missing n_items attribute"
+    assert hasattr(net, "embed_size"), "Missing embed_size attribute"
+    assert hasattr(net, "rnn_size"), "Missing rnn_size attribute"
+    assert hasattr(net, "item_embed"), "Missing item_embed attribute"
+    assert hasattr(net, "gru"), "Missing gru attribute"
+
+    assert isinstance(net.gru, torch.nn.GRU), "dropout must be a torch.nn.GRU"
+    assert net.n_items == total_items, "n_items should be equal to %d" %total_items
+    assert net.embed_size == 2, "embed_size should be 2"
+    assert net.rnn_size == 2, "rnn_size should be 2"
+    assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
+    assert isinstance(mu, torch.FloatTensor), "mu should be a torch.FloatTensor"
+    assert isinstance(logvar, torch.FloatTensor), "logvar should be a torch.FloatTensor"
