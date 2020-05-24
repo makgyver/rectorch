@@ -9,7 +9,7 @@ from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.samplers import Sampler, DataSampler, EmptyConditionedDataSampler,\
-    ConditionedDataSampler, CFGAN_TrainingSampler
+    ConditionedDataSampler, CFGAN_TrainingSampler, SVAE_Sampler
 
 def test_Sampler():
     """Test the Sampler class
@@ -173,3 +173,150 @@ def test_CFGAN_TrainingSampler():
     assert np.all(t.numpy() == np.array([1, 1, 0])) or np.all(t.numpy() == np.array([0, 1, 1])),\
         "the next batch should be [1, 1, 0] or [0, 1, 1]"
 
+def test_SVAE_Sampler():
+    """Test the SVAE_Sampler class
+    """
+    tr = {0:[0, 1, 2, 3, 4, 5, 6], 1:[6, 5, 4, 3, 2, 1, 0], 2:[2, 1, 6, 0, 3]}
+    sampler = SVAE_Sampler(num_items=7,
+                           dict_data_tr=tr,
+                           dict_data_te=None,
+                           pred_type="next_k",
+                           k=2,
+                           shuffle=False,
+                           is_training=True)
+
+    assert len(sampler) == 3
+    assert hasattr(sampler, "num_items")
+    assert hasattr(sampler, "k")
+    assert hasattr(sampler, "shuffle")
+    assert hasattr(sampler, "pred_type")
+    assert hasattr(sampler, "dict_data_tr")
+    assert hasattr(sampler, "dict_data_te")
+    assert hasattr(sampler, "is_training")
+    assert sampler.k == 2
+    assert sampler.num_items == 7
+    assert sampler.pred_type == "next_k"
+    assert not sampler.shuffle
+    assert sampler.is_training
+
+    i = 0
+    res = [np.array([[[0, 1, 1, 0, 0, 0, 0],
+                      [0, 0, 1, 1, 0, 0, 0],
+                      [0, 0, 0, 1, 1, 0, 0],
+                      [0, 0, 0, 0, 1, 1, 0],
+                      [0, 0, 0, 0, 0, 1, 1],
+                      [0, 0, 0, 0, 0, 0, 1]]]),
+           np.array([[[0, 0, 0, 0, 1, 1, 0],
+                      [0, 0, 0, 1, 1, 0, 0],
+                      [0, 0, 1, 1, 0, 0, 0], 
+                      [0, 1, 1, 0, 0, 0, 0],
+                      [1, 1, 0, 0, 0, 0, 0],
+                      [1, 0, 0, 0, 0, 0, 0]]]),
+           np.array([[[0, 1, 0, 0, 0, 0, 1],
+                      [1, 0, 0, 0, 0, 0, 1],
+                      [1, 0, 0, 1, 0, 0, 0],
+                      [0, 0, 0, 1, 0, 0, 0]]])]
+    for x, y in sampler:
+        assert isinstance(x, torch.LongTensor), "x should be of type torch.LongTensor"
+        assert isinstance(y, torch.FloatTensor), "y should be of type torch.FloatTensor"
+        assert np.all(x.numpy() == tr[i][:-1])
+        if i == 2:
+            assert y.shape == (1, 4, 7)
+        else:
+            assert y.shape == (1, 6, 7)
+        assert np.all(y.numpy() == res[i])
+        i += 1
+
+    sampler = SVAE_Sampler(num_items=7,
+                           dict_data_tr=tr,
+                           dict_data_te=None,
+                           pred_type="next",
+                           k=2,
+                           shuffle=False,
+                           is_training=True)
+
+    i = 0
+    res = [np.array([[[0, 1, 0, 0, 0, 0, 0],
+                      [0, 0, 1, 0, 0, 0, 0],
+                      [0, 0, 0, 1, 0, 0, 0],
+                      [0, 0, 0, 0, 1, 0, 0],
+                      [0, 0, 0, 0, 0, 1, 0],
+                      [0, 0, 0, 0, 0, 0, 1]]]),
+           np.array([[[0, 0, 0, 0, 0, 1, 0],
+                      [0, 0, 0, 0, 1, 0, 0],
+                      [0, 0, 0, 1, 0, 0, 0], 
+                      [0, 0, 1, 0, 0, 0, 0],
+                      [0, 1, 0, 0, 0, 0, 0],
+                      [1, 0, 0, 0, 0, 0, 0]]]),
+           np.array([[[0, 1, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 0, 0, 0, 1],
+                      [1, 0, 0, 0, 0, 0, 0],
+                      [0, 0, 0, 1, 0, 0, 0]]])]
+    for x, y in sampler:
+        assert isinstance(x, torch.LongTensor), "x should be of type torch.LongTensor"
+        assert isinstance(y, torch.FloatTensor), "y should be of type torch.FloatTensor"
+        assert np.all(x.numpy() == tr[i][:-1])
+        if i == 2:
+            assert y.shape == (1, 4, 7)
+        else:
+            assert y.shape == (1, 6, 7)
+        assert np.all(y.numpy() == res[i])
+        i += 1
+
+    sampler = SVAE_Sampler(num_items=7,
+                           dict_data_tr=tr,
+                           dict_data_te=None,
+                           pred_type="postfix",
+                           k=2,
+                           shuffle=False,
+                           is_training=True)
+
+    i = 0
+    res = [np.array([[[0, 1, 1, 1, 1, 1, 1],
+                      [0, 0, 1, 1, 1, 1, 1],
+                      [0, 0, 0, 1, 1, 1, 1],
+                      [0, 0, 0, 0, 1, 1, 1],
+                      [0, 0, 0, 0, 0, 1, 1],
+                      [0, 0, 0, 0, 0, 0, 1]]]),
+           np.array([[[1, 1, 1, 1, 1, 1, 0],
+                      [1, 1, 1, 1, 1, 0, 0],
+                      [1, 1, 1, 1, 0, 0, 0],
+                      [1, 1, 1, 0, 0, 0, 0],
+                      [1, 1, 0, 0, 0, 0, 0],
+                      [1, 0, 0, 0, 0, 0, 0]]]),
+           np.array([[[1, 1, 0, 1, 0, 0, 1],
+                      [1, 0, 0, 1, 0, 0, 1],
+                      [1, 0, 0, 1, 0, 0, 0],
+                      [0, 0, 0, 1, 0, 0, 0]]])]
+    for x, y in sampler:
+        assert isinstance(x, torch.LongTensor), "x should be of type torch.LongTensor"
+        assert isinstance(y, torch.FloatTensor), "y should be of type torch.FloatTensor"
+        assert np.all(x.numpy() == tr[i][:-1])
+        if i == 2:
+            assert y.shape == (1, 4, 7)
+        else:
+            assert y.shape == (1, 6, 7)
+        assert np.all(y.numpy() == res[i])
+        i += 1
+
+    vtr = {0:[0, 1, 2, 3], 1:[6, 5, 4, 3], 2:[1, 6]}
+    vte = {0:[4, 5, 6], 1:[2, 1, 0], 2:[0, 3]}
+    sampler = SVAE_Sampler(num_items=7,
+                           dict_data_tr=vtr,
+                           dict_data_te=vte,
+                           pred_type="next",
+                           k=2,
+                           shuffle=False,
+                           is_training=False)
+
+    i = 0
+    res = [np.array([[[0, 0, 0, 0, 1, 1, 1]]]),
+           np.array([[[1, 1, 1, 0, 0, 0, 0]]]),
+           np.array([[[1, 0, 0, 1, 0, 0, 0]]])]
+    for x, y in sampler:
+        assert isinstance(x, torch.LongTensor), "x should be of type torch.LongTensor"
+        assert isinstance(y, torch.FloatTensor), "y should be of type torch.FloatTensor"
+        assert np.all(x.numpy() == vtr[i][:-1])
+        assert y.shape == (1, 1, 7)
+        assert np.all(y.numpy() == res[i])
+        i += 1

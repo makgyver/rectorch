@@ -452,7 +452,7 @@ class DataReader():
         datatype : :obj:`str` in {``'train'``,``'validation'``,``'test'``} [optional]
             String representing the type of data that has to be loaded, by default ``'train'``.
         col : :obj:`str` of :obj:`None` [optional]
-            The name of the column on which items are ordered, by default "timestamp". If 
+            The name of the column on which items are ordered, by default "timestamp". If
             :obj:`None` no ordered is applied.
 
         Returns

@@ -503,7 +503,7 @@ class SVAE_Sampler(Sampler):
         ``True``.
     is_training : :obj:`bool` [optional]
         Whether the sampler is used during training, by default ``True``.
-    
+
     Attributes
     ----------
     See *Parameters* section.
@@ -512,12 +512,13 @@ class SVAE_Sampler(Sampler):
                  num_items,
                  dict_data_tr,
                  dict_data_te=None,
-                 pred_type="next_k", #next, postfix
+                 pred_type="next_k",
                  k=1,
                  shuffle=True,
                  is_training=True):
         super(SVAE_Sampler, self).__init__()
-        assert pred_type == "next_k" and k >= 1
+        if pred_type == "next_k":
+            assert k >= 1
         self.pred_type = pred_type
         self.dict_data_tr = dict_data_tr
         self.dict_data_te = dict_data_te
@@ -556,7 +557,8 @@ class SVAE_Sampler(Sampler):
                 y_batch_s[0, 0, self.dict_data_te[user]] = 1.
 
             x_batch = [self.dict_data_tr[user][:-1]]
-            x = Variable(torch.LongTensor(x_batch)).cuda() #check this
-            y = Variable(y_batch_s, requires_grad=False).cuda() #check this
+            #TODO check this
+            x = Variable(torch.LongTensor(x_batch))#.cuda()
+            y = Variable(y_batch_s, requires_grad=False)#.cuda()
 
             yield x, y
