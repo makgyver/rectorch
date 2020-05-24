@@ -52,7 +52,7 @@ pip3 install rectorch
 
 ## Requirements
 
-If you install **rectorch** by cloning this repository make sure to install all requirements.
+If you install **rectorch** by cloning this repository make sure to install all the requirements.
 ```
 pip3 install -r requirements.txt
 ```
@@ -81,7 +81,7 @@ recommendation methods using **rectorch**.
 The full documentation of the **rectorch** APIs is available at https://makgyver.github.io/rectorch/.
 
 ## Testing
-The easiest way to test rectorch is using [pytest](https://docs.pytest.org/en/latest/).
+The easiest way to test **rectorch** is by using [pytest](https://docs.pytest.org/en/latest/).
 
 ```
 git clone https://github.com/makgyver/rectorch.git
@@ -98,11 +98,10 @@ coverage report -m
 
 # Dev branch
 
-**rectorch** is developed using a test-driven approach. The *master* branch (i.e., the pypi package) is the up-to-date
+**rectorch** is developed using a test-driven approach. The *master* branch (i.e., the pypi release) is the up-to-date
 version of the framework where each module has been fully tested. However, new untested
 or under development features are available in the *dev* branch. The *dev* version of **rectorch**
-can be used by cloning the branch
-
+can be used by cloning the branch.
 
 ```
 git clone -b dev https://github.com/makgyver/rectorch.git
