@@ -13,6 +13,7 @@
 
 [![Build Status][travis-img]][travis-url]
 [![PyPi][pypi-image]][pypi]
+[![DOI](https://zenodo.org/badge/241092441.svg)](https://zenodo.org/badge/latestdoi/241092441)
 [![Coverage Status](https://coveralls.io/repos/github/makgyver/rectorch/badge.svg?branch=master)](https://coveralls.io/github/makgyver/rectorch?branch=master)
 [![docs](https://img.shields.io/badge/docs-github.io-blue)](https://makgyver.github.io/rectorch/)
 ![version] ![issues] ![license]
@@ -129,16 +130,15 @@ If you are using **rectorch** in your work, please consider citing this reposito
 ```
 @misc{rectorch,
     author = {Mirko Polato},
-    title = {rectorch: pytorch-based framework for top-N recommendation},
+    title = {{rectorch: pytorch-based framework for top-N recommendation}},
     year = {2020},
-    publisher = {GitHub},
-    journal = {GitHub repository},
-    howpublished = {\url{https://github.com/makgyver/rectorch}},
-    commit = {5dff2bba1cc315473b9cc1efc034385b93907b0e}
+    month = {may},
+    doi = {10.5281/zenodo.3841898},
+    version = {1.0},
+    publisher = {Zenodo},
+    url = {https://doi.org/10.5281/zenodo.153841898991}
 }
 ```
-
-Offical releases are coming and this citation will be soon updated with a DOI.
 
 ## References
 <a id="1">[1]</a>
