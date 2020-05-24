@@ -81,7 +81,7 @@ recommendation methods using **rectorch**.
 The full documentation of the **rectorch** APIs is available at https://makgyver.github.io/rectorch/.
 
 ## Testing
-The easiest way to test **rectorch** is by using [pytest](https://docs.pytest.org/en/latest/).
+The easiest way to test **rectorch** is using [pytest](https://docs.pytest.org/en/latest/).
 
 ```
 git clone https://github.com/makgyver/rectorch.git
