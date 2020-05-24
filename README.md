@@ -134,7 +134,7 @@ If you are using **rectorch** in your work, please consider citing this reposito
     publisher = {GitHub},
     journal = {GitHub repository},
     howpublished = {\url{https://github.com/makgyver/rectorch}},
-    commit = {4f57d6a0e4c030202a07a60bc1bb1ed1544bf679}
+    commit = {5dff2bba1cc315473b9cc1efc034385b93907b0e}
 }
 ```
 
