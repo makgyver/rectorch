@@ -472,10 +472,16 @@ class CFGAN_TrainingSampler(Sampler):
         return torch.FloatTensor(data_tr.toarray())
 
 class SVAE_Sampler(Sampler):
-    """Sampler used for training SVAE.
+    r"""Sampler used for training SVAE.
 
     This sampler yields pairs (``x``,``y``) where ``x`` is the tensor of indexes of the
     positive items, and ``y`` the target tensor with the (multi-hot) ground truth items.
+    This sampler is characterized by batches of size one (a single user at a time).
+    Given a user (batch) *u* the returned ground truth tensor is a 3D tensor of dimension
+    :math:`1 \times |\mathcal{I}_u|-1 \times m`, where :math:`|\mathcal{I}_u|` is the set
+    of rated items by *u*, and *m* the number of items. This tensor represents the ground truth
+    for *u* over time, and each slice of the tensor is a different timestamp across all the possible
+    time unit for this specific user.
 
     Parameters
     ----------
@@ -518,7 +524,7 @@ class SVAE_Sampler(Sampler):
                  is_training=True):
         super(SVAE_Sampler, self).__init__()
         if pred_type == "next_k":
-            assert k >= 1
+            assert k >= 1, "If pred_type == 'next_k' then 'k' must be a positive integer."
         self.pred_type = pred_type
         self.dict_data_tr = dict_data_tr
         self.dict_data_te = dict_data_te
@@ -557,6 +563,7 @@ class SVAE_Sampler(Sampler):
                 y_batch_s[0, 0, self.dict_data_te[user]] = 1.
 
             x_batch = [self.dict_data_tr[user][:-1]]
+
             #TODO check this
             x = Variable(torch.LongTensor(x_batch))#.cuda()
             y = Variable(y_batch_s, requires_grad=False)#.cuda()
