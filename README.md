@@ -80,6 +80,10 @@ recommendation methods using **rectorch**.
 ## Documentation
 The full documentation of the **rectorch** APIs is available at https://makgyver.github.io/rectorch/.
 
+### Known issues
+The documentation has rendering issues on 4K display. To "fix" the problem zoom in ([Ctrl][+], [Cmd][+]) the page.
+Thanks for your patience, it will be fixed soon.
+
 ## Testing
 The easiest way to test **rectorch** is using [pytest](https://docs.pytest.org/en/latest/).
 
