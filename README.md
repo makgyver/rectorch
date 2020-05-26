@@ -124,7 +124,7 @@ The following features/changes will be soon released:
 
 This framework is constantly growing and the implemented methods are chosen on the basis of the need
 of our research activity. We plan to include as many state-of-the-art methods as soon as we can, but
-if you have any specific requests feel free to contact us by opening an issue.
+if you have any specific request feel free to contact us by opening an issue.
 
 # Citing this repo
 
