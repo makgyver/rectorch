@@ -1602,7 +1602,7 @@ class SVAE(MultiVAE):
     ----------
     .. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
         Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the
-        Twelfth ACM International Conference on Web Search and Data Mining (WSDM ’19).
+        Twelfth ACM International Conference on Web Search and Data Mining (WSDM '19).
         Association for Computing Machinery, New York, NY, USA, 600–608.
         DOI: https://doi.org/10.1145/3289600.3291007
     """
@@ -1611,7 +1611,7 @@ class SVAE(MultiVAE):
                  beta=1.,
                  anneal_steps=0,
                  learning_rate=1e-3):
-        super(SVAE, self).__init__(svae_net, 
+        super(SVAE, self).__init__(svae_net,
                                    beta=beta,
                                    anneal_steps=anneal_steps,
                                    learning_rate=learning_rate)

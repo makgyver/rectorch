@@ -10,10 +10,11 @@ from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.models import RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
-    CMultiVAE, EASE, CFGAN, ADMM_Slim
+    CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE
 from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
-    CFGAN_G_net
-from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler
+    CFGAN_G_net, SVAE_net
+from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler,\
+    SVAE_Sampler
 
 def test_RecSysModel():
     """Test the RecSysModel class
@@ -81,7 +82,7 @@ def test_AETrainer():
     model.predict(x, True)
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
-    model.train(sampler, num_epochs=10, verbose=4)
+    model.train(sampler, num_epochs=20, verbose=4)
     torch.manual_seed(12345)
     out_2 = model.predict(x, False)[0]
 
@@ -423,7 +424,9 @@ def test_CFGAN():
     val_te = csr_matrix((values, (rows, cols)), shape=(1, 3))
 
     vsampler = DataSampler(val_tr, val_te, batch_size=1, shuffle=False)
-    cfgan.train(sampler, vsampler, "ndcg@1", 10, 1, 1, 4)
+    cfgan.train(sampler, vsampler, "ndcg@1", num_epochs=10, g_steps=1, d_steps=1, verbose=4)
+    pred = cfgan.predict(torch.FloatTensor([[0, 1, 1], [1, 1, 0]]))[0]
+    assert pred.shape == (2, 3)
 
     tmp = tempfile.NamedTemporaryFile()
     cfgan.save_model(tmp.name, 10)
@@ -483,3 +486,61 @@ def test_ADMM_Slim():
     slim2.train(X)
     slim2 = ADMM_Slim(nn_constr=False, l1_penalty=False, item_bias=True)
     slim2.train(X)
+
+
+def test_SVAE():
+    """Test the SVAE class
+    """
+    total_items = 7
+    net = SVAE_net(n_items=total_items,
+                   embed_size=2,
+                   rnn_size=2,
+                   dec_dims=[2, total_items],
+                   enc_dims=[2, 2])
+    model = SVAE(net)
+
+    assert hasattr(model, "network"), "model should have the attribute newtork"
+    assert hasattr(model, "device"), "model should have the attribute device"
+    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
+    assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
+    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
+    assert model.network == net, "the network should be the same as the parameter"
+    assert model.device == torch.device("cpu"), "the device should be cpu"
+    assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
+    assert str(model) == repr(model), "repr and str should have the same effect"
+
+    tr = {0:[0, 1, 2, 3, 4, 5, 6], 1:[6, 5, 4, 3, 2, 1, 0], 2:[2, 1, 6, 0, 3]}
+    sampler = SVAE_Sampler(num_items=total_items,
+                           dict_data_tr=tr,
+                           dict_data_te=None,
+                           pred_type="next",
+                           k=2,
+                           shuffle=False,
+                           is_training=True)
+
+    x = torch.LongTensor([[1, 2, 5]])
+    model.predict(x, True)
+    torch.manual_seed(12345)
+    out_1 = model.predict(x, False)[0]
+    model.train(sampler, num_epochs=10, verbose=4)
+    torch.manual_seed(12345)
+    out_2 = model.predict(x, False)[0]
+
+    assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
+
+    tmp = tempfile.NamedTemporaryFile()
+    model.save_model(tmp.name, 1)
+
+    net = SVAE_net(n_items=total_items,
+                   embed_size=2,
+                   rnn_size=2,
+                   dec_dims=[2, total_items],
+                   enc_dims=[2, 2])
+    model2 = SVAE(net)
+    model2.load_model(tmp.name)
+
+    torch.manual_seed(12345)
+    out_1 = model.predict(x, False)[0]
+    torch.manual_seed(12345)
+    out_2 = model2.predict(x, False)[0]
+    assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
