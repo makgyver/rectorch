@@ -225,14 +225,15 @@
 <span class="sd">however, is not really efficient because it outputs a single example at a time. The idea behind the</span>
 <span class="sd">samplers defined in this module is to treat the data set at batches highly improving the efficiency.</span>
 <span class="sd">Each new sampler must extend the base class :class:`Sampler` implementing all the abstract special</span>
-<span class="sd">methods, in particular :meth:`Sampler.__len__` and :meth:`Sampler.__iter__`.</span>
+<span class="sd">methods, in particular :meth:`samplers.Sampler.__len__` and :meth:`samplers.Sampler.__iter__`.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">scipy.sparse</span> <span class="kn">import</span> <span class="n">csr_matrix</span><span class="p">,</span> <span class="n">hstack</span>
 <span class="kn">import</span> <span class="nn">torch</span>
+<span class="kn">from</span> <span class="nn">torch.autograd</span> <span class="kn">import</span> <span class="n">Variable</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Sampler&#39;</span><span class="p">,</span> <span class="s1">&#39;DataSampler&#39;</span><span class="p">,</span> <span class="s1">&#39;ConditionedDataSampler&#39;</span><span class="p">,</span> <span class="s1">&#39;EmptyConditionedDataSampler&#39;</span><span class="p">,</span>\
-    <span class="s1">&#39;BalancedConditionedDataSampler&#39;</span><span class="p">,</span> <span class="s1">&#39;CFGAN_TrainingSampler&#39;</span><span class="p">]</span>
+    <span class="s1">&#39;BalancedConditionedDataSampler&#39;</span><span class="p">,</span> <span class="s1">&#39;CFGAN_TrainingSampler&#39;</span><span class="p">,</span> <span class="s1">&#39;SVAE_Sampler&#39;</span><span class="p">]</span>
 
 <div class="viewcode-block" id="Sampler"><a class="viewcode-back" href="../../samplers.html#rectorch.samplers.Sampler">[docs]</a><span class="k">class</span> <span class="nc">Sampler</span><span class="p">():</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sampler base class.</span>
@@ -242,7 +243,8 @@
 <span class="sd">    Notes</span>
 <span class="sd">    -----</span>
 <span class="sd">    Each new sampler must extend this base class implementing all the abstract</span>
-<span class="sd">    special methods, in particular :meth:`Sampler.__len__` and :meth:`Sampler.__iter__`.</span>
+<span class="sd">    special methods, in particular :meth:`rectorch.samplers.Sampler.__len__` and</span>
+<span class="sd">    :meth:`rectorch.samplers.Sampler.__iter__`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kargs</span><span class="p">):</span>
         <span class="k">pass</span>
@@ -265,7 +267,8 @@
 <span class="sd">    is set to ``False`` then the sampler returns batches with the same order as in the original</span>
 <span class="sd">    dataset. When ``sparse_data_te`` is defined then each returned batch is a :obj:`tuple` with</span>
 <span class="sd">    the training part of the batch and its test/validation counterpart. Otherwise, if</span>
-<span class="sd">    ``sparse_data_te`` is ``None`` then the second element of the yielded tuple will be ``None``.</span>
+<span class="sd">    ``sparse_data_te`` is :obj:`None` then the second element of the yielded tuple will be</span>
+<span class="sd">    :obj:`None`.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -273,11 +276,11 @@
 <span class="sd">        The training sparse user-item rating matrix.</span>
 <span class="sd">    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]</span>
 <span class="sd">        The test sparse user-item rating matrix. The shape of this matrix must be the same as</span>
-<span class="sd">        ``sparse_data_tr``. By default ``None``.</span>
+<span class="sd">        ``sparse_data_tr``. By default :obj:`None`.</span>
 <span class="sd">    batch_size : :obj:`int` [optional]</span>
 <span class="sd">        The size of the batches, by default 1.</span>
 <span class="sd">    shuffle : :obj:`bool` [optional]</span>
-<span class="sd">        Whether the data set must bu randomly shuffled before creating the batches, by default</span>
+<span class="sd">        Whether the data set must by randomly shuffled before creating the batches, by default</span>
 <span class="sd">        ``True``.</span>
 
 <span class="sd">    Attributes</span>
@@ -325,10 +328,11 @@
 
 
 <div class="viewcode-block" id="ConditionedDataSampler"><a class="viewcode-back" href="../../samplers.html#rectorch.samplers.ConditionedDataSampler">[docs]</a><span class="k">class</span> <span class="nc">ConditionedDataSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Data sampler with conditioned filtering used by the :class:`models.CMultiVAE` model.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Data sampler with conditioned filtering used by the</span>
+<span class="sd">    :class:`rectorch.models.CMultiVAE` model.</span>
 
-<span class="sd">    This data sampler is useful when training the :class:`models.CMultiVAE` model described in</span>
-<span class="sd">    [CVAE]_. During the training, each user must be conditioned over all the possible conditions</span>
+<span class="sd">    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described</span>
+<span class="sd">    in [CVAE]_. During the training, each user must be conditioned over all the possible conditions</span>
 <span class="sd">    (actually the ones that the user knows) so the training set must be modified accordingly.</span>
 
 <span class="sd">    Parameters</span>
@@ -343,7 +347,7 @@
 <span class="sd">        The training sparse user-item rating matrix.</span>
 <span class="sd">    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]</span>
 <span class="sd">        The test sparse user-item rating matrix. The shape of this matrix must be the same as</span>
-<span class="sd">        ``sparse_data_tr``. By default ``None``.</span>
+<span class="sd">        ``sparse_data_tr``. By default :obj:`None`.</span>
 <span class="sd">    batch_size : :obj:`int` [optional]</span>
 <span class="sd">        The size of the batches, by default 1.</span>
 <span class="sd">    shuffle : :obj:`bool` [optional]</span>
@@ -424,7 +428,7 @@
             <span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
             <span class="n">cond_matrix</span> <span class="o">=</span> <span class="n">csr_matrix</span><span class="p">((</span><span class="n">values</span><span class="p">,</span> <span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">)),</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">ex</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_cond</span><span class="p">))</span>
 
-            <span class="n">rows_</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span><span class="p">,</span><span class="n">_</span> <span class="ow">in</span> <span class="n">ex</span><span class="p">]</span>
+            <span class="n">rows_</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span> <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ex</span><span class="p">]</span>
             <span class="n">data_tr</span> <span class="o">=</span> <span class="n">hstack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">sparse_data_tr</span><span class="p">[</span><span class="n">rows_</span><span class="p">],</span> <span class="n">cond_matrix</span><span class="p">],</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;csr&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_data_te</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -453,8 +457,8 @@
 <div class="viewcode-block" id="BalancedConditionedDataSampler"><a class="viewcode-back" href="../../samplers.html#rectorch.samplers.BalancedConditionedDataSampler">[docs]</a><span class="k">class</span> <span class="nc">BalancedConditionedDataSampler</span><span class="p">(</span><span class="n">ConditionedDataSampler</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sub-sampled version of the :class:`ConditionedDataSampler`.</span>
 
-<span class="sd">    This data sampler is useful when training the :class:`models.CMultiVAE` model described in</span>
-<span class="sd">    [CVAE]_. During the training, each user must be conditioned over all the possible conditions</span>
+<span class="sd">    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described</span>
+<span class="sd">    in [CVAE]_. During the training, each user must be conditioned over all the possible conditions</span>
 <span class="sd">    (actually the ones that the user knows) so the training set must be modified accordingly.</span>
 <span class="sd">    This sampler avoids to create all possible user-condition pairs via sub-samplig. The extent</span>
 <span class="sd">    of this sub-sampling is defined by the parameter ``subsample``. The prefix &#39;Balanced&#39; is</span>
@@ -473,7 +477,7 @@
 <span class="sd">        The training sparse user-item rating matrix.</span>
 <span class="sd">    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]</span>
 <span class="sd">        The test sparse user-item rating matrix. The shape of this matrix must be the same as</span>
-<span class="sd">        ``sparse_data_tr``. By default ``None``.</span>
+<span class="sd">        ``sparse_data_tr``. By default :obj:`None`.</span>
 <span class="sd">    batch_size : :obj:`int` [optional]</span>
 <span class="sd">        The size of the batches, by default 1.</span>
 <span class="sd">    shuffle : :obj:`bool` [optional]</span>
@@ -555,11 +559,12 @@
 
 
 <div class="viewcode-block" id="EmptyConditionedDataSampler"><a class="viewcode-back" href="../../samplers.html#rectorch.samplers.EmptyConditionedDataSampler">[docs]</a><span class="k">class</span> <span class="nc">EmptyConditionedDataSampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span>
-    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Data sampler that returns unconditioned batches used by the :class:`models.CMultiVAE` model.</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Data sampler that returns unconditioned batches used by the</span>
+<span class="sd">    :class:`rectorch.models.CMultiVAE` model.</span>
 
-<span class="sd">    This data sampler is useful when training the :class:`models.CMultiVAE` model described in</span>
-<span class="sd">    [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection that the</span>
-<span class="sd">    yielded batches have appended a zero matrix of the size ``batch_size`` :math:`\\times`</span>
+<span class="sd">    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described</span>
+<span class="sd">    in [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection that the</span>
+<span class="sd">    yielded batches have appended a zero matrix of the size ``batch_size`` :math:`\times`</span>
 <span class="sd">    ``n_cond``.</span>
 
 <span class="sd">    Parameters</span>
@@ -570,7 +575,7 @@
 <span class="sd">        The training sparse user-item rating matrix.</span>
 <span class="sd">    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]</span>
 <span class="sd">        The test sparse user-item rating matrix. The shape of this matrix must be the same as</span>
-<span class="sd">        ``sparse_data_tr``. By default ``None``.</span>
+<span class="sd">        ``sparse_data_tr``. By default :obj:`None`.</span>
 <span class="sd">    batch_size : :obj:`int` [optional]</span>
 <span class="sd">        The size of the batches, by default 1.</span>
 <span class="sd">    shuffle : :obj:`bool` [optional]</span>
@@ -685,6 +690,105 @@
         <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">idxlist</span><span class="p">)</span>
         <span class="n">data_tr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sparse_data_tr</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">idxlist</span><span class="p">[:</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">]]</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">FloatTensor</span><span class="p">(</span><span class="n">data_tr</span><span class="o">.</span><span class="n">toarray</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="SVAE_Sampler"><a class="viewcode-back" href="../../samplers.html#rectorch.samplers.SVAE_Sampler">[docs]</a><span class="k">class</span> <span class="nc">SVAE_Sampler</span><span class="p">(</span><span class="n">Sampler</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sampler used for training SVAE.</span>
+
+<span class="sd">    This sampler yields pairs (``x``,``y``) where ``x`` is the tensor of indexes of the</span>
+<span class="sd">    positive items, and ``y`` the target tensor with the (multi-hot) ground truth items.</span>
+<span class="sd">    This sampler is characterized by batches of size one (a single user at a time).</span>
+<span class="sd">    Given a user (batch) *u* the returned ground truth tensor is a 3D tensor of dimension</span>
+<span class="sd">    :math:`1 \times |\mathcal{I}_u|-1 \times m`, where :math:`|\mathcal{I}_u|` is the set</span>
+<span class="sd">    of rated items by *u*, and *m* the number of items. This tensor represents the ground truth</span>
+<span class="sd">    for *u* over time, and each slice of the tensor is a different timestamp across all the possible</span>
+<span class="sd">    time unit for this specific user.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    num_items : :obj:`int`</span>
+<span class="sd">        Number of items.</span>
+<span class="sd">    dict_data_tr : :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`)</span>
+<span class="sd">        Dictionary containing the training set. Keys are the users, while the values are the lists</span>
+<span class="sd">        of items rated by the users in a specific (often cronological) odrer.</span>
+<span class="sd">    dict_data_te : :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`) or :obj:`None` [optional]</span>
+<span class="sd">        Dictionary containing the test part of the data set. Keys are the users, while the values</span>
+<span class="sd">        are the lists of items rated by the users in a specific (often cronological) odrer,</span>
+<span class="sd">        by default :obj:`None`. If :obj:`None` it is not considered in the batch creation, otherwise</span>
+<span class="sd">        is used in the construction of the ground truth. Not that ``dict_data_te`` must be valued</span>
+<span class="sd">        only in the case of validation/test, i.e., when ``is_training`` is ``False``.</span>
+<span class="sd">    pred_type : :obj:`str` in the set {``&#39;next_k&#39;``, ``&#39;next&#39;``, ``&#39;postfix&#39;``} [optional]</span>
+<span class="sd">        The variant of loss used by the model, by default ``&#39;next_k&#39;``. If ``&#39;next&#39;`` then</span>
+<span class="sd">        only the next item must be predicted, if ``&#39;next_k&#39;`` the next *k* items are considered in</span>
+<span class="sd">        the ground truth, otherwise (= ``&#39;postfix&#39;``) all the remaining items are taken as ground</span>
+<span class="sd">        truth.</span>
+<span class="sd">    k : :obj:`int` [optional]</span>
+<span class="sd">        The number of item to predict in the ``&#39;next_k&#39;`` variant, by default 1. This parameter</span>
+<span class="sd">        is not considered when ``pred_type`` is not ``&#39;next_k&#39;``.</span>
+<span class="sd">    shuffle : :obj:`bool` [optional]</span>
+<span class="sd">        Whether the data set must by randomly shuffled before creating the batches, by default</span>
+<span class="sd">        ``True``.</span>
+<span class="sd">    is_training : :obj:`bool` [optional]</span>
+<span class="sd">        Whether the sampler is used during training, by default ``True``.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See *Parameters* section.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">num_items</span><span class="p">,</span>
+                 <span class="n">dict_data_tr</span><span class="p">,</span>
+                 <span class="n">dict_data_te</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                 <span class="n">pred_type</span><span class="o">=</span><span class="s2">&quot;next_k&quot;</span><span class="p">,</span>
+                 <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                 <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">is_training</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SVAE_Sampler</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">pred_type</span> <span class="o">==</span> <span class="s2">&quot;next_k&quot;</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="n">k</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;If pred_type == &#39;next_k&#39; then &#39;k&#39; must be a positive integer.&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pred_type</span> <span class="o">=</span> <span class="n">pred_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span> <span class="o">=</span> <span class="n">dict_data_tr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict_data_te</span> <span class="o">=</span> <span class="n">dict_data_te</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_items</span> <span class="o">=</span> <span class="n">num_items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="n">k</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_training</span> <span class="o">=</span> <span class="n">is_training</span>
+
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">idxlist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span><span class="p">)))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">idxlist</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">user</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">idxlist</span><span class="p">):</span>
+            <span class="n">ulen</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span><span class="p">[</span><span class="n">user</span><span class="p">])</span>
+            <span class="n">y_batch_s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ulen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_items</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_training</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_type</span> <span class="o">==</span> <span class="s1">&#39;next&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ulen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="n">timestep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+                        <span class="n">y_batch_s</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_type</span> <span class="o">==</span> <span class="s1">&#39;next_k&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ulen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="n">timestep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:][:</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">]</span>
+                        <span class="n">y_batch_s</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">pred_type</span> <span class="o">==</span> <span class="s1">&#39;postfix&#39;</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">timestep</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ulen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span><span class="p">[</span><span class="n">user</span><span class="p">][</span><span class="n">timestep</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+                        <span class="n">y_batch_s</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">timestep</span><span class="p">,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">y_batch_s</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_items</span><span class="p">)</span>
+                <span class="n">y_batch_s</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict_data_te</span><span class="p">[</span><span class="n">user</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+            <span class="n">x_batch</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">dict_data_tr</span><span class="p">[</span><span class="n">user</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+
+            <span class="c1">#TODO check this</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">LongTensor</span><span class="p">(</span><span class="n">x_batch</span><span class="p">))</span><span class="c1">#.cuda()</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">y_batch_s</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="c1">#.cuda()</span>
+
+            <span class="k">yield</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span></div>
 </pre></div>
 
              </article>

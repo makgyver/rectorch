@@ -229,11 +229,13 @@ the following metrics are implemented:</p>
 <ul class="simple">
 <li><p><a class="reference internal" href="#rectorch.metrics.Metrics.ndcg_at_k" title="rectorch.metrics.Metrics.ndcg_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">nDCG&#64;k</span></code></a></p></li>
 <li><p><a class="reference internal" href="#rectorch.metrics.Metrics.recall_at_k" title="rectorch.metrics.Metrics.recall_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">recall&#64;k</span></code></a></p></li>
+<li><p><a class="reference internal" href="#rectorch.metrics.Metrics.hit_at_k" title="rectorch.metrics.Metrics.hit_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">hit&#64;k</span></code></a></p></li>
+<li><p><a class="reference internal" href="#rectorch.metrics.Metrics.mrr_at_k" title="rectorch.metrics.Metrics.mrr_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">mrr&#64;k</span></code></a></p></li>
 </ul>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p>Modules:
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">evaluation</span></code></p>
+<a class="reference internal" href="evaluation.html#module-rectorch.evaluation" title="rectorch.evaluation"><code class="xref py py-mod docutils literal notranslate"><span class="pre">evaluation</span></code></a></p>
 </div>
 <dl class="py class">
 <dt id="rectorch.metrics.Metrics">
@@ -288,6 +290,81 @@ computed on the users.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="rectorch.metrics.Metrics.hit_at_k">
+<em class="property">static </em><code class="sig-name descname">hit_at_k</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred_scores</span></em>, <em class="sig-param"><span class="n">ground_truth</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/metrics.html#Metrics.hit_at_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.metrics.Metrics.hit_at_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the hit at k.</p>
+<p>The Hit&#64;k is either 1, if a relevan item is in the top <em>k</em> scored items, or 0 otherwise.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>pred_scores</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>The array with the predicted scores. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>ground_truth</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>Binary array with the ground truth. 1 means the item is relevant for the user
+and 0 not relevant. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>k</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The number of top items to considers, by default 100</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></li><ul><p>An array containing the <em>hit&#64;k</em> value for each user.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rectorch.metrics</span> <span class="kn">import</span> <span class="n">Metrics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ground_truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">hit_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">np.array([1.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">hit_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">np.array([0.])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.metrics.Metrics.mrr_at_k">
+<em class="property">static </em><code class="sig-name descname">mrr_at_k</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred_scores</span></em>, <em class="sig-param"><span class="n">ground_truth</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/metrics.html#Metrics.mrr_at_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.metrics.Metrics.mrr_at_k" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute the Mean Reciprocal Rank (MRR).</p>
+<p>The MRR&#64;k is the mean overall user of the reciprocal rank, that is the rank of the highest
+ranked relevant item, if any in the top <em>k</em>, 0 otherwise.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>pred_scores</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>The array with the predicted scores. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>ground_truth</strong><span class="classifier"><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></span></li><ul><p>Binary array with the ground truth. 1 means the item is relevant for the user
+and 0 not relevant. Users are on the rows and items on the columns.</p>
+</ul>
+<li><strong>k</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The number of top items to considers, by default 100</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></li><ul><p>An array containing the <em>mrr&#64;k</em> value for each user.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rectorch.metrics</span> <span class="kn">import</span> <span class="n">Metrics</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">4.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">ground_truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">mrr_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="go">array([.5, 1.])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">mrr_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="go">array([0., 1.])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py method">
 <dt id="rectorch.metrics.Metrics.ndcg_at_k">
 <em class="property">static </em><code class="sig-name descname">ndcg_at_k</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">pred_scores</span></em>, <em class="sig-param"><span class="n">ground_truth</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">100</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/metrics.html#Metrics.ndcg_at_k"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.metrics.Metrics.ndcg_at_k" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the Normalized Discount Cumulative Gain (nDCG).</p>
@@ -297,10 +374,10 @@ the result list to the bottom, with the gain of each result discounted at lower 
 <p>The nDCG is computed over the top-k items (out of <span class="math notranslate nohighlight">\(m\)</span>), where <cite>k</cite> is specified as a
 parameter, for all users independently.
 The nDCG&#64;k (<span class="math notranslate nohighlight">\(k \in [1,2,\dots,m]\)</span>) is computed with the following formula:</p>
-<p><span class="math notranslate nohighlight">\(nDCG&#64;k = \\frac{\\textrm{DCG}&#64;k}{\\textrm{IDCG}&#64;k}\)</span></p>
+<p><span class="math notranslate nohighlight">\(nDCG&#64;k = \frac{\textrm{DCG}&#64;k}{\textrm{IDCG}&#64;k}\)</span></p>
 <p>where</p>
-<p><span class="math notranslate nohighlight">\(\\textrm{DCG}&#64;k = \sum\limits_{i=1}^k \\frac{2^{rel_i}-1}{\log_2 (i+1)},\)</span></p>
-<p><span class="math notranslate nohighlight">\(\\textrm{IDCG}&#64;k = \sum\limits_{i=1}^{\min(k,R)} \\frac{1}{\log_2 (i+1)}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\textrm{DCG}&#64;k = \sum\limits_{i=1}^k \frac{2^{rel_i}-1}{\log_2 (i+1)},\)</span></p>
+<p><span class="math notranslate nohighlight">\(\textrm{IDCG}&#64;k = \sum\limits_{i=1}^{\min(k,R)} \frac{1}{\log_2 (i+1)}\)</span></p>
 <p>with
 <span class="math notranslate nohighlight">\(rel_i \in \{0,1\}\)</span>
 indicates whether the item at <em>i</em>-th position in the ranking is relevant or not,
@@ -330,7 +407,7 @@ and 0 not relevant. Users are on the rows and items on the columns.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ground_truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">ndcg_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="go">np.array([0.306573596])</span>
+<span class="go">array([0.306573596])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -343,7 +420,7 @@ and 0 not relevant. Users are on the rows and items on the columns.</p>
 The recall is computed over the top-k items (out of <span class="math notranslate nohighlight">\(m\)</span>), where <cite>k</cite> is specified as a
 parameter, for all users independently.</p>
 <p>Recall&#64;k is computed as</p>
-<p><span class="math notranslate nohighlight">\(\\textrm{recall}&#64;k = \\frac{\\textrm{TP}}{\\textrm{TP}+\\textrm{FN}}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\textrm{recall}&#64;k = \frac{\textrm{TP}}{\textrm{TP}+\textrm{FN}}\)</span></p>
 <p>where TP and FN are the true positive and the false negative retrieved items, respectively.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -370,7 +447,7 @@ and 0 not relevant. Users are on the rows and items on the columns.</p>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scores</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">3.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ground_truth</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Metrics</span><span class="o">.</span><span class="n">ndcg_at_k</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
-<span class="go">np.array([0.306573596])</span>
+<span class="go">array([0.306573596])</span>
 </pre></div>
 </div>
 </dd></dl>

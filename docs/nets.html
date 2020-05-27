@@ -246,6 +246,15 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.nets.CMultiVAE_net" title="rectorch.nets.CMultiVAE_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.CMultiVAE_net</span></code></a>(cond_dim, dec_dims)</p></td>
 <td><p>Conditioned Variational Autoencoder network for collaborative filtering.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rectorch.nets.CFGAN_G_net" title="rectorch.nets.CFGAN_G_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.CFGAN_G_net</span></code></a>(layers_dim)</p></td>
+<td><p>Generator network of the CFGAN model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.nets.CFGAN_D_net" title="rectorch.nets.CFGAN_D_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.CFGAN_D_net</span></code></a>(layers_dim)</p></td>
+<td><p>Discriminator network of the CFGAN model.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rectorch.nets.SVAE_net" title="rectorch.nets.SVAE_net"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.nets.SVAE_net</span></code></a>(n_items, embed_size, …)</p></td>
+<td><p>Sequential Variational Autoencoders for Collaborative Filtering.</p></td>
+</tr>
 </tbody>
 </table>
 <span class="target" id="module-rectorch.nets"></span><p>This module contains definitions of the neural newtork architectures used by
@@ -273,9 +282,9 @@ The following methods must be implemented in the sub-classes:</p>
 <li><strong>dec_dims</strong><span class="classifier">list or array_like</span></li><ul><p>Dimensions of the decoder network. <code class="docutils literal notranslate"><span class="pre">dec_dims[0]</span></code> indicates the dimension of the latent
 space, and <code class="docutils literal notranslate"><span class="pre">dec_dims[-1]</span></code> indicates the dimension of the input space.</p>
 </ul>
-<li><strong>enc_dims</strong><span class="classifier">list, array_like or <code class="docutils literal notranslate"><span class="pre">None</span></code> [optional]</span></li><ul><p>Dimensions of the encoder network. <code class="docutils literal notranslate"><span class="pre">end_dims[0]</span></code> indicates the dimension of the input
+<li><strong>enc_dims</strong><span class="classifier">list, array_like or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> [optional]</span></li><ul><p>Dimensions of the encoder network. <code class="docutils literal notranslate"><span class="pre">end_dims[0]</span></code> indicates the dimension of the input
 space, and <code class="docutils literal notranslate"><span class="pre">end_dims[-1]</span></code> indicates the dimension of the latent space.
-If evaluates to False, <code class="docutils literal notranslate"><span class="pre">enc_dims</span> <span class="pre">=</span> <span class="pre">dec_dims[::-1]</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+If evaluates to False, <code class="docutils literal notranslate"><span class="pre">enc_dims</span> <span class="pre">=</span> <span class="pre">dec_dims[::-1]</span></code>. By default <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </ul>
 </dl>
 </dd>
@@ -787,6 +796,97 @@ concatenated with the condition.</p>
 <dl class="py method">
 <dt id="rectorch.nets.CFGAN_D_net.init_weights">
 <code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">layer</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#CFGAN_D_net.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.CFGAN_D_net.init_weights" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the weights of the network.</p>
+<p>Weights are initialized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.xavier_uniform_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.xavier_uniform_()</span></code></a> initializer,
+while biases are initalized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.normal_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.normal_()</span></code></a> initializer.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.nets.SVAE_net">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.nets.</code><code class="sig-name descname">SVAE_net</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_items</span></em>, <em class="sig-param"><span class="n">embed_size</span></em>, <em class="sig-param"><span class="n">rnn_size</span></em>, <em class="sig-param"><span class="n">dec_dims</span></em>, <em class="sig-param"><span class="n">enc_dims</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#SVAE_net"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.SVAE_net" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.nets.VAE_net" title="rectorch.nets.VAE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.nets.VAE_net</span></code></a></p>
+<p>Sequential Variational Autoencoders for Collaborative Filtering.</p>
+<p><strong>UNDOCUMENTED</strong> <a class="reference internal" href="#r894e5278d4e4-svae" id="id11"><span>[R894e5278d4e4-SVAE]</span></a></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>n_items</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Number of items.</p>
+</ul>
+<li><strong>embed_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Size of the embedding for the items.</p>
+</ul>
+<li><strong>rnn_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Size of the recurrent layer if the GRU part of the network.</p>
+</ul>
+<li><strong>dec_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> or array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+<li><strong>enc_dims</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a>, array_like of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> or None [optional]</span></li><ul><p>See <a class="reference internal" href="#rectorch.nets.AE_net" title="rectorch.nets.AE_net"><code class="xref py py-class docutils literal notranslate"><span class="pre">AE_net</span></code></a>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r894e5278d4e4-svae"><span class="brackets"><a class="fn-backref" href="#id11">R894e5278d4e4-SVAE</a></span></dt>
+<dd><p>Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the
+Twelfth ACM International Conference on Web Search and Data Mining (WSDM ‘19).
+Association for Computing Machinery, New York, NY, USA, 600–608.
+DOI: <a class="reference external" href="https://doi.org/10.1145/3289600.3291007">https://doi.org/10.1145/3289600.3291007</a></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<li><strong>See *Parameres* section.</strong></li><ul></ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.nets.SVAE_net.decode">
+<code class="sig-name descname">decode</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">z</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#SVAE_net.decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.SVAE_net.decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the decoder network to the sampled latent representation.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>z</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The sampled (trhough the reparameterization trick) latent tensor.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></li><ul><p>The output tensor of the decoder network.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.SVAE_net.forward">
+<code class="sig-name descname">forward</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#SVAE_net.forward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.SVAE_net.forward" title="Permalink to this definition">¶</a></dt>
+<dd><p>Apply the full Variational Autoencoder network to the input.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input tensor</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<li><strong>x’, mu, logvar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The reconstructed input (x’) along with the intermediate tensors in the latent space
+representing the mean and standard deviation (actually the logarithm of the variance)
+of the probability distributions over the latent variables.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.nets.SVAE_net.init_weights">
+<code class="sig-name descname">init_weights</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/nets.html#SVAE_net.init_weights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.nets.SVAE_net.init_weights" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the weights of the network.</p>
 <p>Weights are initialized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.xavier_uniform_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.xavier_uniform_()</span></code></a> initializer,
 while biases are initalized with the <a class="reference external" href="https://pytorch.org/docs/stable/nn.init.html#torch.nn.init.normal_" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-func docutils literal notranslate"><span class="pre">torch.nn.init.normal_()</span></code></a> initializer.</p>

@@ -13,3 +13,6 @@ __pycache__
 dist
 build
 rectorch.egg*
+
+*.doctree
+*.pickle

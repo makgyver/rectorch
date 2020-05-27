@@ -254,10 +254,10 @@
 <span class="sd">    dec_dims : list or array_like</span>
 <span class="sd">        Dimensions of the decoder network. ``dec_dims[0]`` indicates the dimension of the latent</span>
 <span class="sd">        space, and ``dec_dims[-1]`` indicates the dimension of the input space.</span>
-<span class="sd">    enc_dims : list, array_like or ``None`` [optional]</span>
+<span class="sd">    enc_dims : list, array_like or :obj:`None` [optional]</span>
 <span class="sd">        Dimensions of the encoder network. ``end_dims[0]`` indicates the dimension of the input</span>
 <span class="sd">        space, and ``end_dims[-1]`` indicates the dimension of the latent space.</span>
-<span class="sd">        If evaluates to False, ``enc_dims = dec_dims[::-1]``. By default ``None``.</span>
+<span class="sd">        If evaluates to False, ``enc_dims = dec_dims[::-1]``. By default :obj:`None`.</span>
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
@@ -269,10 +269,10 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dec_dims</span><span class="p">,</span> <span class="n">enc_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">AE_net</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">enc_dims</span><span class="p">:</span>
-            <span class="k">assert</span> <span class="n">enc_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">dec_dims</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> \
-                        <span class="s2">&quot;In and Out dimensions must equal to each other&quot;</span>
-            <span class="k">assert</span> <span class="n">enc_dims</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">dec_dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> \
-                        <span class="s2">&quot;Latent dimension for encoder and decoder network mismatches.&quot;</span>
+            <span class="c1">#assert enc_dims[0] == dec_dims[-1], \</span>
+            <span class="c1">#            &quot;In and Out dimensions must equal to each other&quot;</span>
+            <span class="c1">#assert enc_dims[-1] == dec_dims[0], \</span>
+            <span class="c1">#            &quot;Latent dimension for encoder and decoder network mismatches.&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">enc_dims</span> <span class="o">=</span> <span class="n">enc_dims</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">enc_dims</span> <span class="o">=</span> <span class="n">dec_dims</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -358,7 +358,7 @@
 
 <span class="sd">        The forward operation of the CDAE encoder network computes:</span>
 
-<span class="sd">        :math:`h(W^\\top \\tilde{\mathbf{x}_i} + \mathbf{x}_u + \mathbf{b})`</span>
+<span class="sd">        :math:`h(W^\top \tilde{\mathbf{x}_i} + \mathbf{x}_u + \mathbf{b})`</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
@@ -508,7 +508,7 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enc_layers</span><span class="p">):</span>
             <span class="n">h</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">enc_layers</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">h</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">mu</span> <span class="o">=</span> <span class="n">h</span><span class="p">[:,</span> <span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">enc_dims</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
                 <span class="n">logvar</span> <span class="o">=</span> <span class="n">h</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">enc_dims</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:]</span>
@@ -531,7 +531,7 @@
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dec_layers</span><span class="p">):</span>
             <span class="n">h</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dec_layers</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">h</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_reparameterize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
@@ -544,7 +544,7 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        x : :py:class:`torch.Tensor`</span>
+<span class="sd">        x : :class:`torch.Tensor`</span>
 <span class="sd">            The input tensor</span>
 
 <span class="sd">        Returns</span>
@@ -749,12 +749,12 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        x : :py:class:`torch.Tensor`</span>
+<span class="sd">        x : :class:`torch.Tensor`</span>
 <span class="sd">            The input tensor to be forwarded.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
-<span class="sd">        :py:class:`torch.Tensor`</span>
+<span class="sd">        :class:`torch.Tensor`</span>
 <span class="sd">            The output tensor results of the application of the generator network.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">z</span><span class="p">)</span></div>
@@ -839,6 +839,78 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">):</span>
             <span class="n">xavier_init</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
             <span class="n">normal_init</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">bias</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="SVAE_net"><a class="viewcode-back" href="../../nets.html#rectorch.nets.SVAE_net">[docs]</a><span class="k">class</span> <span class="nc">SVAE_net</span><span class="p">(</span><span class="n">VAE_net</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Sequential Variational Autoencoders for Collaborative Filtering.</span>
+
+<span class="sd">    **UNDOCUMENTED** [SVAE]_</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n_items : :obj:`int`</span>
+<span class="sd">        Number of items.</span>
+<span class="sd">    embed_size : :obj:`int`</span>
+<span class="sd">        Size of the embedding for the items.</span>
+<span class="sd">    rnn_size : :obj:`int`</span>
+<span class="sd">        Size of the recurrent layer if the GRU part of the network.</span>
+<span class="sd">    dec_dims : :obj:`list` or array_like of :obj:`int`</span>
+<span class="sd">        See :class:`AE_net`.</span>
+<span class="sd">    enc_dims : :obj:`list`, array_like of :obj:`int` or None [optional]</span>
+<span class="sd">        See :class:`AE_net`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See *Parameres* section.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.</span>
+<span class="sd">       Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the</span>
+<span class="sd">       Twelfth ACM International Conference on Web Search and Data Mining (WSDM &#39;19).</span>
+<span class="sd">       Association for Computing Machinery, New York, NY, USA, 600–608.</span>
+<span class="sd">       DOI: https://doi.org/10.1145/3289600.3291007</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n_items</span><span class="p">,</span> <span class="n">embed_size</span><span class="p">,</span> <span class="n">rnn_size</span><span class="p">,</span> <span class="n">dec_dims</span><span class="p">,</span> <span class="n">enc_dims</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SVAE_net</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">dec_dims</span><span class="p">,</span> <span class="n">enc_dims</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enc_dims</span> <span class="o">=</span> <span class="n">enc_dims</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dec_dims</span> <span class="o">=</span> <span class="n">dec_dims</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_items</span> <span class="o">=</span> <span class="n">n_items</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embed_size</span> <span class="o">=</span> <span class="n">embed_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rnn_size</span> <span class="o">=</span> <span class="n">rnn_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_embed</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span><span class="n">n_items</span><span class="p">,</span> <span class="n">embed_size</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">gru</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">GRU</span><span class="p">(</span><span class="n">embed_size</span><span class="p">,</span> <span class="n">rnn_size</span><span class="p">,</span> <span class="n">batch_first</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#temp_dims = self.enc_dims[:-1] + [self.enc_dims[-1] * 2]</span>
+        <span class="c1">#self.enc_layers = nn.ModuleList(</span>
+        <span class="c1">#    [nn.Linear(d_in, d_out) for d_in, d_out in zip(temp_dims[:-1], temp_dims[1:])])</span>
+
+        <span class="c1">#self.dec_layers = nn.ModuleList(</span>
+        <span class="c1">#    [nn.Linear(d_in, d_out) for d_in, d_out in zip(self.dec_dims[:-1], self.dec_dims[1:])])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_weights</span><span class="p">()</span>
+
+<div class="viewcode-block" id="SVAE_net.forward"><a class="viewcode-back" href="../../nets.html#rectorch.nets.SVAE_net.forward">[docs]</a>    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+        <span class="n">in_shape</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_embed</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># [seq_len x embed_size]</span>
+        <span class="n">rnn_out</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gru</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">in_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">in_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># [1 x seq_len x rnn_size]</span>
+        <span class="n">rnn_out</span> <span class="o">=</span> <span class="n">rnn_out</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">in_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">in_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># [seq_len x rnn_size]</span>
+        <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">rnn_out</span><span class="p">)</span> <span class="c1"># [seq_len x hidden_size]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reparameterize</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="p">)</span> <span class="c1"># [seq_len x latent_size]</span>
+        <span class="n">dec_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>  <span class="c1"># [seq_len x total_items]</span>
+        <span class="n">dec_out</span> <span class="o">=</span> <span class="n">dec_out</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">in_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">in_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># [1 x seq_len x total_items]</span>
+        <span class="k">return</span> <span class="n">dec_out</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span></div>
+
+<div class="viewcode-block" id="SVAE_net.decode"><a class="viewcode-back" href="../../nets.html#rectorch.nets.SVAE_net.decode">[docs]</a>    <span class="k">def</span> <span class="nf">decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">z</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dec_layers</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">layer</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec_layers</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">](</span><span class="n">h</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SVAE_net.init_weights"><a class="viewcode-back" href="../../nets.html#rectorch.nets.SVAE_net.init_weights">[docs]</a>    <span class="k">def</span> <span class="nf">init_weights</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">enc_layers</span><span class="p">:</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_normal_</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dec_layers</span><span class="p">:</span>
+            <span class="n">nn</span><span class="o">.</span><span class="n">init</span><span class="o">.</span><span class="n">xavier_normal_</span><span class="p">(</span><span class="n">layer</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span></div></div>
 </pre></div>
 
              </article>

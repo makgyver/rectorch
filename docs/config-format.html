@@ -221,7 +221,7 @@
               
   <div class="section" id="configuration-files-format">
 <span id="config-format"></span><h1>Configuration files format<a class="headerlink" href="#configuration-files-format" title="Permalink to this headline">¶</a></h1>
-<p>In <strong>rectorch</strong>, te configuration of the data set pre-processing, and the models’ training/test
+<p>In <strong>rectorch</strong>, the configuration of the data set pre-processing, and the models’ training/test
 is performed via <a class="reference external" href="https://www.json.org/json-en.html">.json</a> files.</p>
 <div class="section" id="data-configuration-file">
 <h2>Data configuration file<a class="headerlink" href="#data-configuration-file" title="Permalink to this headline">¶</a></h2>
@@ -258,8 +258,9 @@ The <a class="reference external" href="https://www.json.org/json-en.html">.json
 <p>The example above is a valid configuration for the <a class="reference external" href="https://grouplens.org/datasets/movielens/100k/">Movielens 100k dataset</a>
 where ratings less than 3.5 stars are discarded as well as users with less than 4 ratings.
 The heldout set has size 100 users (100 for validation set and 100 for the test set).
-The portion of ratings kept in the testinng part of each users is 20%. Top-N is the task so the
-remaining positive ratings are set equal to 1.</p>
+The portion of ratings kept in the testing part of each users is 20%. Top-N is the task so the
+remaining positive ratings are set equal to 1. Some examples of data configuration files are
+available in <a class="reference external" href="https://github.com/makgyver/rectorch/tree/master/config">GitHub</a>.</p>
 </div>
 <div class="section" id="model-configuration-file">
 <h2>Model configuration file<a class="headerlink" href="#model-configuration-file" title="Permalink to this headline">¶</a></h2>
@@ -292,6 +293,8 @@ The <a class="reference external" href="https://www.json.org/json-en.html">.json
 <span class="p">}</span>
 </pre></div>
 </div>
+<p>Some examples of model configuration files are available in
+<a class="reference external" href="https://github.com/makgyver/rectorch/tree/master/config">GitHub</a>.</p>
 </div>
 </div>
 

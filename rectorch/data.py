@@ -317,7 +317,7 @@ class DataReader():
 
         Parameters
         ----------
-        datatype : :obj:`str` in {``'train'``,``'validation'``,``'test'``,``'full'``} [optional]
+        datatype : :obj:`str` in {``'train'``, ``'validation'``, ``'test'``, ``'full'``} [optional]
             String representing the type of data that has to be loaded, by default ``'train'``.
             When ``datatype`` is equal to ``'full'`` the entire data set is loaded into a sparse
             matrix.
@@ -441,7 +441,7 @@ class DataReader():
         return data_tr, data_te
 
     def load_data_as_dict(self, datatype='train', col="timestamp"):
-        """Load the data as a dictionary
+        r"""Load the data as a dictionary
 
         The loaded dictionary has users as keys and lists of items as values. An entry
         of the dictionary represents the list of rated items (sorted by ``col``) by the user,
@@ -449,7 +449,7 @@ class DataReader():
 
         Parameters
         ----------
-        datatype : :obj:`str` in {``'train'``,``'validation'``,``'test'``} [optional]
+        datatype : :obj:`str` in {``'train'``, ``'validation'``, ``'test'``} [optional]
             String representing the type of data that has to be loaded, by default ``'train'``.
         col : :obj:`str` of :obj:`None` [optional]
             The name of the column on which items are ordered, by default "timestamp". If

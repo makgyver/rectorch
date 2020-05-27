@@ -496,10 +496,10 @@ class SVAE_Sampler(Sampler):
         by default :obj:`None`. If :obj:`None` it is not considered in the batch creation, otherwise
         is used in the construction of the ground truth. Not that ``dict_data_te`` must be valued
         only in the case of validation/test, i.e., when ``is_training`` is ``False``.
-    pred_type : :obj:`str` in the set {``'next_k'``,``'next'``,``'postfix'``} [optional]
+    pred_type : :obj:`str` in the set {``'next_k'``, ``'next'``, ``'postfix'``} [optional]
         The variant of loss used by the model, by default ``'next_k'``. If ``'next'`` then
         only the next item must be predicted, if ``'next_k'`` the next *k* items are considered in
-        the ground truth, otherwise (=``'postfix'``) all the remaining items are taken as ground
+        the ground truth, otherwise (= ``'postfix'``) all the remaining items are taken as ground
         truth.
     k : :obj:`int` [optional]
         The number of item to predict in the ``'next_k'`` variant, by default 1. This parameter
