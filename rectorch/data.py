@@ -141,6 +141,7 @@ class DataProcessing:
         logger.info("Applying filtering.")
         imin, umin = int(self.cfg.i_min), int(self.cfg.u_min)
         raw_data, user_activity, _ = self._filter(raw_data, umin, imin)
+        print(raw_data.head())
 
         unique_uid = user_activity.index
         idx_perm = np.random.permutation(unique_uid.size)
@@ -168,13 +169,12 @@ class DataProcessing:
         val_data = val_data.loc[val_data[uhead].isin(vcnt[vcnt >= 2].index)]
         test_data = test_data.loc[test_data[uhead].isin(tcnt[tcnt >= 2].index)]
 
-        #TODO warning
-        #vcnt_after = val_data[[uhead]].groupby(uhead, as_index=False).size()
-        #tcnt_after = test_data[[uhead]].groupby(uhead, as_index=False).size()
-        #if vcnt_after < vcnt:
-        #    logger.warning("Skipped %d users in validation set.", vcnt - vcnt_after)
-        #if tcnt_after < tcnt:
-        #    logger.warning("Skipped %d users in test set.", tcnt - tcnt_after)
+        vcnt_diff = len(vcnt) - len(pd.unique(val_data[uhead]))
+        tcnt_diff = len(tcnt) - len(pd.unique(test_data[uhead]))
+        if vcnt_diff > 0:
+            logger.warning("Skipped %d users in validation set.", vcnt_diff)
+        if tcnt_diff > 0:
+            logger.warning("Skipped %d users in test set.", tcnt_diff)
 
         val_data_tr, val_data_te = self._split_train_test(val_data)
         test_data_tr, test_data_te = self._split_train_test(test_data)
@@ -474,7 +474,16 @@ class DataReader():
         elif datatype == 'test':
             path_tr = os.path.join(self.cfg.proc_path, 'test_tr.csv')
             path_te = os.path.join(self.cfg.proc_path, 'test_te.csv')
-        #TODO full
+        elif datatype == 'full':
+            data_list = [pd.read_csv(os.path.join(self.cfg.proc_path, 'train.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'validation_tr.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'validation_te.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'test_tr.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'test_te.csv'))]
+            combined = pd.concat(data_list)
+            return self._to_dict(combined, col)
+        else:
+            raise ValueError("Possible datatype values are 'train', 'validation', 'test', 'full'.")
 
         data_tr = pd.read_csv(path_tr)
         data_te = pd.read_csv(path_te)

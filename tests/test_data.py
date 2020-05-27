@@ -410,10 +410,15 @@ def test_DataReaderAsDict():
         d_train = reader.load_data_as_dict("train")
         d_vtr, d_vte = reader.load_data_as_dict("validation")
         d_ttr, d_tte = reader.load_data_as_dict("test")
+        d_full = reader.load_data_as_dict("full")
 
-        assert d_train[0] == [0,1], "d_train[0] should be [0,1] one"
-        assert d_train[1] == [2,1], "d_train[1] should be [2,1] one"
-        assert d_vtr[0] == [0], "d_vtr[1] should be [0] one"
-        assert d_vte[0] == [1], "d_vte[1] should be [1] one"
-        assert d_ttr[0] == [0], "d_ttr[1] should be [0] one"
-        assert d_tte[0] == [1], "d_tte[1] should be [1] one"
+        assert d_train[0] == [0, 1], "d_train[0] should be [0,1]"
+        assert d_train[1] == [2, 1], "d_train[1] should be [2,1]"
+        assert d_vtr[0] == [0], "d_vtr[1] should be [0]"
+        assert d_vte[0] == [1], "d_vte[1] should be [1]"
+        assert d_ttr[0] == [0], "d_ttr[1] should be [0]"
+        assert d_tte[0] == [1], "d_tte[1] should be [1]"
+        assert d_full[0] == [0, 1], "d_full[0] should be [0,1]"
+        assert d_full[1] == [2, 1], "d_full[1] should be [2,1]"
+        assert d_full[2] == [0, 1], "d_full[2] should be [0,1]"
+        assert d_full[3] == [0, 1], "d_full[3] should be [0,1]"
