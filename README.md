@@ -133,7 +133,7 @@ If you are using **rectorch** in your work, please consider citing this reposito
     year = {2020},
     month = {may},
     doi = {10.5281/zenodo.3841898},
-    version = {1.0},
+    version = {0.0.9-beta0},
     publisher = {Zenodo},
     url = {https://doi.org/10.5281/zenodo.153841898991}
 }
