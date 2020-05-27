@@ -32,13 +32,8 @@ The latest PyPi release contains the following methods.
 | CMultiVAE | Conditioned Variational Autoencoder                                        | [[2]](#2) |
 | CFGAN     | Collaborative Filtering with Generative Adversarial Networks               | [[3]](#3) |
 | EASE      | Embarrassingly shallow autoencoder for sparse data                         | [[4]](#4) |
-
-New methods are coming and are currently available in the *dev* branch (see [Dev branch](#dev-branch)).
-
-| Name      | Description                                                     | Ref.      |
-|-----------|-----------------------------------------------------------------|-----------|
-| ADMM_Slim | ADMM SLIM: Sparse Recommendations for Many Users                | [[5]](#5) |
-| SVAE      | Sequential Variational Autoencoders for Collaborative Filtering | [[6]](#6) |
+| ADMM_Slim | ADMM SLIM: Sparse Recommendations for Many Users                           | [[5]](#5) |
+| SVAE      | Sequential Variational Autoencoders for Collaborative Filtering            | [[6]](#6) |
 
 
 # Getting started
@@ -80,6 +75,10 @@ recommendation methods using **rectorch**.
 ## Documentation
 The full documentation of the **rectorch** APIs is available at https://makgyver.github.io/rectorch/.
 
+### Known issues
+The documentation has rendering issues on 4K display. To "fix" the problem zoom in ([Ctrl][+], [Cmd][+]) the page.
+Thanks for your patience, it will be fixed soon.
+
 ## Testing
 The easiest way to test **rectorch** is using [pytest](https://docs.pytest.org/en/latest/).
 
@@ -112,15 +111,16 @@ pip3 install -r requirements.txt
 # Work in progress
 
 The following features/changes will be soon released:
-* Inclusion of `ADMM_Slim` and `SVAE` in the official release;
 * Splitting of the `models` module in more sub-modules on the basis of the models' characteristics;
-* Introduction of a "global" setting/configuration for the framework.
+* Introduction of a "global" setting/configuration for the framework;
+* Adding optimizer's parameters in the configuration;
+* Including horizontal splitting and leave-one-out in `DataProcessing`.
 
 # Suggestions
 
 This framework is constantly growing and the implemented methods are chosen on the basis of the need
 of our research activity. We plan to include as many state-of-the-art methods as soon as we can, but
-if you have any specific requests feel free to contact us by opening an issue.
+if you have any specific request feel free to contact us by opening an issue.
 
 # Citing this repo
 
