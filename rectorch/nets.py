@@ -34,10 +34,10 @@ class AE_net(nn.Module):
     dec_dims : list or array_like
         Dimensions of the decoder network. ``dec_dims[0]`` indicates the dimension of the latent
         space, and ``dec_dims[-1]`` indicates the dimension of the input space.
-    enc_dims : list, array_like or ``None`` [optional]
+    enc_dims : list, array_like or :obj:`None` [optional]
         Dimensions of the encoder network. ``end_dims[0]`` indicates the dimension of the input
         space, and ``end_dims[-1]`` indicates the dimension of the latent space.
-        If evaluates to False, ``enc_dims = dec_dims[::-1]``. By default ``None``.
+        If evaluates to False, ``enc_dims = dec_dims[::-1]``. By default :obj:`None`.
 
     Attributes
     ----------
@@ -49,10 +49,10 @@ class AE_net(nn.Module):
     def __init__(self, dec_dims, enc_dims=None):
         super(AE_net, self).__init__()
         if enc_dims:
-            assert enc_dims[0] == dec_dims[-1], \
-                        "In and Out dimensions must equal to each other"
-            assert enc_dims[-1] == dec_dims[0], \
-                        "Latent dimension for encoder and decoder network mismatches."
+            #assert enc_dims[0] == dec_dims[-1], \
+            #            "In and Out dimensions must equal to each other"
+            #assert enc_dims[-1] == dec_dims[0], \
+            #            "Latent dimension for encoder and decoder network mismatches."
             self.enc_dims = enc_dims
         else:
             self.enc_dims = dec_dims[::-1]
@@ -138,7 +138,7 @@ class CDAE_net(AE_net):
 
         The forward operation of the CDAE encoder network computes:
 
-        :math:`h(W^\\top \\tilde{\mathbf{x}_i} + \mathbf{x}_u + \mathbf{b})`
+        :math:`h(W^\top \tilde{\mathbf{x}_i} + \mathbf{x}_u + \mathbf{b})`
 
         Parameters
         ----------
@@ -288,7 +288,7 @@ class VAE_net(AE_net):
         for i, layer in enumerate(self.enc_layers):
             h = layer(h)
             if i != len(self.enc_layers) - 1:
-                h = F.relu(h)
+                h = torch.tanh(h)
             else:
                 mu = h[:, :self.enc_dims[-1]]
                 logvar = h[:, self.enc_dims[-1]:]
@@ -311,7 +311,7 @@ class VAE_net(AE_net):
         for i, layer in enumerate(self.dec_layers):
             h = layer(h)
             if i != len(self.dec_layers) - 1:
-                h = torch.relu(h)
+                h = torch.tanh(h)
         return torch.sigmoid(h)
 
     def _reparameterize(self, mu, var):
@@ -324,7 +324,7 @@ class VAE_net(AE_net):
 
         Parameters
         ----------
-        x : :py:class:`torch.Tensor`
+        x : :class:`torch.Tensor`
             The input tensor
 
         Returns
@@ -529,12 +529,12 @@ class CFGAN_G_net(nn.Module):
 
         Parameters
         ----------
-        x : :py:class:`torch.Tensor`
+        x : :class:`torch.Tensor`
             The input tensor to be forwarded.
 
         Returns
         -------
-        :py:class:`torch.Tensor`
+        :class:`torch.Tensor`
             The output tensor results of the application of the generator network.
         """
         return self.model(z)
@@ -619,3 +619,75 @@ class CFGAN_D_net(nn.Module):
         if isinstance(layer, nn.Linear):
             xavier_init(layer.weight)
             normal_init(layer.bias)
+
+
+class SVAE_net(VAE_net):
+    """Sequential Variational Autoencoders for Collaborative Filtering.
+
+    **UNDOCUMENTED** [SVAE]_
+
+    Parameters
+    ----------
+    n_items : :obj:`int`
+        Number of items.
+    embed_size : :obj:`int`
+        Size of the embedding for the items.
+    rnn_size : :obj:`int`
+        Size of the recurrent layer if the GRU part of the network.
+    dec_dims : :obj:`list` or array_like of :obj:`int`
+        See :class:`AE_net`.
+    enc_dims : :obj:`list`, array_like of :obj:`int` or None [optional]
+        See :class:`AE_net`.
+
+    Attributes
+    ----------
+    See *Parameres* section.
+
+    References
+    ----------
+    .. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+       Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the
+       Twelfth ACM International Conference on Web Search and Data Mining (WSDM '19).
+       Association for Computing Machinery, New York, NY, USA, 600–608.
+       DOI: https://doi.org/10.1145/3289600.3291007
+    """
+    def __init__(self, n_items, embed_size, rnn_size, dec_dims, enc_dims):
+        super(SVAE_net, self).__init__(dec_dims, enc_dims)
+        self.enc_dims = enc_dims
+        self.dec_dims = dec_dims
+        self.n_items = n_items
+        self.embed_size = embed_size
+        self.rnn_size = rnn_size
+        self.item_embed = nn.Embedding(n_items, embed_size)
+
+        self.gru = nn.GRU(embed_size, rnn_size, batch_first=True, num_layers=1)
+        #temp_dims = self.enc_dims[:-1] + [self.enc_dims[-1] * 2]
+        #self.enc_layers = nn.ModuleList(
+        #    [nn.Linear(d_in, d_out) for d_in, d_out in zip(temp_dims[:-1], temp_dims[1:])])
+
+        #self.dec_layers = nn.ModuleList(
+        #    [nn.Linear(d_in, d_out) for d_in, d_out in zip(self.dec_dims[:-1], self.dec_dims[1:])])
+        self.init_weights()
+
+    def forward(self, x):
+        in_shape = x.shape
+        x = self.item_embed(x.view(-1)) # [seq_len x embed_size]
+        rnn_out, _ = self.gru(x.view(in_shape[0], in_shape[1], -1)) # [1 x seq_len x rnn_size]
+        rnn_out = rnn_out.view(in_shape[0] * in_shape[1], -1) # [seq_len x rnn_size]
+        mu, logvar = self.encode(rnn_out) # [seq_len x hidden_size]
+        z = self._reparameterize(mu, logvar) # [seq_len x latent_size]
+        dec_out = self.decode(z)  # [seq_len x total_items]
+        dec_out = dec_out.view(in_shape[0], in_shape[1], -1) # [1 x seq_len x total_items]
+        return dec_out, mu, logvar
+
+    def decode(self, z):
+        h = z
+        for _, layer in enumerate(self.dec_layers[:-1]):
+            h = torch.tanh(layer(h))
+        return self.dec_layers[-1](h)
+
+    def init_weights(self):
+        for layer in self.enc_layers:
+            nn.init.xavier_normal_(layer.weight)
+        for layer in self.dec_layers:
+            nn.init.xavier_normal_(layer.weight)

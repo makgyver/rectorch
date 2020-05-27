@@ -231,24 +231,24 @@
 <col style="width: 90%" />
 </colgroup>
 <tbody>
-<tr class="row-odd"><td><p><a class="reference internal" href="#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a>(file_path)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a>(file_path)</p></td>
 <td><p>Class containing the configurations for reading/writing the data set.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#configuration.ModelConfig" title="configuration.ModelConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configuration.ModelConfig</span></code></a>(file_path)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#rectorch.configuration.ModelConfig" title="rectorch.configuration.ModelConfig"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.configuration.ModelConfig</span></code></a>(file_path)</p></td>
 <td><p>Class containing the configurations for creating, training and testing the model.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#configuration.ConfigManager" title="configuration.ConfigManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">configuration.ConfigManager</span></code></a>(…)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.configuration.ConfigManager" title="rectorch.configuration.ConfigManager"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.configuration.ConfigManager</span></code></a>(…)</p></td>
 <td><p>Wrapper class for both the data and model configurations.</p></td>
 </tr>
 </tbody>
 </table>
-<span class="target" id="module-configuration"></span><p>The module contains useful classes to manage the configuration files.</p>
+<span class="target" id="module-rectorch.configuration"></span><p>The module contains useful classes to manage the configuration files.</p>
 <p>Configuration files are useful to correctly initialize the data processing and the
 recommendation engines. Configuration files must be <a class="reference external" href="https://www.json.org/json-en.html">.json</a>
 files with a specific format. Details about the file formats are described in <a class="reference internal" href="config-format.html#config-format"><span class="std std-ref">Configuration files format</span></a>.</p>
 <dl class="py class">
-<dt id="configuration.DataConfig">
-<em class="property">class </em><code class="sig-prename descclassname">configuration.</code><code class="sig-name descname">DataConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/configuration.html#DataConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#configuration.DataConfig" title="Permalink to this definition">¶</a></dt>
+<dt id="rectorch.configuration.DataConfig">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.configuration.</code><code class="sig-name descname">DataConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/configuration.html#DataConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.configuration.DataConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class containing the configurations for reading/writing the data set.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -265,8 +265,8 @@ files with a specific format. Details about the file formats are described in <a
 </dd></dl>
 
 <dl class="py class">
-<dt id="configuration.ModelConfig">
-<em class="property">class </em><code class="sig-prename descclassname">configuration.</code><code class="sig-name descname">ModelConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/configuration.html#ModelConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#configuration.ModelConfig" title="Permalink to this definition">¶</a></dt>
+<dt id="rectorch.configuration.ModelConfig">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.configuration.</code><code class="sig-name descname">ModelConfig</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/configuration.html#ModelConfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.configuration.ModelConfig" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class containing the configurations for creating, training and testing
 the model.</p>
 <dl class="field-list">
@@ -302,8 +302,8 @@ to the <code class="docutils literal notranslate"><span class="pre">train</span>
 </dd></dl>
 
 <dl class="py class">
-<dt id="configuration.ConfigManager">
-<em class="property">class </em><code class="sig-prename descclassname">configuration.</code><code class="sig-name descname">ConfigManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_config_path</span></em>, <em class="sig-param"><span class="n">model_config_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/configuration.html#ConfigManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#configuration.ConfigManager" title="Permalink to this definition">¶</a></dt>
+<dt id="rectorch.configuration.ConfigManager">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.configuration.</code><code class="sig-name descname">ConfigManager</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_config_path</span></em>, <em class="sig-param"><span class="n">model_config_path</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/configuration.html#ConfigManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.configuration.ConfigManager" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper class for both the data and model configurations.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -316,7 +316,7 @@ to the <code class="docutils literal notranslate"><span class="pre">train</span>
 </dd>
 </dl>
 <p class="rubric">Examples</p>
-<p>Initializing the <a class="reference internal" href="#configuration.ConfigManager" title="configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> singleton:</p>
+<p>Initializing the <a class="reference internal" href="#rectorch.configuration.ConfigManager" title="rectorch.configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> singleton:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rectorch.configuration</span> <span class="kn">import</span> <span class="n">ConfigManager</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ConfigManager</span><span class="p">(</span><span class="s2">&quot;path/to/the/dataconfig/file&quot;</span><span class="p">,</span> <span class="s2">&quot;path/to/the/modelconfig/file&quot;</span><span class="p">)</span>
 <span class="go">ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))</span>
@@ -325,29 +325,29 @@ to the <code class="docutils literal notranslate"><span class="pre">train</span>
 <dl class="field-list">
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl>
-<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code></a></span></li><ul><p>Object containing the configurations for reading/writing the data set.</p>
+<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code></a></span></li><ul><p>Object containing the configurations for reading/writing the data set.</p>
 </ul>
-<li><strong>model_config</strong><span class="classifier"><a class="reference internal" href="#configuration.ModelConfig" title="configuration.ModelConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelConfig</span></code></a></span></li><ul><p>Object containing the configurations for creating, training and testing
+<li><strong>model_config</strong><span class="classifier"><a class="reference internal" href="#rectorch.configuration.ModelConfig" title="rectorch.configuration.ModelConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">ModelConfig</span></code></a></span></li><ul><p>Object containing the configurations for creating, training and testing
 the model.</p>
 </ul>
 </dl>
 </dd>
 </dl>
 <dl class="py method">
-<dt id="configuration.ConfigManager.get">
-<em class="property">classmethod </em><code class="sig-name descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/configuration.html#ConfigManager.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#configuration.ConfigManager.get" title="Permalink to this definition">¶</a></dt>
+<dt id="rectorch.configuration.ConfigManager.get">
+<em class="property">classmethod </em><code class="sig-name descname">get</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/configuration.html#ConfigManager.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.configuration.ConfigManager.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the singleton ConfigManager instance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><dl class="simple">
-<li><a class="reference internal" href="#configuration.ConfigManager" title="configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a></li><ul><p>The singletion <a class="reference internal" href="#configuration.ConfigManager" title="configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> instance.</p>
+<li><a class="reference internal" href="#rectorch.configuration.ConfigManager" title="rectorch.configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a></li><ul><p>The singletion <a class="reference internal" href="#rectorch.configuration.ConfigManager" title="rectorch.configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> instance.</p>
 </ul>
 </dl>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><dl class="simple">
-<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></li><ul><p>Raised when the singleton <a class="reference internal" href="#configuration.ConfigManager" title="configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> object has not been
-previously created. To initialize the <a class="reference internal" href="#configuration.ConfigManager" title="configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> simply call
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></li><ul><p>Raised when the singleton <a class="reference internal" href="#rectorch.configuration.ConfigManager" title="rectorch.configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> object has not been
+previously created. To initialize the <a class="reference internal" href="#rectorch.configuration.ConfigManager" title="rectorch.configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> simply call
 its constructor. Please, see <strong>Examples</strong>.</p>
 </ul>
 </dl>
@@ -359,7 +359,7 @@ its constructor. Please, see <strong>Examples</strong>.</p>
 <span class="go">Exception: Singleton object not instantiated!</span>
 </pre></div>
 </div>
-<p>The <a class="reference internal" href="#configuration.ConfigManager" title="configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> singleton object must be initialized to get it.</p>
+<p>The <a class="reference internal" href="#rectorch.configuration.ConfigManager" title="rectorch.configuration.ConfigManager"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigManager</span></code></a> singleton object must be initialized to get it.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ConfigManager</span><span class="p">(</span><span class="s2">&quot;path/to/the/dataconfig/file&quot;</span><span class="p">,</span> <span class="s2">&quot;path/to/the/modelconfig/file&quot;</span><span class="p">)</span>
 <span class="go">ConfigManager(data_config=DataConfig(...), model_config=ModelConfig(...))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">man</span> <span class="o">=</span> <span class="n">ConfigManager</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>

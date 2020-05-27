@@ -2,11 +2,11 @@
     "data_path": "datasets/ml-1m/ratings.dat",
     "proc_path": "datasets/ml-1m/preproc_rp",
     "seed": 98765,
-    "threshold": 0,
+    "threshold": 3.5,
     "separator": "::",
-    "u_min": 0,
+    "u_min": 5,
     "i_min": 0,
-    "heldout": 500,
+    "heldout": 750,
     "test_prop": 0.2,
     "topn": 0
 }

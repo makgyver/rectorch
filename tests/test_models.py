@@ -10,10 +10,11 @@ from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.models import RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
-    CMultiVAE, EASE, CFGAN
+    CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE
 from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
-    CFGAN_G_net
-from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler
+    CFGAN_G_net, SVAE_net
+from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler,\
+    SVAE_Sampler
 
 def test_RecSysModel():
     """Test the RecSysModel class
@@ -81,7 +82,7 @@ def test_AETrainer():
     model.predict(x, True)
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
-    model.train(sampler, num_epochs=10, verbose=4)
+    model.train(sampler, num_epochs=20, verbose=4)
     torch.manual_seed(12345)
     out_2 = model.predict(x, False)[0]
 
@@ -101,10 +102,6 @@ def test_AETrainer():
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
     sampler = DataSampler(train, train, batch_size=1, shuffle=False)
-
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
 
 def test_VAE():
     """Test the VAE class
@@ -159,12 +156,6 @@ def test_VAE():
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
-    sampler = DataSampler(train, train, batch_size=1, shuffle=False)
-
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
-
 def test_MultiDAE():
     """Test the MultiDAE class
     """
@@ -218,11 +209,6 @@ def test_MultiDAE():
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
-    sampler = DataSampler(train, train, batch_size=1, shuffle=False)
-
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
 
 def test_MultiVAE():
     """Test the MultiVAE class
@@ -279,14 +265,14 @@ def test_MultiVAE():
 
     sampler = DataSampler(train, train, batch_size=1, shuffle=False)
 
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should the be a numpy array"
-    assert len(res) == 2, "results should be of length 2"
-
     tmp2 = tempfile.NamedTemporaryFile()
     net = MultiVAE_net([1, 2], [2, 1], .1)
     model = MultiVAE(net, 1., 5)
-    model.train(sampler, sampler, "ndcg@1", 10, tmp2.name)
+    model.train(sampler,
+                valid_data=sampler,
+                valid_metric="ndcg@1",
+                num_epochs=10,
+                best_path=tmp2.name)
 
     net2 = MultiVAE_net([1, 2], [2, 1], .1)
     model2 = MultiVAE(net2, 1., 5)
@@ -352,14 +338,14 @@ def test_CMultiVAE():
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
-    res = model.validate(sampler, "ndcg@1")
-    assert isinstance(res, np.ndarray), "results should be a numpy array"
-    assert len(res) == 6, "results should be of length 6"
-
     tmp2 = tempfile.NamedTemporaryFile()
     net = CMultiVAE_net(2, [1, 3], [3, 1], .1)
     model = CMultiVAE(net, 1., 5)
-    model.train(sampler, sampler, "ndcg@1", 10, tmp2.name)
+    model.train(sampler,
+                valid_data=sampler,
+                valid_metric="ndcg@1",
+                num_epochs=10,
+                best_path=tmp2.name)
 
     net2 = CMultiVAE_net(2, [1, 3], [3, 1], .1)
     model2 = CMultiVAE(net2, 1., 5)
@@ -394,6 +380,8 @@ def test_EASE():
     assert repr(ease) == str(ease)
 
 def test_CFGAN():
+    """Test of the CFGAN class
+    """
     n_items = 3
     gen = CFGAN_G_net([n_items, 5, n_items])
     disc = CFGAN_D_net([n_items*2, 5, 1])
@@ -436,7 +424,9 @@ def test_CFGAN():
     val_te = csr_matrix((values, (rows, cols)), shape=(1, 3))
 
     vsampler = DataSampler(val_tr, val_te, batch_size=1, shuffle=False)
-    cfgan.train(sampler, vsampler, "ndcg@1", 10, 1, 1, 4)
+    cfgan.train(sampler, vsampler, "ndcg@1", num_epochs=10, g_steps=1, d_steps=1, verbose=4)
+    pred = cfgan.predict(torch.FloatTensor([[0, 1, 1], [1, 1, 0]]))[0]
+    assert pred.shape == (2, 3)
 
     tmp = tempfile.NamedTemporaryFile()
     cfgan.save_model(tmp.name, 10)
@@ -449,3 +439,108 @@ def test_CFGAN():
     assert cfgan2.generator != gen
     assert cfgan2.discriminator != disc
     assert str(cfgan) == repr(cfgan)
+
+def test_ADMM_Slim():
+    """Test the ADMM_Slim class
+    """
+    slim = ADMM_Slim(lambda1=5.,
+                     lambda2=1e3,
+                     rho=1e5,
+                     nn_constr=True,
+                     l1_penalty=True,
+                     item_bias=False)
+    assert hasattr(slim, "lambda1"), "admm_slim should have the attribute lambda1"
+    assert hasattr(slim, "lambda2"), "admm_slim should have the attribute lambda2"
+    assert hasattr(slim, "rho"), "admm_slim should have the attribute rho"
+    assert hasattr(slim, "l1_penalty"), "admm_slim should have the attribute l1_penalty"
+    assert hasattr(slim, "nn_constr"), "admm_slim should have the attribute nn_constr"
+    assert hasattr(slim, "item_bias"), "admm_slim should have the attribute item_bias"
+    assert hasattr(slim, "model"), "sladmm_slimim should have the attribute model"
+    assert slim.lambda1 == 5, "lambda1 should be 5"
+    assert slim.lambda2 == 1e3, "lambda2 should be 1000"
+    assert slim.rho == 1e5, "rho should be 10000"
+    assert slim.nn_constr, "nn_constr should be True"
+    assert slim.l1_penalty, "l1_penalty should be True"
+    assert not slim.item_bias, "item_bias should be False"
+    assert slim.model is None, "before the training the inner model should be None"
+    assert repr(slim) == str(slim)
+
+    X = csr_matrix(np.random.randint(2, size=(10, 5)), dtype="float64")
+    slim.train(X)
+    assert isinstance(slim.model, np.ndarray), "after training the model should be a numpy matrix"
+    pr = slim.predict([2, 4, 5], X[[2, 4, 5]])[0]
+    assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
+    tmp = tempfile.NamedTemporaryFile()
+    slim.save_model(tmp.name)
+    slim2 = ADMM_Slim()
+    slim2.load_model(tmp.name + ".npy")
+    assert np.all(slim2.model == slim.model), "the two model should be the same"
+    os.remove(tmp.name + ".npy")
+    assert repr(slim) == str(slim)
+
+    slim2 = ADMM_Slim(nn_constr=False, l1_penalty=True, item_bias=False)
+    slim2.train(X)
+    slim2 = ADMM_Slim(nn_constr=True, l1_penalty=False, item_bias=False)
+    slim2.train(X)
+    slim2 = ADMM_Slim(nn_constr=False, l1_penalty=False, item_bias=False)
+    slim2.train(X)
+    slim2 = ADMM_Slim(nn_constr=False, l1_penalty=False, item_bias=True)
+    slim2.train(X)
+
+
+def test_SVAE():
+    """Test the SVAE class
+    """
+    total_items = 7
+    net = SVAE_net(n_items=total_items,
+                   embed_size=2,
+                   rnn_size=2,
+                   dec_dims=[2, total_items],
+                   enc_dims=[2, 2])
+    model = SVAE(net)
+
+    assert hasattr(model, "network"), "model should have the attribute newtork"
+    assert hasattr(model, "device"), "model should have the attribute device"
+    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
+    assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
+    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
+    assert model.network == net, "the network should be the same as the parameter"
+    assert model.device == torch.device("cpu"), "the device should be cpu"
+    assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
+    assert str(model) == repr(model), "repr and str should have the same effect"
+
+    tr = {0:[0, 1, 2, 3, 4, 5, 6], 1:[6, 5, 4, 3, 2, 1, 0], 2:[2, 1, 6, 0, 3]}
+    sampler = SVAE_Sampler(num_items=total_items,
+                           dict_data_tr=tr,
+                           dict_data_te=None,
+                           pred_type="next",
+                           k=2,
+                           shuffle=False,
+                           is_training=True)
+
+    x = torch.LongTensor([[1, 2, 5]])
+    model.predict(x, True)
+    torch.manual_seed(12345)
+    out_1 = model.predict(x, False)[0]
+    model.train(sampler, num_epochs=10, verbose=4)
+    torch.manual_seed(12345)
+    out_2 = model.predict(x, False)[0]
+
+    assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
+
+    tmp = tempfile.NamedTemporaryFile()
+    model.save_model(tmp.name, 1)
+
+    net = SVAE_net(n_items=total_items,
+                   embed_size=2,
+                   rnn_size=2,
+                   dec_dims=[2, total_items],
+                   enc_dims=[2, 2])
+    model2 = SVAE(net)
+    model2.load_model(tmp.name)
+
+    torch.manual_seed(12345)
+    out_1 = model.predict(x, False)[0]
+    torch.manual_seed(12345)
+    out_2 = model2.predict(x, False)[0]
+    assert torch.all(out_1.eq(out_2)), "the outputs should be the same"

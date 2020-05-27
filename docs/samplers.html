@@ -238,16 +238,19 @@
 <td><p>This is a standard sampler that returns batches without any particular constraint.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.samplers.ConditionedDataSampler" title="rectorch.samplers.ConditionedDataSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.samplers.ConditionedDataSampler</span></code></a>(…)</p></td>
-<td><p>Data sampler with conditioned filtering used by the <code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code> model.</p></td>
+<td><p>Data sampler with conditioned filtering used by the <a class="reference internal" href="models.html#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.CMultiVAE</span></code></a> model.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#rectorch.samplers.BalancedConditionedDataSampler" title="rectorch.samplers.BalancedConditionedDataSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.samplers.BalancedConditionedDataSampler</span></code></a>(…)</p></td>
 <td><p>Sub-sampled version of the <code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionedDataSampler</span></code>.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.samplers.EmptyConditionedDataSampler" title="rectorch.samplers.EmptyConditionedDataSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.samplers.EmptyConditionedDataSampler</span></code></a>(…)</p></td>
-<td><p>Data sampler that returns unconditioned batches used by the <code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code> model.</p></td>
+<td><p>Data sampler that returns unconditioned batches used by the <a class="reference internal" href="models.html#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.CMultiVAE</span></code></a> model.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#rectorch.samplers.CFGAN_TrainingSampler" title="rectorch.samplers.CFGAN_TrainingSampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.samplers.CFGAN_TrainingSampler</span></code></a>(…)</p></td>
 <td><p>Sampler used for training the generator and discriminator of the CFGAN model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.samplers.SVAE_Sampler" title="rectorch.samplers.SVAE_Sampler"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.samplers.SVAE_Sampler</span></code></a>(num_items, …)</p></td>
+<td><p>Sampler used for training SVAE.</p></td>
 </tr>
 </tbody>
 </table>
@@ -257,7 +260,7 @@ network-based models.</p>
 however, is not really efficient because it outputs a single example at a time. The idea behind the
 samplers defined in this module is to treat the data set at batches highly improving the efficiency.
 Each new sampler must extend the base class <a class="reference internal" href="#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">Sampler</span></code></a> implementing all the abstract special
-methods, in particular <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__len__()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__iter__()</span></code>.</p>
+methods, in particular <code class="xref py py-meth docutils literal notranslate"><span class="pre">samplers.Sampler.__len__()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">samplers.Sampler.__iter__()</span></code>.</p>
 <dl class="py class">
 <dt id="rectorch.samplers.Sampler">
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.samplers.</code><code class="sig-name descname">Sampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/samplers.html#Sampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.samplers.Sampler" title="Permalink to this definition">¶</a></dt>
@@ -267,7 +270,8 @@ methods, in particular <code class="xref py py-meth docutils literal notranslate
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>Each new sampler must extend this base class implementing all the abstract
-special methods, in particular <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__len__()</span></code> and <code class="xref py py-meth docutils literal notranslate"><span class="pre">Sampler.__iter__()</span></code>.</p>
+special methods, in particular <code class="xref py py-meth docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler.__len__()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler.__iter__()</span></code>.</p>
 </div>
 </dd></dl>
 
@@ -280,18 +284,19 @@ special methods, in particular <code class="xref py py-meth docutils literal not
 is set to <code class="docutils literal notranslate"><span class="pre">False</span></code> then the sampler returns batches with the same order as in the original
 dataset. When <code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> is defined then each returned batch is a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> with
 the training part of the batch and its test/validation counterpart. Otherwise, if
-<code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code> then the second element of the yielded tuple will be <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sparse_data_te</span></code> is <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> then the second element of the yielded tuple will be
+<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
 <li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
 </ul>
 <li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
-<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </ul>
 <li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
 </ul>
-<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the data set must bu randomly shuffled before creating the batches, by default
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the data set must by randomly shuffled before creating the batches, by default
 <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
 </ul>
 </dl>
@@ -315,9 +320,10 @@ the training part of the batch and its test/validation counterpart. Otherwise, i
 <dt id="rectorch.samplers.ConditionedDataSampler">
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.samplers.</code><code class="sig-name descname">ConditionedDataSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iid2cids</span></em>, <em class="sig-param"><span class="n">n_cond</span></em>, <em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">sparse_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/samplers.html#ConditionedDataSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.samplers.ConditionedDataSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></p>
-<p>Data sampler with conditioned filtering used by the <code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code> model.</p>
-<p>This data sampler is useful when training the <code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code> model described in
-<a class="reference internal" href="#rb5051dc3816f-cvae" id="id1">[CVAE]</a>. During the training, each user must be conditioned over all the possible conditions
+<p>Data sampler with conditioned filtering used by the
+<a class="reference internal" href="models.html#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.CMultiVAE</span></code></a> model.</p>
+<p>This data sampler is useful when training the <a class="reference internal" href="models.html#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.CMultiVAE</span></code></a> model described
+in <a class="reference internal" href="#rb5051dc3816f-cvae" id="id1">[CVAE]</a>. During the training, each user must be conditioned over all the possible conditions
 (actually the ones that the user knows) so the training set must be modified accordingly.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -331,7 +337,7 @@ are referred to with the inner id, and conditions with an integer in the range 0
 <li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
 </ul>
 <li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
-<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </ul>
 <li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
 </ul>
@@ -374,8 +380,8 @@ Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.samplers.</code><code class="sig-name descname">BalancedConditionedDataSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iid2cids</span></em>, <em class="sig-param"><span class="n">n_cond</span></em>, <em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">sparse_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">subsample</span><span class="o">=</span><span class="default_value">0.2</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/samplers.html#BalancedConditionedDataSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.samplers.BalancedConditionedDataSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#rectorch.samplers.ConditionedDataSampler" title="rectorch.samplers.ConditionedDataSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.ConditionedDataSampler</span></code></a></p>
 <p>Sub-sampled version of the <a class="reference internal" href="#rectorch.samplers.ConditionedDataSampler" title="rectorch.samplers.ConditionedDataSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConditionedDataSampler</span></code></a>.</p>
-<p>This data sampler is useful when training the <code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code> model described in
-<a class="reference internal" href="#rfaa94976f530-cvae" id="id3">[CVAE]</a>. During the training, each user must be conditioned over all the possible conditions
+<p>This data sampler is useful when training the <a class="reference internal" href="models.html#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.CMultiVAE</span></code></a> model described
+in <a class="reference internal" href="#rfaa94976f530-cvae" id="id3">[CVAE]</a>. During the training, each user must be conditioned over all the possible conditions
 (actually the ones that the user knows) so the training set must be modified accordingly.
 This sampler avoids to create all possible user-condition pairs via sub-samplig. The extent
 of this sub-sampling is defined by the parameter <code class="docutils literal notranslate"><span class="pre">subsample</span></code>. The prefix ‘Balanced’ is
@@ -393,7 +399,7 @@ are referred to with the inner id, and conditions with an integer in the range 0
 <li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
 </ul>
 <li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
-<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </ul>
 <li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
 </ul>
@@ -439,10 +445,11 @@ Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
 <dt id="rectorch.samplers.EmptyConditionedDataSampler">
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.samplers.</code><code class="sig-name descname">EmptyConditionedDataSampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">cond_size</span></em>, <em class="sig-param"><span class="n">sparse_data_tr</span></em>, <em class="sig-param"><span class="n">sparse_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">batch_size</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/samplers.html#EmptyConditionedDataSampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.samplers.EmptyConditionedDataSampler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></p>
-<p>Data sampler that returns unconditioned batches used by the <code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code> model.</p>
-<p>This data sampler is useful when training the <code class="xref py py-class docutils literal notranslate"><span class="pre">models.CMultiVAE</span></code> model described in
-<a class="reference internal" href="#r58c29521f4cf-cvae" id="id5">[CVAE]</a>. This sampler is very similar to <a class="reference internal" href="#rectorch.samplers.DataSampler" title="rectorch.samplers.DataSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataSampler</span></code></a> with the expection that the
-yielded batches have appended a zero matrix of the size <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> <span class="math notranslate nohighlight">\(\\times\)</span>
+<p>Data sampler that returns unconditioned batches used by the
+<a class="reference internal" href="models.html#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.CMultiVAE</span></code></a> model.</p>
+<p>This data sampler is useful when training the <a class="reference internal" href="models.html#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.CMultiVAE</span></code></a> model described
+in <a class="reference internal" href="#r58c29521f4cf-cvae" id="id5">[CVAE]</a>. This sampler is very similar to <a class="reference internal" href="#rectorch.samplers.DataSampler" title="rectorch.samplers.DataSampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataSampler</span></code></a> with the expection that the
+yielded batches have appended a zero matrix of the size <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> <span class="math notranslate nohighlight">\(\times\)</span>
 <code class="docutils literal notranslate"><span class="pre">n_cond</span></code>.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
@@ -452,7 +459,7 @@ yielded batches have appended a zero matrix of the size <code class="docutils li
 <li><strong>sparse_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training sparse user-item rating matrix.</p>
 </ul>
 <li><strong>sparse_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> [optional]</span></li><ul><p>The test sparse user-item rating matrix. The shape of this matrix must be the same as
-<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sparse_data_tr</span></code>. By default <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </ul>
 <li><strong>batch_size</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The size of the batches, by default 1.</p>
 </ul>
@@ -526,6 +533,56 @@ DOI: <a class="reference external" href="https://doi.org/10.1145/3269206.3271743
 <a class="reference external" href="https://docs.python.org/3/library/functions.html#next" title="(in Python v3.8)"><code class="xref py py-func docutils literal notranslate"><span class="pre">next()</span></code></a> function, the <code class="docutils literal notranslate"><span class="pre">idxlist</span></code> contains, in the first <code class="docutils literal notranslate"><span class="pre">batch_size</span></code> positions,
 the indexes of the examples that are contained in the current batch.</p>
 </ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.samplers.SVAE_Sampler">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.samplers.</code><code class="sig-name descname">SVAE_Sampler</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">num_items</span></em>, <em class="sig-param"><span class="n">dict_data_tr</span></em>, <em class="sig-param"><span class="n">dict_data_te</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pred_type</span><span class="o">=</span><span class="default_value">'next_k'</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">shuffle</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">is_training</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/samplers.html#SVAE_Sampler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.samplers.SVAE_Sampler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></p>
+<p>Sampler used for training SVAE.</p>
+<p>This sampler yields pairs (<code class="docutils literal notranslate"><span class="pre">x</span></code>,``y``) where <code class="docutils literal notranslate"><span class="pre">x</span></code> is the tensor of indexes of the
+positive items, and <code class="docutils literal notranslate"><span class="pre">y</span></code> the target tensor with the (multi-hot) ground truth items.
+This sampler is characterized by batches of size one (a single user at a time).
+Given a user (batch) <em>u</em> the returned ground truth tensor is a 3D tensor of dimension
+<span class="math notranslate nohighlight">\(1 \times |\mathcal{I}_u|-1 \times m\)</span>, where <span class="math notranslate nohighlight">\(|\mathcal{I}_u|\)</span> is the set
+of rated items by <em>u</em>, and <em>m</em> the number of items. This tensor represents the ground truth
+for <em>u</em> over time, and each slice of the tensor is a different timestamp across all the possible
+time unit for this specific user.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>num_items</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Number of items.</p>
+</ul>
+<li><strong>dict_data_tr</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key - <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>, value - <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>Dictionary containing the training set. Keys are the users, while the values are the lists
+of items rated by the users in a specific (often cronological) odrer.</p>
+</ul>
+<li><strong>dict_data_te</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key - <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>, value - <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>) or <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> [optional]</span></li><ul><p>Dictionary containing the test part of the data set. Keys are the users, while the values
+are the lists of items rated by the users in a specific (often cronological) odrer,
+by default <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>. If <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> it is not considered in the batch creation, otherwise
+is used in the construction of the ground truth. Not that <code class="docutils literal notranslate"><span class="pre">dict_data_te</span></code> must be valued
+only in the case of validation/test, i.e., when <code class="docutils literal notranslate"><span class="pre">is_training</span></code> is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</ul>
+<li><strong>pred_type</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> in the set {<code class="docutils literal notranslate"><span class="pre">'next_k'</span></code>, <code class="docutils literal notranslate"><span class="pre">'next'</span></code>, <code class="docutils literal notranslate"><span class="pre">'postfix'</span></code>} [optional]</span></li><ul><p>The variant of loss used by the model, by default <code class="docutils literal notranslate"><span class="pre">'next_k'</span></code>. If <code class="docutils literal notranslate"><span class="pre">'next'</span></code> then
+only the next item must be predicted, if <code class="docutils literal notranslate"><span class="pre">'next_k'</span></code> the next <em>k</em> items are considered in
+the ground truth, otherwise (= <code class="docutils literal notranslate"><span class="pre">'postfix'</span></code>) all the remaining items are taken as ground
+truth.</p>
+</ul>
+<li><strong>k</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The number of item to predict in the <code class="docutils literal notranslate"><span class="pre">'next_k'</span></code> variant, by default 1. This parameter
+is not considered when <code class="docutils literal notranslate"><span class="pre">pred_type</span></code> is not <code class="docutils literal notranslate"><span class="pre">'next_k'</span></code>.</p>
+</ul>
+<li><strong>shuffle</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the data set must by randomly shuffled before creating the batches, by default
+<code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</ul>
+<li><strong>is_training</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether the sampler is used during training, by default <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Attributes</dt>
+<dd class="field-even"><dl class="simple">
+<li><strong>See *Parameters* section.</strong></li><ul></ul>
 </dl>
 </dd>
 </dl>

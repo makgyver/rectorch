@@ -243,7 +243,7 @@
 </tbody>
 </table>
 <span class="target" id="module-rectorch.data"></span><p>The <code class="docutils literal notranslate"><span class="pre">data</span></code> module manages the reading, writing and loading of the data sets.</p>
-<p>The supported data set format is standard <a class="reference external" href="https://it.wikipedia.org/wiki/Comma-separated_values">csv </a>.
+<p>The supported data set format is standard <a class="reference external" href="https://it.wikipedia.org/wiki/Comma-separated_values">csv</a>.
 For more information about the expected data set fromat please visit <a class="reference internal" href="csv-format.html#csv-format"><span class="std std-ref">Data sets CSV format</span></a>.
 The data processing and loading configurations are managed through the configuration files
 as described in <a class="reference internal" href="config-format.html#config-format"><span class="std std-ref">Configuration files format</span></a>.
@@ -260,22 +260,22 @@ The data pre-processing phase is highly inspired by <a class="reference external
 <p class="admonition-title">See also</p>
 <p>Research paper: <a class="reference external" href="https://arxiv.org/pdf/1802.05814.pdf">Variational Autoencoders for Collaborative Filtering</a></p>
 <p>Module:
-<a class="reference internal" href="configuration.html#module-configuration" title="configuration"><code class="xref py py-mod docutils literal notranslate"><span class="pre">configuration</span></code></a></p>
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">configuration</span></code></p>
 </div>
 <dl class="py class">
 <dt id="rectorch.data.DataProcessing">
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.data.</code><code class="sig-name descname">DataProcessing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data_config</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DataProcessing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DataProcessing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class that manages the pre-processing of raw data sets.</p>
-<p>Data sets are expected of being <cite>csv &lt;https://it.wikipedia.org/wiki/Comma-separated_values&gt;</cite>
+<p>Data sets are expected of being <a class="reference external" href="https://it.wikipedia.org/wiki/Comma-separated_values">csv</a>
 files where each row represents a rating. More details about the allowed format are described
 in <a class="reference internal" href="csv-format.html#csv-format"><span class="std std-ref">Data sets CSV format</span></a>. The pre-processing is performed following the parameters settings defined
 in the data configuration file (see <a class="reference internal" href="config-format.html#config-format"><span class="std std-ref">Configuration files format</span></a> for more information).</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
+<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="configuration.html#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
 When <code class="docutils literal notranslate"><span class="pre">type(data_config)</span> <span class="pre">==</span> <span class="pre">str</span></code> is expected to be the path to the data configuration file.
-In that case a <a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> object is contextually created.</p>
+In that case a <code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code> object is contextually created.</p>
 </ul>
 </dl>
 </dd>
@@ -287,7 +287,8 @@ In that case a <a class="reference internal" href="configuration.html#configurat
 </dd>
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl>
-<li><strong>cfg</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a></span></li><ul><p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code> object containing the pre-processing configurations.</p>
+<li><strong>cfg</strong><span class="classifier"><a class="reference internal" href="configuration.html#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a></span></li><ul><p>The <a class="reference internal" href="configuration.html#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a> object containing the pre-processing
+configurations.</p>
 </ul>
 <li><strong>i2id</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key - <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>, value - <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>)</span></li><ul><p>Dictionary which maps the raw item id, i.e., as in the raw <cite>csv</cite> file, to an internal id
 which is an integer between 0 and the total number of items -1.</p>
@@ -371,7 +372,7 @@ to load to the training, validation and test set using <a class="reference inter
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
+<li><strong>data_config</strong><span class="classifier"><a class="reference internal" href="configuration.html#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
 When <code class="docutils literal notranslate"><span class="pre">type(data_config)</span> <span class="pre">==</span> <span class="pre">str</span></code> is expected to be the path to the data configuration file.
 In that case a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code> object is contextually created.</p>
 </ul>
@@ -379,13 +380,14 @@ In that case a <code class="xref py py-class docutils literal notranslate"><span
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><dl class="simple">
-<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code></a></li><ul><p>Raised when <code class="docutils literal notranslate"><span class="pre">data_config</span></code> is neither a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> nor a <a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a>.</p>
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#TypeError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">TypeError</span></code></a></li><ul><p>Raised when <code class="docutils literal notranslate"><span class="pre">data_config</span></code> is neither a <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> nor a
+<a class="reference internal" href="configuration.html#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a>.</p>
 </ul>
 </dl>
 </dd>
 <dt class="field-odd">Attributes</dt>
 <dd class="field-odd"><dl>
-<li><strong>cfg</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a></span></li><ul><p>Object containing the loading configurations.</p>
+<li><strong>cfg</strong><span class="classifier"><a class="reference internal" href="configuration.html#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a></span></li><ul><p>Object containing the loading configurations.</p>
 </ul>
 <li><strong>n_items</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>The number of items in the data set.</p>
 </ul>
@@ -401,8 +403,7 @@ In that case a <code class="xref py py-class docutils literal notranslate"><span
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>datatype</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> in the set {<code class="docutils literal notranslate"><span class="pre">'train'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validation'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, <code class="docutils literal notranslate"><span class="pre">'full'</span></code>},</span></li><ul><p>[optional]
-String representing the type of data that has to be loaded, by default <code class="docutils literal notranslate"><span class="pre">'train'</span></code>.
+<li><strong>datatype</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> in {<code class="docutils literal notranslate"><span class="pre">'train'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validation'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>, <code class="docutils literal notranslate"><span class="pre">'full'</span></code>} [optional]</span></li><ul><p>String representing the type of data that has to be loaded, by default <code class="docutils literal notranslate"><span class="pre">'train'</span></code>.
 When <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is equal to <code class="docutils literal notranslate"><span class="pre">'full'</span></code> the entire data set is loaded into a sparse
 matrix.</p>
 </ul>
@@ -413,7 +414,7 @@ matrix.</p>
 <li><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></li><ul><p>The data set or part of it. When <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is <code class="docutils literal notranslate"><span class="pre">'full'</span></code> or <code class="docutils literal notranslate"><span class="pre">'train'</span></code> a single
 sparse matrix is returned representing the full data set or the training set,
 respectively. While, if <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is <code class="docutils literal notranslate"><span class="pre">'validation'</span></code> or <code class="docutils literal notranslate"><span class="pre">'test'</span></code> a pair of
-sparse matrices is returned. The first matrix is the training part (i.e., for each
+sparse matrices are returned. The first matrix is the training part (i.e., for each
 user its training set of items), and the second matrix is the test part (i.e., for each
 user its test set of items).</p>
 </ul>
@@ -422,6 +423,36 @@ user its test set of items).</p>
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><dl class="simple">
 <li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#ValueError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></a></li><ul><p>Raised when <code class="docutils literal notranslate"><span class="pre">datatype</span></code> does not match any of the valid strings.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.data.DataReader.load_data_as_dict">
+<code class="sig-name descname">load_data_as_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">datatype</span><span class="o">=</span><span class="default_value">'train'</span></em>, <em class="sig-param"><span class="n">col</span><span class="o">=</span><span class="default_value">'timestamp'</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/data.html#DataReader.load_data_as_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.data.DataReader.load_data_as_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the data as a dictionary</p>
+<p>The loaded dictionary has users as keys and lists of items as values. An entry
+of the dictionary represents the list of rated items (sorted by <code class="docutils literal notranslate"><span class="pre">col</span></code>) by the user,
+i.e., the key.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>datatype</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> in {<code class="docutils literal notranslate"><span class="pre">'train'</span></code>, <code class="docutils literal notranslate"><span class="pre">'validation'</span></code>, <code class="docutils literal notranslate"><span class="pre">'test'</span></code>} [optional]</span></li><ul><p>String representing the type of data that has to be loaded, by default <code class="docutils literal notranslate"><span class="pre">'train'</span></code>.</p>
+</ul>
+<li><strong>col</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> [optional]</span></li><ul><p>The name of the column on which items are ordered, by default “timestamp”. If
+<a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a> no ordered is applied.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> (key - <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>, value - <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a>) or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a></li><ul><p>When <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is <code class="docutils literal notranslate"><span class="pre">'train'</span></code> a single dictionary is returned representing the
+training set. While, if <code class="docutils literal notranslate"><span class="pre">datatype</span></code> is <code class="docutils literal notranslate"><span class="pre">'validation'</span></code> or <code class="docutils literal notranslate"><span class="pre">'test'</span></code> a pair of
+dictionaries returned. The first dictionary is the training part (i.e., for each
+user its training set of items), and the second dictionart is the test part (i.e., for
+each user its test set of items).</p>
 </ul>
 </dl>
 </dd>
@@ -442,7 +473,7 @@ set. The test set will be only the test part of the test set.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>config_file</strong><span class="classifier"><a class="reference internal" href="configuration.html#configuration.DataConfig" title="configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
+<li><strong>config_file</strong><span class="classifier"><a class="reference internal" href="configuration.html#rectorch.configuration.DataConfig" title="rectorch.configuration.DataConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.configuration.DataConfig</span></code></a> or <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a>:</span></li><ul><p>Represents the data pre-processing configurations.
 When <code class="docutils literal notranslate"><span class="pre">type(config_file)</span> <span class="pre">==</span> <span class="pre">str</span></code> is expected to be the path to the data configuration file.
 In that case a <code class="xref py py-class docutils literal notranslate"><span class="pre">DataConfig</span></code> object is contextually created.</p>
 </ul>
@@ -453,7 +484,7 @@ In that case a <code class="xref py py-class docutils literal notranslate"><span
 <li><strong>n_items</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Number of items in the data set.</p>
 </ul>
 <li><strong>training_set</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The first matrix is the sparse training set matrix, while the  second element of the tuple
-is :obj:<code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+is <a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">None</span></code></a>.</p>
 </ul>
 <li><strong>validation_set</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a> of <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The first matrix is the training part of the validation set (i.e., for each user its
 training set of items), and the second matrix is the test part of the validation set (i.e.,

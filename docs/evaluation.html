@@ -229,14 +229,14 @@
 <code class="sig-prename descclassname">rectorch.evaluation.</code><code class="sig-name descname">evaluate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">model</span></em>, <em class="sig-param"><span class="n">test_loader</span></em>, <em class="sig-param"><span class="n">metric_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/evaluation.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.evaluation.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Evaluate the given method.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">model</span></code> evaluation is performed with all the provided metrics in <code class="docutils literal notranslate"><span class="pre">metric_list</span></code>.
-The test set is loaded through the provided <code class="xref py py-class docutils literal notranslate"><span class="pre">sampler.Sampler</span></code>
+The test set is loaded through the provided <a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a>
 (i.e.,  <code class="docutils literal notranslate"><span class="pre">test_loader</span></code>).</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>model</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.RecSysModel</span></code></span></li><ul><p>The model to evaluate.</p>
+<li><strong>model</strong><span class="classifier"><a class="reference internal" href="models.html#rectorch.models.RecSysModel" title="rectorch.models.RecSysModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.RecSysModel</span></code></a></span></li><ul><p>The model to evaluate.</p>
 </ul>
-<li><strong>test_loader</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">sampler.Sampler</span></code></span></li><ul><p>The test set loader.</p>
+<li><strong>test_loader</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></span></li><ul><p>The test set loader.</p>
 </ul>
 <li><strong>metric_list</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> of <a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></span></li><ul><p>The list of metrics to compute. Metrics are indicated by strings formed in the
 following way:</p>
@@ -244,8 +244,8 @@ following way:</p>
 <p>where <code class="docutils literal notranslate"><span class="pre">matric_name</span></code> must correspond to one of the
 method names without the suffix ‘_at_k’, and <code class="docutils literal notranslate"><span class="pre">k</span></code> is the corresponding parameter of
 the method and it must be an integer value. For example: <code class="docutils literal notranslate"><span class="pre">ndcg&#64;10</span></code> is a valid metric
-name and it corresponds to the method <code class="xref py py-func docutils literal notranslate"><span class="pre">ndcg_at_k</span></code>
-with <code class="docutils literal notranslate"><span class="pre">k=10</span></code>.</p>
+name and it corresponds to the method
+<a class="reference internal" href="metrics.html#rectorch.metrics.Metrics.ndcg_at_k" title="rectorch.metrics.Metrics.ndcg_at_k"><code class="xref py py-func docutils literal notranslate"><span class="pre">ndcg_at_k</span></code></a> with <code class="docutils literal notranslate"><span class="pre">k=10</span></code>.</p>
 </ul>
 </dl>
 </dd>

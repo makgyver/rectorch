@@ -228,13 +228,13 @@
 
 <span class="sd">Currently the implemented training algorithms are:</span>
 
-<span class="sd">* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior\</span>
-<span class="sd">    (in the paper *Mult-DAE*) [VAE]_;</span>
-<span class="sd">* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior\</span>
-<span class="sd">    (in the paper *Mult-VAE*) [VAE]_;</span>
+<span class="sd">* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-DAE*) [VAE]_;</span>
+<span class="sd">* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-VAE*) [VAE]_;</span>
 <span class="sd">* :class:`CMultiVAE`: Conditioned Variational Autoencoder (in the paper *C-VAE*) [CVAE]_;</span>
 <span class="sd">* :class:`CFGAN`: Collaborative Filtering with Generative Adversarial Networks [CFGAN]_;</span>
 <span class="sd">* :class:`EASE`: Embarrassingly shallow autoencoder for sparse data [EASE]_.</span>
+<span class="sd">* :class:`ADMM_Slim`: ADMM SLIM: Sparse Recommendations for Many Users [ADMMS]_.</span>
+<span class="sd">* :class:`SVAE`: Sequential Variational Autoencoders for Collaborative Filtering [SVAE]_.</span>
 
 <span class="sd">It is also implemented a generic Variational autoencoder trainer (:class:`VAE`) based on the classic</span>
 <span class="sd">loss function *cross-entropy* based reconstruction loss, plus the KL loss.</span>
@@ -242,8 +242,8 @@
 <span class="sd">See Also</span>
 <span class="sd">--------</span>
 <span class="sd">Modules:</span>
-<span class="sd">:mod:`nets &lt;nets&gt;`</span>
-<span class="sd">:mod:`samplers &lt;samplers&gt;`</span>
+<span class="sd">:mod:`nets &lt;rectorch.nets&gt;`</span>
+<span class="sd">:mod:`samplers &lt;rectorch.samplers&gt;`</span>
 
 <span class="sd">References</span>
 <span class="sd">----------</span>
@@ -263,6 +263,14 @@
 <span class="sd">.. [EASE] Harald Steck. 2019. Embarrassingly Shallow Autoencoders for Sparse Data.</span>
 <span class="sd">   In The World Wide Web Conference (WWW ’19). Association for Computing Machinery,</span>
 <span class="sd">   New York, NY, USA, 3251–3257. DOI: https://doi.org/10.1145/3308558.3313710</span>
+<span class="sd">.. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.</span>
+<span class="sd">   ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International</span>
+<span class="sd">   Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,</span>
+<span class="sd">   New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774</span>
+<span class="sd">.. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.</span>
+<span class="sd">   Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the Twelfth</span>
+<span class="sd">   ACM International Conference on Web Search and Data Mining (WSDM ’19). Association for Computing</span>
+<span class="sd">   Machinery, New York, NY, USA, 600–608. DOI: https://doi.org/10.1145/3289600.3291007</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -271,10 +279,10 @@
 <span class="kn">import</span> <span class="nn">torch</span>
 <span class="kn">import</span> <span class="nn">torch.nn.functional</span> <span class="k">as</span> <span class="nn">F</span>
 <span class="kn">import</span> <span class="nn">torch.optim</span> <span class="k">as</span> <span class="nn">optim</span>
-<span class="kn">from</span> <span class="nn">.metrics</span> <span class="kn">import</span> <span class="n">Metrics</span>
+<span class="kn">from</span> <span class="nn">.evaluation</span> <span class="kn">import</span> <span class="n">ValidFunc</span><span class="p">,</span> <span class="n">evaluate</span>
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;RecSysModel&#39;</span><span class="p">,</span> <span class="s1">&#39;TorchNNTrainer&#39;</span><span class="p">,</span> <span class="s1">&#39;AETrainer&#39;</span><span class="p">,</span> <span class="s1">&#39;VAE&#39;</span><span class="p">,</span> <span class="s1">&#39;MultiVAE&#39;</span><span class="p">,</span> <span class="s1">&#39;MultiDAE&#39;</span><span class="p">,</span>\
-    <span class="s1">&#39;CMultiVAE&#39;</span><span class="p">,</span> <span class="s1">&#39;EASE&#39;</span><span class="p">,</span> <span class="s1">&#39;CFGAN&#39;</span><span class="p">]</span>
+    <span class="s1">&#39;CMultiVAE&#39;</span><span class="p">,</span> <span class="s1">&#39;EASE&#39;</span><span class="p">,</span> <span class="s1">&#39;CFGAN&#39;</span><span class="p">,</span> <span class="s1">&#39;SVAE&#39;</span><span class="p">]</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -290,10 +298,10 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        train_data : :class:`samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\</span>
+<span class="sd">        train_data : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\</span>
 <span class="sd">            :class:`torch.Tensor`</span>
 <span class="sd">            This object represents the training data. If the training procedure is based on</span>
-<span class="sd">            mini-batches, then ``train_data`` should be a :class:`samplers.Sampler`.</span>
+<span class="sd">            mini-batches, then ``train_data`` should be a :class:`rectorch.samplers.Sampler`.</span>
 <span class="sd">        **kargs : :obj:`dict` [optional]</span>
 <span class="sd">            These are the potential keyword parameters useful to the model for performing the</span>
 <span class="sd">            training.</span>
@@ -313,7 +321,8 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        x : :class:`samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or :class:`torch.Tensor`</span>
+<span class="sd">        x : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\</span>
+<span class="sd">            :class:`torch.Tensor`</span>
 <span class="sd">            The input for which the prediction has to be computed.</span>
 <span class="sd">        *args : :obj:`list` [optional]</span>
 <span class="sd">            These are the potential additional parameters useful to the model for performing the</span>
@@ -436,6 +445,7 @@
               <span class="n">train_data</span><span class="p">,</span>
               <span class="n">valid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">valid_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">valid_func</span><span class="o">=</span><span class="n">ValidFunc</span><span class="p">(</span><span class="n">evaluate</span><span class="p">),</span>
               <span class="n">num_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
               <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
               <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -443,15 +453,18 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        train_data : :class:`samplers.Sampler`</span>
+<span class="sd">        train_data : :class:`rectorch.samplers.Sampler`</span>
 <span class="sd">            The sampler object that load the training set in mini-batches.</span>
-<span class="sd">        valid_data : :class:`samplers.Sampler` [optional]</span>
+<span class="sd">        valid_data : :class:`rectorch.samplers.Sampler` [optional]</span>
 <span class="sd">            The sampler object that load the validation set in mini-batches, by default ``None``.</span>
 <span class="sd">            If the model does not have any validation procedure set this parameter to ``None``.</span>
 <span class="sd">        valid_metric : :obj:`str` [optional]</span>
 <span class="sd">            The metric used during the validation to select the best model, by default ``None``.</span>
 <span class="sd">            If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.</span>
 <span class="sd">            To see the valid strings for the metric please see the module :mod:`metrics`.</span>
+<span class="sd">        valid_func : :class:`evaluation.ValidFunc` [optional]</span>
+<span class="sd">            The validation function, by default a standard validation procedure, i.e.,</span>
+<span class="sd">            :func:`evaluation.evaluate`.</span>
 <span class="sd">        num_epochs : :obj:`int` [optional]</span>
 <span class="sd">            Number of training epochs, by default 100.</span>
 <span class="sd">        verbose : :obj:`int` [optional]</span>
@@ -473,7 +486,7 @@
 <span class="sd">        ----------</span>
 <span class="sd">        epoch : :obj:`int`</span>
 <span class="sd">            Epoch&#39;s number.</span>
-<span class="sd">        train_data : :class:`samplers.Sampler`</span>
+<span class="sd">        train_data : :class:`rectorch.samplers.Sampler`</span>
 <span class="sd">            The sampler object that load the training set in mini-batches.</span>
 <span class="sd">        *args : :obj:`list` [optional]</span>
 <span class="sd">            These are the potential additional parameters useful to the model for performing the</span>
@@ -506,24 +519,6 @@
 <span class="sd">        **kwargs : :obj:`dict` [optional]</span>
 <span class="sd">            These are the potential keyword parameters useful to the model for performing the</span>
 <span class="sd">            training on the batch.</span>
-
-<span class="sd">        Raises</span>
-<span class="sd">        ------</span>
-<span class="sd">        :class:`NotImplementedError`</span>
-<span class="sd">            Raised when not implemeneted in the sub-class.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="TorchNNTrainer.validate"><a class="viewcode-back" href="../../models.html#rectorch.models.TorchNNTrainer.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Validation procedure for the current model.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        valid_data : :class:`samplers.Sampler`</span>
-<span class="sd">            The sampler object that load the validation set in mini-batches.</span>
-<span class="sd">        metric : :obj:`str`</span>
-<span class="sd">            The metric used during the validation to select the best model.</span>
-<span class="sd">            To see the valid strings for the metric please see the module :mod:`metrics`.</span>
 
 <span class="sd">        Raises</span>
 <span class="sd">        ------</span>
@@ -605,6 +600,7 @@
               <span class="n">train_data</span><span class="p">,</span>
               <span class="n">valid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">valid_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">valid_func</span><span class="o">=</span><span class="n">ValidFunc</span><span class="p">(</span><span class="n">evaluate</span><span class="p">),</span>
               <span class="n">num_epochs</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
               <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -613,10 +609,10 @@
                 <span class="k">if</span> <span class="n">valid_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">assert</span> <span class="n">valid_metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> \
                                 <span class="s2">&quot;In case of validation &#39;valid_metric&#39; must be provided&quot;</span>
-                    <span class="n">valid_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">valid_data</span><span class="p">,</span> <span class="n">valid_metric</span><span class="p">)</span>
+                    <span class="n">valid_res</span> <span class="o">=</span> <span class="n">valid_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">valid_metric</span><span class="p">)</span>
                     <span class="n">mu_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">valid_res</span><span class="p">)</span>
                     <span class="n">std_err_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">valid_res</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_res</span><span class="p">))</span>
-                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;| epoch </span><span class="si">%d</span><span class="s1"> | </span><span class="si">%s</span><span class="s1"> </span><span class="si">%.3f</span><span class="s1"> (</span><span class="si">%.4f</span><span class="s1">) |&#39;</span><span class="p">,</span> 
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;| epoch </span><span class="si">%d</span><span class="s1"> | </span><span class="si">%s</span><span class="s1"> </span><span class="si">%.3f</span><span class="s1"> (</span><span class="si">%.4f</span><span class="s1">) |&#39;</span><span class="p">,</span>
                                 <span class="n">epoch</span><span class="p">,</span> <span class="n">valid_metric</span><span class="p">,</span> <span class="n">mu_val</span><span class="p">,</span> <span class="n">std_err_val</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">KeyboardInterrupt</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Handled KeyboardInterrupt: exiting from training early&#39;</span><span class="p">)</span></div>
@@ -695,31 +691,6 @@
             <span class="k">if</span> <span class="n">remove_train</span><span class="p">:</span>
                 <span class="n">recon_x</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x_tensor</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span><span class="o">.</span><span class="n">t</span><span class="p">())]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">recon_x</span><span class="p">,</span> <span class="p">)</span></div>
-
-<div class="viewcode-block" id="AETrainer.validate"><a class="viewcode-back" href="../../models.html#rectorch.models.AETrainer.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">test_loader</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Validation procedure for the current model.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        valid_data : :class:`samplers.Sampler`</span>
-<span class="sd">            The sampler object that load the validation set in mini-batches.</span>
-<span class="sd">        metric : :obj:`str`</span>
-<span class="sd">            The metric used during the validation to select the best model.</span>
-<span class="sd">            To see the valid strings for the metric please see the module :mod:`metrics`.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :obj:`numpy.array`</span>
-<span class="sd">            Numpy array containing the value of the metric for each user.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="p">(</span><span class="n">data_tr</span><span class="p">,</span> <span class="n">heldout</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">test_loader</span><span class="p">):</span>
-            <span class="n">data_tensor</span> <span class="o">=</span> <span class="n">data_tr</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">data_tr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">recon_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">data_tensor</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-            <span class="n">heldout</span> <span class="o">=</span> <span class="n">heldout</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">heldout</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Metrics</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">recon_batch</span><span class="p">,</span> <span class="n">heldout</span><span class="p">,</span> <span class="p">[</span><span class="n">metric</span><span class="p">])[</span><span class="n">metric</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AETrainer.save_model"><a class="viewcode-back" href="../../models.html#rectorch.models.AETrainer.save_model">[docs]</a>    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">,</span> <span class="n">cur_epoch</span><span class="p">):</span>
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Save the model to file.</span>
@@ -1087,6 +1058,7 @@
               <span class="n">train_data</span><span class="p">,</span>
               <span class="n">valid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">valid_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">valid_func</span><span class="o">=</span><span class="n">ValidFunc</span><span class="p">(</span><span class="n">evaluate</span><span class="p">),</span>
               <span class="n">num_epochs</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span>
               <span class="n">best_path</span><span class="o">=</span><span class="s2">&quot;chkpt_best.pth&quot;</span><span class="p">,</span>
               <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -1100,15 +1072,18 @@
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        train_data : :class:`samplers.Sampler`</span>
+<span class="sd">        train_data : :class:`rectorch.samplers.Sampler`</span>
 <span class="sd">            The sampler object that load the training set in mini-batches.</span>
-<span class="sd">        valid_data : :class:`samplers.Sampler` [optional]</span>
+<span class="sd">        valid_data : :class:`rectorch.samplers.Sampler` [optional]</span>
 <span class="sd">            The sampler object that load the validation set in mini-batches, by default ``None``.</span>
 <span class="sd">            If the model does not have any validation procedure set this parameter to ``None``.</span>
 <span class="sd">        valid_metric : :obj:`str` [optional]</span>
 <span class="sd">            The metric used during the validation to select the best model, by default ``None``.</span>
 <span class="sd">            If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.</span>
 <span class="sd">            To see the valid strings for the metric please see the module :mod:`metrics`.</span>
+<span class="sd">        valid_func : :class:`evaluation.ValidFunc` [optional]</span>
+<span class="sd">            The validation function, by default a standard validation procedure, i.e.,</span>
+<span class="sd">            :func:`evaluation.evaluate`.</span>
 <span class="sd">        num_epochs : :obj:`int` [optional]</span>
 <span class="sd">            Number of training epochs, by default 100.</span>
 <span class="sd">        best_path : :obj:`str` [optional]</span>
@@ -1126,7 +1101,7 @@
                 <span class="k">if</span> <span class="n">valid_data</span><span class="p">:</span>
                     <span class="k">assert</span> <span class="n">valid_metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> \
                                 <span class="s2">&quot;In case of validation &#39;valid_metric&#39; must be provided&quot;</span>
-                    <span class="n">valid_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">valid_data</span><span class="p">,</span> <span class="n">valid_metric</span><span class="p">)</span>
+                    <span class="n">valid_res</span> <span class="o">=</span> <span class="n">valid_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">valid_metric</span><span class="p">)</span>
                     <span class="n">mu_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">valid_res</span><span class="p">)</span>
                     <span class="n">std_err_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">valid_res</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_res</span><span class="p">))</span>
                     <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;| epoch </span><span class="si">%d</span><span class="s1"> | </span><span class="si">%s</span><span class="s1"> </span><span class="si">%.3f</span><span class="s1"> (</span><span class="si">%.4f</span><span class="s1">) |&#39;</span><span class="p">,</span>
@@ -1249,8 +1224,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="EASE.train"><a class="viewcode-back" href="../../models.html#rectorch.models.EASE.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Training of the EASE model.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_data : :class:`scipy.sparse.csr_matrix`</span>
+<span class="sd">            The training data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;EASE - start tarining (lam=</span><span class="si">%.4f</span><span class="s2">)&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lam</span><span class="p">)</span>
-        <span class="n">X</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">todense</span><span class="p">()</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
         <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;EASE - linear kernel computed&quot;</span><span class="p">)</span>
         <span class="n">diag_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -1424,6 +1406,7 @@
               <span class="n">train_data</span><span class="p">,</span>
               <span class="n">valid_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">valid_metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+              <span class="n">valid_func</span><span class="o">=</span><span class="n">ValidFunc</span><span class="p">(</span><span class="n">evaluate</span><span class="p">),</span>
               <span class="n">num_epochs</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
               <span class="n">g_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
               <span class="n">d_steps</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
@@ -1444,6 +1427,9 @@
 <span class="sd">            The metric used during the validation to select the best model, by default ``None``.</span>
 <span class="sd">            If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.</span>
 <span class="sd">            To see the valid strings for the metric please see the module :mod:`metrics`.</span>
+<span class="sd">        valid_func : :class:`evaluation.ValidFunc` [optional]</span>
+<span class="sd">            The validation function, by default a standard validation procedure, i.e.,</span>
+<span class="sd">            :func:`evaluation.evaluate`.</span>
 <span class="sd">        num_epochs : :obj:`int` [optional]</span>
 <span class="sd">            Number of training epochs, by default 1000.</span>
 <span class="sd">        g_steps : :obj:`int` [optional]</span>
@@ -1481,7 +1467,7 @@
                     <span class="k">if</span> <span class="n">valid_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="k">assert</span> <span class="n">valid_metric</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> \
                                     <span class="s2">&quot;In case of validation &#39;valid_metric&#39; must be provided&quot;</span>
-                        <span class="n">valid_res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">valid_data</span><span class="p">,</span> <span class="n">valid_metric</span><span class="p">)</span>
+                        <span class="n">valid_res</span> <span class="o">=</span> <span class="n">valid_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">valid_metric</span><span class="p">)</span>
                         <span class="n">mu_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">valid_res</span><span class="p">)</span>
                         <span class="n">std_err_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">valid_res</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">valid_res</span><span class="p">))</span>
                         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;| epoch </span><span class="si">%d</span><span class="s1"> | </span><span class="si">%s</span><span class="s1"> </span><span class="si">%.3f</span><span class="s1"> (</span><span class="si">%.4f</span><span class="s1">) |&#39;</span><span class="p">,</span>
@@ -1586,31 +1572,6 @@
                 <span class="n">pred</span><span class="p">[</span><span class="nb">tuple</span><span class="p">(</span><span class="n">x_tensor</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span><span class="o">.</span><span class="n">t</span><span class="p">())]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="p">)</span></div>
 
-<div class="viewcode-block" id="CFGAN.validate"><a class="viewcode-back" href="../../models.html#rectorch.models.CFGAN.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">valid_data</span><span class="p">,</span> <span class="n">metric</span><span class="p">):</span>
-        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Validation procedure for the current CFGAN model.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        valid_data : :class:`samplers.Sampler`</span>
-<span class="sd">            The sampler object that load the validation set in mini-batches.</span>
-<span class="sd">        metric : :obj:`str`</span>
-<span class="sd">            The metric used during the validation to select the best model.</span>
-<span class="sd">            To see the valid strings for the metric please see the module :mod:`metrics`.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        :obj:`numpy.array`</span>
-<span class="sd">            Numpy array containing the value of the metric for each user.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="p">(</span><span class="n">data_tensor</span><span class="p">,</span> <span class="n">heldout</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">valid_data</span><span class="p">):</span>
-            <span class="n">data_tensor</span> <span class="o">=</span> <span class="n">data_tensor</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">data_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-            <span class="n">recon_batch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">data_tensor</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-            <span class="n">heldout</span> <span class="o">=</span> <span class="n">heldout</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">heldout</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">cpu</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Metrics</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">recon_batch</span><span class="p">,</span> <span class="n">heldout</span><span class="p">,</span> <span class="p">[</span><span class="n">metric</span><span class="p">])[</span><span class="n">metric</span><span class="p">])</span>
-
-        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">results</span><span class="p">)</span></div>
-
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;(</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1643,6 +1604,255 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">opt_d</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">checkpoint</span><span class="p">[</span><span class="s1">&#39;optimizer_d&#39;</span><span class="p">])</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model checkpoint loaded!&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">checkpoint</span></div></div>
+
+
+<div class="viewcode-block" id="ADMM_Slim"><a class="viewcode-back" href="../../models.html#rectorch.models.ADMM_Slim">[docs]</a><span class="k">class</span> <span class="nc">ADMM_Slim</span><span class="p">(</span><span class="n">RecSysModel</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;ADMM SLIM: Sparse Recommendations for Many Users.</span>
+
+<span class="sd">    ADMM SLIM [ADMMS]_ is a model similar to SLIM [SLIM]_ in which the objective function is solved</span>
+<span class="sd">    using Alternating Directions Method of Multipliers (ADMM). In particular,</span>
+<span class="sd">    given the rating matrix :math:`\mathbf{X} \in \mathbb{R}^{n \times m}` with *n* users and *m*</span>
+<span class="sd">    items, ADMM SLIM aims at solving the following optimization problem:</span>
+
+<span class="sd">    :math:`\min_{B,C,\Gamma} \frac{1}{2}\|X-X B\|_{F}^{2}+\frac{\lambda_{2}}{2} \cdot\|B\|_{F}^{2}+\</span>
+<span class="sd">    \lambda_{1} \cdot\|C\|_{1} +\</span>
+<span class="sd">    \langle\Gamma, B-C\rangle_{F}+\frac{\rho}{2} \cdot\|B-C\|_{F}^{2}`</span>
+
+<span class="sd">    with :math:`\textrm{diag}(B)=0`, :math:`\Gamma \in \mathbb{R}^{m \times m}`, and the entry of</span>
+<span class="sd">    *C* are all greater or equal than 0.</span>
+
+<span class="sd">    The prediction for a user-item pair *(u,j)* is then computed by</span>
+<span class="sd">    :math:`S_{u j}=\mathbf{X}_{u,:} \cdot \mathbf{B}_{:, j}`.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    lambda1 : :obj:`float` [optional]</span>
+<span class="sd">        Elastic net regularization hyper-parameters :math:`\lambda_1`, by default 5.</span>
+<span class="sd">    lambda2 : :obj:`float` [optional]</span>
+<span class="sd">        Elastic net regularization hyper-parameters :math:`\lambda_2`, by default 1e3.</span>
+<span class="sd">    rho : :obj:`float` [optional]</span>
+<span class="sd">        The penalty hyper-parameter :math:`\rho&gt;0` that applies to :math:`\|B-C\|^2_F`,</span>
+<span class="sd">        by default 1e5.</span>
+<span class="sd">    nn_constr : :obj:`bool` [optional]</span>
+<span class="sd">        Whether to keep the non-negativity constraint, by default ``True``.</span>
+<span class="sd">    l1_penalty : :obj:`bool` [optional]</span>
+<span class="sd">        Whether to keep the L1 penalty, by default ``True``. When ``l1_penalty = False`` then</span>
+<span class="sd">        is like to set :math:`\lambda_1 = 0`.</span>
+<span class="sd">    item_bias : :obj:`bool` [optional]</span>
+<span class="sd">        Whether to model the item biases, by default ``False``. When ``item_bias = True`` then</span>
+<span class="sd">        the scoring function for the user-item pair *(u,i)* becomes:</span>
+<span class="sd">        :math:`S_{ui}=(\mathbf{X}_{u,:} - \mathbf{b})\cdot \mathbf{B}_{:, i} + \mathbf{b}_i`.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See the parameters&#39; section.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.</span>
+<span class="sd">       ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International</span>
+<span class="sd">       Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,</span>
+<span class="sd">       New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774</span>
+<span class="sd">    .. [SLIM] X. Ning and G. Karypis. 2011. SLIM: Sparse Linear Methods for Top-N Recommender</span>
+<span class="sd">       Systems. In Proceedings of the IEEE 11th International Conference on Data Mining,</span>
+<span class="sd">       Vancouver,BC, 2011, pp. 497-506. DOI: https://doi.org/10.1109/ICDM.2011.134.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">lambda1</span><span class="o">=</span><span class="mf">5.</span><span class="p">,</span>
+                 <span class="n">lambda2</span><span class="o">=</span><span class="mf">1e3</span><span class="p">,</span>
+                 <span class="n">rho</span><span class="o">=</span><span class="mf">1e5</span><span class="p">,</span>
+                 <span class="n">nn_constr</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">l1_penalty</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">item_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">=</span> <span class="n">lambda1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span> <span class="o">=</span> <span class="n">lambda2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">rho</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn_constr</span> <span class="o">=</span> <span class="n">nn_constr</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1_penalty</span> <span class="o">=</span> <span class="n">l1_penalty</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_bias</span> <span class="o">=</span> <span class="n">item_bias</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+<div class="viewcode-block" id="ADMM_Slim.train"><a class="viewcode-back" href="../../models.html#rectorch.models.ADMM_Slim.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">train_data</span><span class="p">,</span> <span class="n">num_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Training of ADMM SLIM.</span>
+
+<span class="sd">        The training procedure of ADMM SLIM highly depends on the setting of the</span>
+<span class="sd">        hyper-parameters. By setting them in specific ways it is possible to define different</span>
+<span class="sd">        variants of the algorithm. That are:</span>
+
+<span class="sd">        1. (Vanilla) ADMM SLIM - :math:`\lambda_1, \lambda_2, \rho&gt;0`, :attr:`item_bias` =</span>
+<span class="sd">        ``False``, and both :attr:`nn_constr` and :attr:`l1_penalty` set to ``True``;</span>
+
+<span class="sd">        2. ADMM SLIM w/o non-negativity constraint over C - :attr:`nn_constr` = ``False`` and</span>
+<span class="sd">        :attr:`l1_penalty` set to ``True``;</span>
+
+<span class="sd">        3. ADMM SLIM w/o the L1 penalty - :attr:`l1_penalty` = ``False`` and</span>
+<span class="sd">        :attr:`nn_constr` set to ``True``;</span>
+
+<span class="sd">        4. ADMM SLIM w/o L1 penalty and non-negativity constraint: :attr:`nn_constr` =</span>
+<span class="sd">        :attr:`l1_penalty` = ``False``.</span>
+
+<span class="sd">        All these variants can also be combined with the inclusion of the item biases by setting</span>
+<span class="sd">        :attr:`item_bias` to ``True``.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        train_data : :class:`scipy.sparse.csr_matrix`</span>
+<span class="sd">            The training data.</span>
+<span class="sd">        num_iter : :obj:`int` [optional]</span>
+<span class="sd">            Maximum number of training iterations, by default 50. This argument has no effect</span>
+<span class="sd">            if both :attr:`nn_constr` and :attr:`l1_penalty` are set to ``False``.</span>
+<span class="sd">        verbose : :obj:`int` [optional]</span>
+<span class="sd">            The level of verbosity of the logging, by default 1. The level can have any integer</span>
+<span class="sd">            value greater than 0. However, after reaching a maximum (that depends on the size of</span>
+<span class="sd">            the training set) verbosity higher values will not have any effect.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">_soft_threshold</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="n">a</span> <span class="o">-</span> <span class="n">k</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="o">-</span><span class="n">a</span> <span class="o">-</span> <span class="n">k</span><span class="p">)</span>
+
+        <span class="n">X</span> <span class="o">=</span> <span class="n">train_data</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_bias</span><span class="p">:</span>
+            <span class="n">b</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">X</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">b</span><span class="p">)</span>
+
+        <span class="n">XtX</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ADMM_Slim - linear kernel computed&quot;</span><span class="p">)</span>
+        <span class="n">diag_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">XtX</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">XtX</span><span class="p">[</span><span class="n">diag_indices</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span>
+        <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">XtX</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;ADMM_Slim - inverse of XtX computed&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn_constr</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1_penalty</span><span class="p">:</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">-</span> <span class="n">P</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">P</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">XtX</span><span class="p">[</span><span class="n">diag_indices</span><span class="p">]</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span>
+            <span class="n">B_aux</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">XtX</span><span class="p">)</span>
+            <span class="n">Gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">XtX</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">XtX</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+            <span class="n">log_delay</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_iter</span> <span class="o">//</span> <span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">verbose</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_iter</span><span class="p">):</span>
+                <span class="n">B_tilde</span> <span class="o">=</span> <span class="n">B_aux</span> <span class="o">+</span> <span class="n">P</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="n">C</span> <span class="o">-</span> <span class="n">Gamma</span><span class="p">)</span>
+                <span class="n">gamma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">B_tilde</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+                <span class="n">B</span> <span class="o">=</span> <span class="n">B_tilde</span> <span class="o">-</span> <span class="n">P</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">gamma</span><span class="p">)</span>
+                <span class="n">C</span> <span class="o">=</span> <span class="n">_soft_threshold</span><span class="p">(</span><span class="n">B</span> <span class="o">+</span> <span class="n">Gamma</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn_constr</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1_penalty</span><span class="p">:</span>
+                    <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">C</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn_constr</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1_penalty</span><span class="p">:</span>
+                    <span class="n">C</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">B</span><span class="p">,</span> <span class="mf">0.</span><span class="p">)</span>
+                <span class="n">Gamma</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">*</span> <span class="p">(</span><span class="n">B</span> <span class="o">-</span> <span class="n">C</span><span class="p">)</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">log_delay</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;| iteration </span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2"> |&quot;</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_iter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">C</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_bias</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">+=</span> <span class="n">b</span></div>
+
+<div class="viewcode-block" id="ADMM_Slim.predict"><a class="viewcode-back" href="../../models.html#rectorch.models.ADMM_Slim.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids_te_users</span><span class="p">,</span> <span class="n">test_tr</span><span class="p">,</span> <span class="n">remove_train</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">[</span><span class="n">ids_te_users</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="k">if</span> <span class="n">remove_train</span><span class="p">:</span>
+            <span class="n">pred</span><span class="p">[</span><span class="n">test_tr</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">pred</span><span class="p">,</span> <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ADMM_Slim.save_model"><a class="viewcode-back" href="../../models.html#rectorch.models.ADMM_Slim.save_model">[docs]</a>    <span class="k">def</span> <span class="nf">save_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;lambda1&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span><span class="p">,</span>
+                 <span class="s1">&#39;lambda2&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span><span class="p">,</span>
+                 <span class="s1">&#39;rho&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">rho</span><span class="p">,</span>
+                 <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span>
+                 <span class="s1">&#39;nn_constr&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">nn_constr</span><span class="p">,</span>
+                 <span class="s1">&#39;l1_penalty&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">l1_penalty</span><span class="p">,</span>
+                 <span class="s1">&#39;item_bias&#39;</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">item_bias</span>
+                <span class="p">}</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Saving ADMM_Slim model to </span><span class="si">%s</span><span class="s2">...&quot;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model saved!&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ADMM_Slim.load_model"><a class="viewcode-back" href="../../models.html#rectorch.models.ADMM_Slim.load_model">[docs]</a>    <span class="k">def</span> <span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">filepath</span><span class="p">),</span> <span class="s2">&quot;The model file </span><span class="si">%s</span><span class="s2"> does not exist.&quot;</span> <span class="o">%</span><span class="n">filepath</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Loading ADMM_Slim model from </span><span class="si">%s</span><span class="s2">...&quot;</span><span class="p">,</span> <span class="n">filepath</span><span class="p">)</span>
+        <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="n">allow_pickle</span><span class="o">=</span><span class="kc">True</span><span class="p">)[()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;lambda1&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;lambda2&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rho</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;rho&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nn_constr</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;nn_constr&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l1_penalty</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;l1_penalty&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">item_bias</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;item_bias&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">]</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Model loaded!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">state</span></div>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s2">&quot;ADMM_Slim(lambda1=</span><span class="si">%.4f</span><span class="s2">, lamdba2=</span><span class="si">%.4f</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambda1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda2</span><span class="p">)</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, rho=</span><span class="si">%.4f</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">rho</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, non_negativity=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">nn_constr</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, L1_penalty=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">l1_penalty</span>
+        <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, item_bias=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">item_bias</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;, model size=(</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2">))&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="s2">&quot;) - not trained yet!&quot;</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+
+<span class="c1">#TODO documentation</span>
+<div class="viewcode-block" id="SVAE"><a class="viewcode-back" href="../../models.html#rectorch.models.SVAE">[docs]</a><span class="k">class</span> <span class="nc">SVAE</span><span class="p">(</span><span class="n">MultiVAE</span><span class="p">):</span>
+    <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Sequential Variational Autoencoders for Collaborative Filtering.</span>
+
+<span class="sd">    **UNDOCUMENTED** [SVAE]_</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mvae_net : :class:`torch.nn.Module`</span>
+<span class="sd">        The variational autoencoder neural network.</span>
+<span class="sd">    beta : :obj:`float` [optional]</span>
+<span class="sd">        The :math:`\beta` hyper-parameter of Multi-VAE. When ``anneal_steps &gt; 0`` then this</span>
+<span class="sd">        value is the value to anneal starting from 0, otherwise the ``beta`` will be fixed to</span>
+<span class="sd">        the given value for the duration of the training. By default 1.</span>
+<span class="sd">    anneal_steps : :obj:`int` [optional]</span>
+<span class="sd">        Number of annealing step for reaching the target value ``beta``, by default 0.</span>
+<span class="sd">        0 means that no annealing will be performed and the regularization parameter will be</span>
+<span class="sd">        fixed to ``beta``.</span>
+<span class="sd">    learning_rate : :obj:`float` [optional]</span>
+<span class="sd">        The learning rate for the optimizer, by default 1e-3.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    .. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.</span>
+<span class="sd">        Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the</span>
+<span class="sd">        Twelfth ACM International Conference on Web Search and Data Mining (WSDM &#39;19).</span>
+<span class="sd">        Association for Computing Machinery, New York, NY, USA, 600–608.</span>
+<span class="sd">        DOI: https://doi.org/10.1145/3289600.3291007</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">svae_net</span><span class="p">,</span>
+                 <span class="n">beta</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+                 <span class="n">anneal_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                 <span class="n">learning_rate</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SVAE</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">svae_net</span><span class="p">,</span>
+                                   <span class="n">beta</span><span class="o">=</span><span class="n">beta</span><span class="p">,</span>
+                                   <span class="n">anneal_steps</span><span class="o">=</span><span class="n">anneal_steps</span><span class="p">,</span>
+                                   <span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">optimizer</span> <span class="o">=</span> <span class="n">optim</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">parameters</span><span class="p">(),</span>
+                                    <span class="n">lr</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">,</span>
+                                    <span class="n">weight_decay</span><span class="o">=</span><span class="mf">5e-3</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SVAE.loss_function"><a class="viewcode-back" href="../../models.html#rectorch.models.SVAE.loss_function">[docs]</a>    <span class="k">def</span> <span class="nf">loss_function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">recon_x</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+        <span class="n">likelihood_n</span> <span class="o">=</span> <span class="o">-</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">F</span><span class="o">.</span><span class="n">log_softmax</span><span class="p">(</span><span class="n">recon_x</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">recon_x</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">likelihood_d</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:</span><span class="n">recon_x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]]))</span>
+        <span class="n">KLD</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">torch</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">logvar</span> <span class="o">-</span> <span class="n">mu</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">logvar</span><span class="o">.</span><span class="n">exp</span><span class="p">(),</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">likelihood_n</span> <span class="o">/</span> <span class="n">likelihood_d</span> <span class="o">+</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">KLD</span></div>
+
+<div class="viewcode-block" id="SVAE.predict"><a class="viewcode-back" href="../../models.html#rectorch.models.SVAE.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">remove_train</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+            <span class="n">x_tensor</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+            <span class="n">recon_x</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">network</span><span class="p">(</span><span class="n">x_tensor</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">remove_train</span><span class="p">:</span>
+                <span class="n">recon_x</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">x_tensor</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="k">return</span> <span class="n">recon_x</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:],</span> <span class="n">mu</span><span class="p">,</span> <span class="n">logvar</span></div></div>
 </pre></div>
 
              </article>

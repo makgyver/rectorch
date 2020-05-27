@@ -32,13 +32,8 @@ The latest PyPi release contains the following methods.
 | CMultiVAE | Conditioned Variational Autoencoder                                        | [[2]](#2) |
 | CFGAN     | Collaborative Filtering with Generative Adversarial Networks               | [[3]](#3) |
 | EASE      | Embarrassingly shallow autoencoder for sparse data                         | [[4]](#4) |
-
-New methods are coming and are currently available in the *dev* branch (see [Dev branch](#dev-branch)).
-
-| Name      | Description                                                     | Ref.      |
-|-----------|-----------------------------------------------------------------|-----------|
-| ADMM_Slim | ADMM SLIM: Sparse Recommendations for Many Users                | [[5]](#5) |
-| SVAE      | Sequential Variational Autoencoders for Collaborative Filtering | [[6]](#6) |
+| ADMM_Slim | ADMM SLIM: Sparse Recommendations for Many Users                           | [[5]](#5) |
+| SVAE      | Sequential Variational Autoencoders for Collaborative Filtering            | [[6]](#6) |
 
 
 # Getting started
@@ -116,9 +111,10 @@ pip3 install -r requirements.txt
 # Work in progress
 
 The following features/changes will be soon released:
-* Inclusion of `ADMM_Slim` and `SVAE` in the official release;
 * Splitting of the `models` module in more sub-modules on the basis of the models' characteristics;
-* Introduction of a "global" setting/configuration for the framework.
+* Introduction of a "global" setting/configuration for the framework;
+* Adding optimizer's parameters in the configuration;
+* Including horizontal splitting and leave-one-out in `DataProcessing`.
 
 # Suggestions
 

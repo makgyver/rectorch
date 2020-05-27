@@ -15,7 +15,7 @@ import sys
 #import sphinx_bootstrap_theme
 #import sphinxbootstrap4theme
 import pytorch_sphinx_theme
-sys.path.insert(0, os.path.abspath('../rectorch'))
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------

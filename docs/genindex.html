@@ -229,6 +229,7 @@
  | <a href="#E"><strong>E</strong></a>
  | <a href="#F"><strong>F</strong></a>
  | <a href="#G"><strong>G</strong></a>
+ | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
@@ -243,10 +244,12 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="nets.html#rectorch.nets.AE_net">AE_net (class in rectorch.nets)</a>
+      <li><a href="models.html#rectorch.models.ADMM_Slim">ADMM_Slim (class in rectorch.models)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="nets.html#rectorch.nets.AE_net">AE_net (class in rectorch.nets)</a>
+</li>
       <li><a href="models.html#rectorch.models.AETrainer">AETrainer (class in rectorch.models)</a>
 </li>
   </ul></td>
@@ -271,32 +274,25 @@
 </li>
       <li><a href="samplers.html#rectorch.samplers.CFGAN_TrainingSampler">CFGAN_TrainingSampler (class in rectorch.samplers)</a>
 </li>
-      <li><a href="models.html#rectorch.models.CMultiVAE">CMultiVAE (class in rectorch.models)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#rectorch.models.CMultiVAE">CMultiVAE (class in rectorch.models)</a>
+</li>
       <li><a href="nets.html#rectorch.nets.CMultiVAE_net">CMultiVAE_net (class in rectorch.nets)</a>
 </li>
       <li><a href="metrics.html#rectorch.metrics.Metrics.compute">compute() (rectorch.metrics.Metrics static method)</a>
 </li>
       <li><a href="samplers.html#rectorch.samplers.ConditionedDataSampler">ConditionedDataSampler (class in rectorch.samplers)</a>
 </li>
-      <li><a href="configuration.html#configuration.ConfigManager">ConfigManager (class in configuration)</a>
+      <li><a href="configuration.html#rectorch.configuration.ConfigManager">ConfigManager (class in rectorch.configuration)</a>
 </li>
-      <li>
-    configuration
-
-      <ul>
-        <li><a href="configuration.html#module-configuration">module</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 
 <h2 id="D">D</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="configuration.html#configuration.DataConfig">DataConfig (class in configuration)</a>
+      <li><a href="configuration.html#rectorch.configuration.DataConfig">DataConfig (class in rectorch.configuration)</a>
 </li>
       <li><a href="data.html#rectorch.data.DataProcessing">DataProcessing (class in rectorch.data)</a>
 </li>
@@ -304,16 +300,18 @@
 </li>
       <li><a href="samplers.html#rectorch.samplers.DataSampler">DataSampler (class in rectorch.samplers)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="data.html#rectorch.data.DatasetManager">DatasetManager (class in rectorch.data)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="nets.html#rectorch.nets.AE_net.decode">decode() (rectorch.nets.AE_net method)</a>
 
       <ul>
         <li><a href="nets.html#rectorch.nets.MultiDAE_net.decode">(rectorch.nets.MultiDAE_net method)</a>
 </li>
         <li><a href="nets.html#rectorch.nets.MultiVAE_net.decode">(rectorch.nets.MultiVAE_net method)</a>
+</li>
+        <li><a href="nets.html#rectorch.nets.SVAE_net.decode">(rectorch.nets.SVAE_net method)</a>
 </li>
         <li><a href="nets.html#rectorch.nets.VAE_net.decode">(rectorch.nets.VAE_net method)</a>
 </li>
@@ -357,6 +355,8 @@
 </li>
         <li><a href="nets.html#rectorch.nets.CFGAN_G_net.forward">(rectorch.nets.CFGAN_G_net method)</a>
 </li>
+        <li><a href="nets.html#rectorch.nets.SVAE_net.forward">(rectorch.nets.SVAE_net method)</a>
+</li>
         <li><a href="nets.html#rectorch.nets.VAE_net.forward">(rectorch.nets.VAE_net method)</a>
 </li>
       </ul></li>
@@ -366,11 +366,19 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="configuration.html#configuration.ConfigManager.get">get() (configuration.ConfigManager class method)</a>
+      <li><a href="configuration.html#rectorch.configuration.ConfigManager.get">get() (rectorch.configuration.ConfigManager class method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="data.html#rectorch.data.DatasetManager.get_train_and_test">get_train_and_test() (rectorch.data.DatasetManager method)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="H">H</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="metrics.html#rectorch.metrics.Metrics.hit_at_k">hit_at_k() (rectorch.metrics.Metrics static method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -387,6 +395,8 @@
 </li>
         <li><a href="nets.html#rectorch.nets.MultiDAE_net.init_weights">(rectorch.nets.MultiDAE_net method)</a>
 </li>
+        <li><a href="nets.html#rectorch.nets.SVAE_net.init_weights">(rectorch.nets.SVAE_net method)</a>
+</li>
         <li><a href="nets.html#rectorch.nets.VAE_net.init_weights">(rectorch.nets.VAE_net method)</a>
 </li>
       </ul></li>
@@ -398,9 +408,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="data.html#rectorch.data.DataReader.load_data">load_data() (rectorch.data.DataReader method)</a>
 </li>
-      <li><a href="models.html#rectorch.models.AETrainer.load_model">load_model() (rectorch.models.AETrainer method)</a>
+      <li><a href="data.html#rectorch.data.DataReader.load_data_as_dict">load_data_as_dict() (rectorch.data.DataReader method)</a>
+</li>
+      <li><a href="models.html#rectorch.models.ADMM_Slim.load_model">load_model() (rectorch.models.ADMM_Slim method)</a>
 
       <ul>
+        <li><a href="models.html#rectorch.models.AETrainer.load_model">(rectorch.models.AETrainer method)</a>
+</li>
         <li><a href="models.html#rectorch.models.CFGAN.load_model">(rectorch.models.CFGAN method)</a>
 </li>
         <li><a href="models.html#rectorch.models.EASE.load_model">(rectorch.models.EASE method)</a>
@@ -419,6 +433,8 @@
 </li>
         <li><a href="models.html#rectorch.models.MultiVAE.loss_function">(rectorch.models.MultiVAE method)</a>
 </li>
+        <li><a href="models.html#rectorch.models.SVAE.loss_function">(rectorch.models.SVAE method)</a>
+</li>
         <li><a href="models.html#rectorch.models.TorchNNTrainer.loss_function">(rectorch.models.TorchNNTrainer method)</a>
 </li>
         <li><a href="models.html#rectorch.models.VAE.loss_function">(rectorch.models.VAE method)</a>
@@ -432,13 +448,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="metrics.html#rectorch.metrics.Metrics">Metrics (class in rectorch.metrics)</a>
 </li>
-      <li><a href="configuration.html#configuration.ModelConfig">ModelConfig (class in configuration)</a>
+      <li><a href="configuration.html#rectorch.configuration.ModelConfig">ModelConfig (class in rectorch.configuration)</a>
 </li>
       <li>
     module
 
       <ul>
-        <li><a href="configuration.html#module-configuration">configuration</a>
+        <li><a href="configuration.html#module-rectorch.configuration">rectorch.configuration</a>
 </li>
         <li><a href="data.html#module-rectorch.data">rectorch.data</a>
 </li>
@@ -455,6 +471,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="metrics.html#rectorch.metrics.Metrics.mrr_at_k">mrr_at_k() (rectorch.metrics.Metrics static method)</a>
+</li>
       <li><a href="models.html#rectorch.models.MultiDAE">MultiDAE (class in rectorch.models)</a>
 </li>
       <li><a href="nets.html#rectorch.nets.MultiDAE_net">MultiDAE_net (class in rectorch.nets)</a>
@@ -477,9 +495,11 @@
 <h2 id="P">P</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#rectorch.models.AETrainer.predict">predict() (rectorch.models.AETrainer method)</a>
+      <li><a href="models.html#rectorch.models.ADMM_Slim.predict">predict() (rectorch.models.ADMM_Slim method)</a>
 
       <ul>
+        <li><a href="models.html#rectorch.models.AETrainer.predict">(rectorch.models.AETrainer method)</a>
+</li>
         <li><a href="models.html#rectorch.models.CFGAN.predict">(rectorch.models.CFGAN method)</a>
 </li>
         <li><a href="models.html#rectorch.models.CMultiVAE.predict">(rectorch.models.CMultiVAE method)</a>
@@ -487,6 +507,8 @@
         <li><a href="models.html#rectorch.models.EASE.predict">(rectorch.models.EASE method)</a>
 </li>
         <li><a href="models.html#rectorch.models.RecSysModel.predict">(rectorch.models.RecSysModel method)</a>
+</li>
+        <li><a href="models.html#rectorch.models.SVAE.predict">(rectorch.models.SVAE method)</a>
 </li>
         <li><a href="models.html#rectorch.models.TorchNNTrainer.predict">(rectorch.models.TorchNNTrainer method)</a>
 </li>
@@ -508,6 +530,13 @@
       <li><a href="models.html#rectorch.models.RecSysModel">RecSysModel (class in rectorch.models)</a>
 </li>
       <li>
+    rectorch.configuration
+
+      <ul>
+        <li><a href="configuration.html#module-rectorch.configuration">module</a>
+</li>
+      </ul></li>
+      <li>
     rectorch.data
 
       <ul>
@@ -521,6 +550,8 @@
         <li><a href="evaluation.html#module-rectorch.evaluation">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     rectorch.metrics
 
@@ -528,8 +559,6 @@
         <li><a href="metrics.html#module-rectorch.metrics">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     rectorch.models
 
@@ -559,9 +588,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="samplers.html#rectorch.samplers.Sampler">Sampler (class in rectorch.samplers)</a>
 </li>
-      <li><a href="models.html#rectorch.models.AETrainer.save_model">save_model() (rectorch.models.AETrainer method)</a>
+      <li><a href="models.html#rectorch.models.ADMM_Slim.save_model">save_model() (rectorch.models.ADMM_Slim method)</a>
 
       <ul>
+        <li><a href="models.html#rectorch.models.AETrainer.save_model">(rectorch.models.AETrainer method)</a>
+</li>
         <li><a href="models.html#rectorch.models.CFGAN.save_model">(rectorch.models.CFGAN method)</a>
 </li>
         <li><a href="models.html#rectorch.models.EASE.save_model">(rectorch.models.EASE method)</a>
@@ -572,6 +603,14 @@
 </li>
       </ul></li>
   </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="models.html#rectorch.models.SVAE">SVAE (class in rectorch.models)</a>
+</li>
+      <li><a href="nets.html#rectorch.nets.SVAE_net">SVAE_net (class in rectorch.nets)</a>
+</li>
+      <li><a href="samplers.html#rectorch.samplers.SVAE_Sampler">SVAE_Sampler (class in rectorch.samplers)</a>
+</li>
+  </ul></td>
 </tr></table>
 
 <h2 id="T">T</h2>
@@ -579,9 +618,11 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#rectorch.models.TorchNNTrainer">TorchNNTrainer (class in rectorch.models)</a>
 </li>
-      <li><a href="models.html#rectorch.models.AETrainer.train">train() (rectorch.models.AETrainer method)</a>
+      <li><a href="models.html#rectorch.models.ADMM_Slim.train">train() (rectorch.models.ADMM_Slim method)</a>
 
       <ul>
+        <li><a href="models.html#rectorch.models.AETrainer.train">(rectorch.models.AETrainer method)</a>
+</li>
         <li><a href="models.html#rectorch.models.CFGAN.train">(rectorch.models.CFGAN method)</a>
 </li>
         <li><a href="models.html#rectorch.models.EASE.train">(rectorch.models.EASE method)</a>
@@ -623,18 +664,10 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="models.html#rectorch.models.VAE">VAE (class in rectorch.models)</a>
 </li>
-      <li><a href="nets.html#rectorch.nets.VAE_net">VAE_net (class in rectorch.nets)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="models.html#rectorch.models.AETrainer.validate">validate() (rectorch.models.AETrainer method)</a>
-
-      <ul>
-        <li><a href="models.html#rectorch.models.CFGAN.validate">(rectorch.models.CFGAN method)</a>
+      <li><a href="nets.html#rectorch.nets.VAE_net">VAE_net (class in rectorch.nets)</a>
 </li>
-        <li><a href="models.html#rectorch.models.TorchNNTrainer.validate">(rectorch.models.TorchNNTrainer method)</a>
-</li>
-      </ul></li>
   </ul></td>
 </tr></table>
 

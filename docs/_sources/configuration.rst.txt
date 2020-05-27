@@ -8,9 +8,9 @@ Class list
 ~~~~~~~~~~
 
 .. autosummary::
-   configuration.DataConfig
-   configuration.ModelConfig
-   configuration.ConfigManager
+   rectorch.configuration.DataConfig
+   rectorch.configuration.ModelConfig
+   rectorch.configuration.ConfigManager
 
-.. automodule:: configuration
+.. automodule:: rectorch.configuration
    :members: DataConfig, ModelConfig, ConfigManager

@@ -225,11 +225,13 @@
 
 <span class="sd">* :func:`nDCG@k &lt;Metrics.ndcg_at_k&gt;`</span>
 <span class="sd">* :func:`recall@k &lt;Metrics.recall_at_k&gt;`</span>
+<span class="sd">* :func:`hit@k &lt;Metrics.hit_at_k&gt;`</span>
+<span class="sd">* :func:`mrr@k &lt;Metrics.mrr_at_k&gt;`</span>
 
 <span class="sd">See Also</span>
 <span class="sd">--------</span>
 <span class="sd">Modules:</span>
-<span class="sd">:mod:`evaluation &lt;evaluation&gt;`</span>
+<span class="sd">:mod:`evaluation &lt;rectorch.evaluation&gt;`</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
@@ -307,20 +309,20 @@
         <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the Normalized Discount Cumulative Gain (nDCG).</span>
 
 <span class="sd">        nDCG is a measure of ranking quality. nDCG measures the usefulness, or gain, of an</span>
-<span class="sd">        item based on its position in the scoring list. The gain is accumulated from the top of </span>
+<span class="sd">        item based on its position in the scoring list. The gain is accumulated from the top of</span>
 <span class="sd">        the result list to the bottom, with the gain of each result discounted at lower ranks.</span>
 
 <span class="sd">        The nDCG is computed over the top-k items (out of :math:`m`), where `k` is specified as a</span>
 <span class="sd">        parameter, for all users independently.</span>
 <span class="sd">        The nDCG@k (:math:`k \in [1,2,\dots,m]`) is computed with the following formula:</span>
 
-<span class="sd">        :math:`nDCG@k = \\frac{\\textrm{DCG}@k}{\\textrm{IDCG}@k}`</span>
+<span class="sd">        :math:`nDCG@k = \frac{\textrm{DCG}@k}{\textrm{IDCG}@k}`</span>
 
 <span class="sd">        where</span>
 
-<span class="sd">        :math:`\\textrm{DCG}@k = \sum\limits_{i=1}^k \\frac{2^{rel_i}-1}{\log_2 (i+1)},`</span>
+<span class="sd">        :math:`\textrm{DCG}@k = \sum\limits_{i=1}^k \frac{2^{rel_i}-1}{\log_2 (i+1)},`</span>
 
-<span class="sd">        :math:`\\textrm{IDCG}@k = \sum\limits_{i=1}^{\min(k,R)} \\frac{1}{\log_2 (i+1)}`</span>
+<span class="sd">        :math:`\textrm{IDCG}@k = \sum\limits_{i=1}^{\min(k,R)} \frac{1}{\log_2 (i+1)}`</span>
 
 <span class="sd">        with</span>
 <span class="sd">        :math:`rel_i \in \{0,1\}`</span>
@@ -349,8 +351,7 @@
 <span class="sd">        &gt;&gt;&gt; scores = np.array([[4., 3., 2., 1.]])</span>
 <span class="sd">        &gt;&gt;&gt; ground_truth = np.array([[0, 0, 1., 1.]])</span>
 <span class="sd">        &gt;&gt;&gt; Metrics.ndcg_at_k(scores, ground_truth, 3)</span>
-<span class="sd">        np.array([0.306573596])</span>
-
+<span class="sd">        array([0.306573596])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>\
             <span class="s2">&quot;&#39;pred_scores&#39; and &#39;ground_truth&#39; must have the same shape.&quot;</span>
@@ -375,7 +376,7 @@
 
 <span class="sd">        Recall@k is computed as</span>
 
-<span class="sd">        :math:`\\textrm{recall}@k = \\frac{\\textrm{TP}}{\\textrm{TP}+\\textrm{FN}}`</span>
+<span class="sd">        :math:`\textrm{recall}@k = \frac{\textrm{TP}}{\textrm{TP}+\textrm{FN}}`</span>
 
 <span class="sd">        where TP and FN are the true positive and the false negative retrieved items, respectively.</span>
 
@@ -401,8 +402,7 @@
 <span class="sd">        &gt;&gt;&gt; scores = np.array([[4., 3., 2., 1.]])</span>
 <span class="sd">        &gt;&gt;&gt; ground_truth = np.array([[0, 0, 1., 1.]])</span>
 <span class="sd">        &gt;&gt;&gt; Metrics.ndcg_at_k(scores, ground_truth, 3)</span>
-<span class="sd">        np.array([0.306573596])</span>
-
+<span class="sd">        array([0.306573596])</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>\
             <span class="s2">&quot;&#39;pred_scores&#39; and &#39;ground_truth&#39; must have the same shape.&quot;</span>
@@ -413,7 +413,96 @@
         <span class="n">X_true_binary</span> <span class="o">=</span> <span class="p">(</span><span class="n">ground_truth</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">num</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X_true_binary</span><span class="p">,</span> <span class="n">pred_scores_binary</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">recall</span> <span class="o">=</span> <span class="n">num</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">X_true_binary</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">recall</span></div></div>
+        <span class="k">return</span> <span class="n">recall</span></div>
+
+<div class="viewcode-block" id="Metrics.hit_at_k"><a class="viewcode-back" href="../../metrics.html#rectorch.metrics.Metrics.hit_at_k">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">hit_at_k</span><span class="p">(</span><span class="n">pred_scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the hit at k.</span>
+
+<span class="sd">        The Hit@k is either 1, if a relevan item is in the top *k* scored items, or 0 otherwise.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pred_scores : :obj:`numpy.array`</span>
+<span class="sd">            The array with the predicted scores. Users are on the rows and items on the columns.</span>
+<span class="sd">        ground_truth : :obj:`numpy.array`</span>
+<span class="sd">            Binary array with the ground truth. 1 means the item is relevant for the user</span>
+<span class="sd">            and 0 not relevant. Users are on the rows and items on the columns.</span>
+<span class="sd">        k : :obj:`int` [optional]</span>
+<span class="sd">            The number of top items to considers, by default 100</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`numpy.array`</span>
+<span class="sd">            An array containing the *hit@k* value for each user.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from rectorch.metrics import Metrics</span>
+<span class="sd">        &gt;&gt;&gt; scores = np.array([[4., 3., 2., 1.]])</span>
+<span class="sd">        &gt;&gt;&gt; ground_truth = np.array([[0, 0, 1., 1.]])</span>
+<span class="sd">        &gt;&gt;&gt; Metrics.hit_at_k(scores, ground_truth, 3)</span>
+<span class="sd">        np.array([1.])</span>
+<span class="sd">        &gt;&gt;&gt; Metrics.hit_at_k(scores, ground_truth, 2)</span>
+<span class="sd">        np.array([0.])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>\
+            <span class="s2">&quot;&#39;pred_scores&#39; and &#39;ground_truth&#39; must have the same shape.&quot;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">bn</span><span class="o">.</span><span class="n">argpartition</span><span class="p">(</span><span class="o">-</span><span class="n">pred_scores</span><span class="p">,</span> <span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">pred_scores_binary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">pred_scores</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">)</span>
+        <span class="n">pred_scores_binary</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">idx</span><span class="p">[:,</span> <span class="p">:</span><span class="n">k</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">X_true_binary</span> <span class="o">=</span> <span class="p">(</span><span class="n">ground_truth</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">X_true_binary</span><span class="p">,</span> <span class="n">pred_scores_binary</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">num</span> <span class="o">&gt;</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="Metrics.mrr_at_k"><a class="viewcode-back" href="../../metrics.html#rectorch.metrics.Metrics.mrr_at_k">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">mrr_at_k</span><span class="p">(</span><span class="n">pred_scores</span><span class="p">,</span> <span class="n">ground_truth</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Compute the Mean Reciprocal Rank (MRR).</span>
+
+<span class="sd">        The MRR@k is the mean overall user of the reciprocal rank, that is the rank of the highest</span>
+<span class="sd">        ranked relevant item, if any in the top *k*, 0 otherwise.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pred_scores : :obj:`numpy.array`</span>
+<span class="sd">            The array with the predicted scores. Users are on the rows and items on the columns.</span>
+<span class="sd">        ground_truth : :obj:`numpy.array`</span>
+<span class="sd">            Binary array with the ground truth. 1 means the item is relevant for the user</span>
+<span class="sd">            and 0 not relevant. Users are on the rows and items on the columns.</span>
+<span class="sd">        k : :obj:`int` [optional]</span>
+<span class="sd">            The number of top items to considers, by default 100</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        :obj:`numpy.array`</span>
+<span class="sd">            An array containing the *mrr@k* value for each user.</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">        &gt;&gt;&gt; from rectorch.metrics import Metrics</span>
+<span class="sd">        &gt;&gt;&gt; scores = np.array([[4., 2., 3., 1.], [1., 2., 3., 4.]])</span>
+<span class="sd">        &gt;&gt;&gt; ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.]])</span>
+<span class="sd">        &gt;&gt;&gt; Metrics.mrr_at_k(scores, ground_truth, 3)</span>
+<span class="sd">        array([.5, 1.])</span>
+<span class="sd">        &gt;&gt;&gt; Metrics.mrr_at_k(scores, ground_truth, 1)</span>
+<span class="sd">        array([0., 1.])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">ground_truth</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span>\
+                <span class="s2">&quot;&#39;pred_scores&#39; and &#39;ground_truth&#39; must have the same shape.&quot;</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">pred_scores</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">k</span><span class="p">)</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="o">-</span><span class="n">pred_scores</span><span class="p">)</span>
+        <span class="n">hits</span> <span class="o">=</span> <span class="n">ground_truth</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">ground_truth</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="n">idx</span><span class="p">[:,</span> <span class="p">:</span><span class="n">k</span><span class="p">]]</span>
+        <span class="n">rranks</span><span class="p">,</span> <span class="n">cranks</span> <span class="o">=</span> <span class="n">hits</span><span class="o">.</span><span class="n">nonzero</span><span class="p">()</span>
+
+        <span class="n">mrr</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">ground_truth</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rranks</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">mrr</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">mrr</span><span class="p">[</span><span class="n">r</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">cranks</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mrr</span><span class="p">)</span></div></div>
 </pre></div>
 
              </article>

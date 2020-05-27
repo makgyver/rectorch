@@ -5,11 +5,13 @@ the following metrics are implemented:
 
 * :func:`nDCG@k <Metrics.ndcg_at_k>`
 * :func:`recall@k <Metrics.recall_at_k>`
+* :func:`hit@k <Metrics.hit_at_k>`
+* :func:`mrr@k <Metrics.mrr_at_k>`
 
 See Also
 --------
 Modules:
-:mod:`evaluation <evaluation>`
+:mod:`evaluation <rectorch.evaluation>`
 """
 
 import logging
@@ -87,20 +89,20 @@ class Metrics:
         r"""Compute the Normalized Discount Cumulative Gain (nDCG).
 
         nDCG is a measure of ranking quality. nDCG measures the usefulness, or gain, of an
-        item based on its position in the scoring list. The gain is accumulated from the top of 
+        item based on its position in the scoring list. The gain is accumulated from the top of
         the result list to the bottom, with the gain of each result discounted at lower ranks.
 
         The nDCG is computed over the top-k items (out of :math:`m`), where `k` is specified as a
         parameter, for all users independently.
         The nDCG@k (:math:`k \in [1,2,\dots,m]`) is computed with the following formula:
 
-        :math:`nDCG@k = \\frac{\\textrm{DCG}@k}{\\textrm{IDCG}@k}`
+        :math:`nDCG@k = \frac{\textrm{DCG}@k}{\textrm{IDCG}@k}`
 
         where
 
-        :math:`\\textrm{DCG}@k = \sum\limits_{i=1}^k \\frac{2^{rel_i}-1}{\log_2 (i+1)},`
+        :math:`\textrm{DCG}@k = \sum\limits_{i=1}^k \frac{2^{rel_i}-1}{\log_2 (i+1)},`
 
-        :math:`\\textrm{IDCG}@k = \sum\limits_{i=1}^{\min(k,R)} \\frac{1}{\log_2 (i+1)}`
+        :math:`\textrm{IDCG}@k = \sum\limits_{i=1}^{\min(k,R)} \frac{1}{\log_2 (i+1)}`
 
         with
         :math:`rel_i \in \{0,1\}`
@@ -129,8 +131,7 @@ class Metrics:
         >>> scores = np.array([[4., 3., 2., 1.]])
         >>> ground_truth = np.array([[0, 0, 1., 1.]])
         >>> Metrics.ndcg_at_k(scores, ground_truth, 3)
-        np.array([0.306573596])
-
+        array([0.306573596])
         """
         assert pred_scores.shape == ground_truth.shape,\
             "'pred_scores' and 'ground_truth' must have the same shape."
@@ -155,7 +156,7 @@ class Metrics:
 
         Recall@k is computed as
 
-        :math:`\\textrm{recall}@k = \\frac{\\textrm{TP}}{\\textrm{TP}+\\textrm{FN}}`
+        :math:`\textrm{recall}@k = \frac{\textrm{TP}}{\textrm{TP}+\textrm{FN}}`
 
         where TP and FN are the true positive and the false negative retrieved items, respectively.
 
@@ -181,8 +182,7 @@ class Metrics:
         >>> scores = np.array([[4., 3., 2., 1.]])
         >>> ground_truth = np.array([[0, 0, 1., 1.]])
         >>> Metrics.ndcg_at_k(scores, ground_truth, 3)
-        np.array([0.306573596])
-
+        array([0.306573596])
         """
         assert pred_scores.shape == ground_truth.shape,\
             "'pred_scores' and 'ground_truth' must have the same shape."
@@ -194,3 +194,92 @@ class Metrics:
         num = (np.logical_and(X_true_binary, pred_scores_binary).sum(axis=1)).astype(np.float32)
         recall = num / np.minimum(k, X_true_binary.sum(axis=1))
         return recall
+
+    @staticmethod
+    def hit_at_k(pred_scores, ground_truth, k=100):
+        r"""Compute the hit at k.
+
+        The Hit@k is either 1, if a relevan item is in the top *k* scored items, or 0 otherwise.
+
+        Parameters
+        ----------
+        pred_scores : :obj:`numpy.array`
+            The array with the predicted scores. Users are on the rows and items on the columns.
+        ground_truth : :obj:`numpy.array`
+            Binary array with the ground truth. 1 means the item is relevant for the user
+            and 0 not relevant. Users are on the rows and items on the columns.
+        k : :obj:`int` [optional]
+            The number of top items to considers, by default 100
+
+        Returns
+        -------
+        :obj:`numpy.array`
+            An array containing the *hit@k* value for each user.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from rectorch.metrics import Metrics
+        >>> scores = np.array([[4., 3., 2., 1.]])
+        >>> ground_truth = np.array([[0, 0, 1., 1.]])
+        >>> Metrics.hit_at_k(scores, ground_truth, 3)
+        np.array([1.])
+        >>> Metrics.hit_at_k(scores, ground_truth, 2)
+        np.array([0.])
+        """
+        assert pred_scores.shape == ground_truth.shape,\
+            "'pred_scores' and 'ground_truth' must have the same shape."
+        k = min(pred_scores.shape[1], k)
+        idx = bn.argpartition(-pred_scores, k-1, axis=1)
+        pred_scores_binary = np.zeros_like(pred_scores, dtype=bool)
+        pred_scores_binary[np.arange(pred_scores.shape[0])[:, np.newaxis], idx[:, :k]] = True
+        X_true_binary = (ground_truth > 0)
+        num = (np.logical_and(X_true_binary, pred_scores_binary).sum(axis=1)).astype(np.float32)
+        return num > 0
+
+    @staticmethod
+    def mrr_at_k(pred_scores, ground_truth, k=100):
+        r"""Compute the Mean Reciprocal Rank (MRR).
+
+        The MRR@k is the mean overall user of the reciprocal rank, that is the rank of the highest
+        ranked relevant item, if any in the top *k*, 0 otherwise.
+
+        Parameters
+        ----------
+        pred_scores : :obj:`numpy.array`
+            The array with the predicted scores. Users are on the rows and items on the columns.
+        ground_truth : :obj:`numpy.array`
+            Binary array with the ground truth. 1 means the item is relevant for the user
+            and 0 not relevant. Users are on the rows and items on the columns.
+        k : :obj:`int` [optional]
+            The number of top items to considers, by default 100
+
+        Returns
+        -------
+        :obj:`numpy.array`
+            An array containing the *mrr@k* value for each user.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from rectorch.metrics import Metrics
+        >>> scores = np.array([[4., 2., 3., 1.], [1., 2., 3., 4.]])
+        >>> ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.]])
+        >>> Metrics.mrr_at_k(scores, ground_truth, 3)
+        array([.5, 1.])
+        >>> Metrics.mrr_at_k(scores, ground_truth, 1)
+        array([0., 1.])
+        """
+        assert pred_scores.shape == ground_truth.shape,\
+                "'pred_scores' and 'ground_truth' must have the same shape."
+        k = min(pred_scores.shape[1], k)
+        idx = np.argsort(-pred_scores)
+        hits = ground_truth[np.arange(ground_truth.shape[0])[:, np.newaxis], idx[:, :k]]
+        rranks, cranks = hits.nonzero()
+
+        mrr = [0. for _ in range(ground_truth.shape[0])]
+        for i, r in enumerate(rranks):
+            if mrr[r] == 0:
+                mrr[r] = 1. / (1 + cranks[i])
+
+        return np.array(mrr)

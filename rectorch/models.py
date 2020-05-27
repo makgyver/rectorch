@@ -8,13 +8,13 @@ we plan to improve the structure of the library creating sub-modules.
 
 Currently the implemented training algorithms are:
 
-* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior\
-    (in the paper *Mult-DAE*) [VAE]_;
-* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior\
-    (in the paper *Mult-VAE*) [VAE]_;
+* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-DAE*) [VAE]_;
+* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-VAE*) [VAE]_;
 * :class:`CMultiVAE`: Conditioned Variational Autoencoder (in the paper *C-VAE*) [CVAE]_;
 * :class:`CFGAN`: Collaborative Filtering with Generative Adversarial Networks [CFGAN]_;
 * :class:`EASE`: Embarrassingly shallow autoencoder for sparse data [EASE]_.
+* :class:`ADMM_Slim`: ADMM SLIM: Sparse Recommendations for Many Users [ADMMS]_.
+* :class:`SVAE`: Sequential Variational Autoencoders for Collaborative Filtering [SVAE]_.
 
 It is also implemented a generic Variational autoencoder trainer (:class:`VAE`) based on the classic
 loss function *cross-entropy* based reconstruction loss, plus the KL loss.
@@ -22,8 +22,8 @@ loss function *cross-entropy* based reconstruction loss, plus the KL loss.
 See Also
 --------
 Modules:
-:mod:`nets <nets>`
-:mod:`samplers <samplers>`
+:mod:`nets <rectorch.nets>`
+:mod:`samplers <rectorch.samplers>`
 
 References
 ----------
@@ -43,6 +43,14 @@ References
 .. [EASE] Harald Steck. 2019. Embarrassingly Shallow Autoencoders for Sparse Data.
    In The World Wide Web Conference (WWW ’19). Association for Computing Machinery,
    New York, NY, USA, 3251–3257. DOI: https://doi.org/10.1145/3308558.3313710
+.. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
+   ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
+   Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+   New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774
+.. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+   Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the Twelfth
+   ACM International Conference on Web Search and Data Mining (WSDM ’19). Association for Computing
+   Machinery, New York, NY, USA, 600–608. DOI: https://doi.org/10.1145/3289600.3291007
 """
 import logging
 import os
@@ -51,10 +59,10 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from .metrics import Metrics
+from .evaluation import ValidFunc, evaluate
 
 __all__ = ['RecSysModel', 'TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
-    'CMultiVAE', 'EASE', 'CFGAN']
+    'CMultiVAE', 'EASE', 'CFGAN', 'SVAE']
 
 logger = logging.getLogger(__name__)
 
@@ -70,10 +78,10 @@ class RecSysModel():
 
         Parameters
         ----------
-        train_data : :class:`samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
+        train_data : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
             :class:`torch.Tensor`
             This object represents the training data. If the training procedure is based on
-            mini-batches, then ``train_data`` should be a :class:`samplers.Sampler`.
+            mini-batches, then ``train_data`` should be a :class:`rectorch.samplers.Sampler`.
         **kargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             training.
@@ -93,7 +101,8 @@ class RecSysModel():
 
         Parameters
         ----------
-        x : :class:`samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or :class:`torch.Tensor`
+        x : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
+            :class:`torch.Tensor`
             The input for which the prediction has to be computed.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for performing the
@@ -216,6 +225,7 @@ class TorchNNTrainer(RecSysModel):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=100,
               verbose=1,
               **kwargs):
@@ -223,15 +233,18 @@ class TorchNNTrainer(RecSysModel):
 
         Parameters
         ----------
-        train_data : :class:`samplers.Sampler`
+        train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
-        valid_data : :class:`samplers.Sampler` [optional]
+        valid_data : :class:`rectorch.samplers.Sampler` [optional]
             The sampler object that load the validation set in mini-batches, by default ``None``.
             If the model does not have any validation procedure set this parameter to ``None``.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default ``None``.
             If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
             To see the valid strings for the metric please see the module :mod:`metrics`.
+        valid_func : :class:`evaluation.ValidFunc` [optional]
+            The validation function, by default a standard validation procedure, i.e.,
+            :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
         verbose : :obj:`int` [optional]
@@ -253,7 +266,7 @@ class TorchNNTrainer(RecSysModel):
         ----------
         epoch : :obj:`int`
             Epoch's number.
-        train_data : :class:`samplers.Sampler`
+        train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for performing the
@@ -286,24 +299,6 @@ class TorchNNTrainer(RecSysModel):
         **kwargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             training on the batch.
-
-        Raises
-        ------
-        :class:`NotImplementedError`
-            Raised when not implemeneted in the sub-class.
-        """
-        raise NotImplementedError()
-
-    def validate(self, valid_data, metric):
-        r"""Validation procedure for the current model.
-
-        Parameters
-        ----------
-        valid_data : :class:`samplers.Sampler`
-            The sampler object that load the validation set in mini-batches.
-        metric : :obj:`str`
-            The metric used during the validation to select the best model.
-            To see the valid strings for the metric please see the module :mod:`metrics`.
 
         Raises
         ------
@@ -385,6 +380,7 @@ class AETrainer(TorchNNTrainer):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=100,
               verbose=1):
         try:
@@ -393,10 +389,10 @@ class AETrainer(TorchNNTrainer):
                 if valid_data is not None:
                     assert valid_metric is not None, \
                                 "In case of validation 'valid_metric' must be provided"
-                    valid_res = self.validate(valid_data, valid_metric)
+                    valid_res = valid_func(self, valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                    logger.info('| epoch %d | %s %.3f (%.4f) |', 
+                    logger.info('| epoch %d | %s %.3f (%.4f) |',
                                 epoch, valid_metric, mu_val, std_err_val)
         except KeyboardInterrupt:
             logger.warning('Handled KeyboardInterrupt: exiting from training early')
@@ -475,31 +471,6 @@ class AETrainer(TorchNNTrainer):
             if remove_train:
                 recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
             return (recon_x, )
-
-    def validate(self, test_loader, metric):
-        r"""Validation procedure for the current model.
-
-        Parameters
-        ----------
-        valid_data : :class:`samplers.Sampler`
-            The sampler object that load the validation set in mini-batches.
-        metric : :obj:`str`
-            The metric used during the validation to select the best model.
-            To see the valid strings for the metric please see the module :mod:`metrics`.
-
-        Returns
-        -------
-        :obj:`numpy.array`
-            Numpy array containing the value of the metric for each user.
-        """
-        results = []
-        for _, (data_tr, heldout) in enumerate(test_loader):
-            data_tensor = data_tr.view(data_tr.shape[0], -1)
-            recon_batch = self.predict(data_tensor)[0].cpu().numpy()
-            heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
-            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
-
-        return np.concatenate(results)
 
     def save_model(self, filepath, cur_epoch):
         r"""Save the model to file.
@@ -867,6 +838,7 @@ class MultiVAE(VAE):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=200,
               best_path="chkpt_best.pth",
               verbose=1):
@@ -880,15 +852,18 @@ class MultiVAE(VAE):
 
         Parameters
         ----------
-        train_data : :class:`samplers.Sampler`
+        train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
-        valid_data : :class:`samplers.Sampler` [optional]
+        valid_data : :class:`rectorch.samplers.Sampler` [optional]
             The sampler object that load the validation set in mini-batches, by default ``None``.
             If the model does not have any validation procedure set this parameter to ``None``.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default ``None``.
             If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
             To see the valid strings for the metric please see the module :mod:`metrics`.
+        valid_func : :class:`evaluation.ValidFunc` [optional]
+            The validation function, by default a standard validation procedure, i.e.,
+            :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
         best_path : :obj:`str` [optional]
@@ -906,7 +881,7 @@ class MultiVAE(VAE):
                 if valid_data:
                     assert valid_metric is not None, \
                                 "In case of validation 'valid_metric' must be provided"
-                    valid_res = self.validate(valid_data, valid_metric)
+                    valid_res = valid_func(self, valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                     logger.info('| epoch %d | %s %.3f (%.4f) |',
@@ -1029,8 +1004,15 @@ class EASE(RecSysModel):
         self.model = None
 
     def train(self, train_data):
+        """Training of the EASE model.
+
+        Parameters
+        ----------
+        train_data : :class:`scipy.sparse.csr_matrix`
+            The training data.
+        """
         logger.info("EASE - start tarining (lam=%.4f)", self.lam)
-        X = train_data.todense()
+        X = train_data.toarray()
         G = np.dot(X.T, X)
         logger.info("EASE - linear kernel computed")
         diag_idx = np.diag_indices(G.shape[0])
@@ -1204,6 +1186,7 @@ class CFGAN(RecSysModel):
               train_data,
               valid_data=None,
               valid_metric=None,
+              valid_func=ValidFunc(evaluate),
               num_epochs=1000,
               g_steps=5,
               d_steps=5,
@@ -1224,6 +1207,9 @@ class CFGAN(RecSysModel):
             The metric used during the validation to select the best model, by default ``None``.
             If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
             To see the valid strings for the metric please see the module :mod:`metrics`.
+        valid_func : :class:`evaluation.ValidFunc` [optional]
+            The validation function, by default a standard validation procedure, i.e.,
+            :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 1000.
         g_steps : :obj:`int` [optional]
@@ -1261,7 +1247,7 @@ class CFGAN(RecSysModel):
                     if valid_data is not None:
                         assert valid_metric is not None, \
                                     "In case of validation 'valid_metric' must be provided"
-                        valid_res = self.validate(valid_data, valid_metric)
+                        valid_res = valid_func(self, valid_data, valid_metric)
                         mu_val = np.mean(valid_res)
                         std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                         logger.info('| epoch %d | %s %.3f (%.4f) |',
@@ -1366,31 +1352,6 @@ class CFGAN(RecSysModel):
                 pred[tuple(x_tensor.nonzero().t())] = -np.inf
         return (pred, )
 
-    def validate(self, valid_data, metric):
-        r"""Validation procedure for the current CFGAN model.
-
-        Parameters
-        ----------
-        valid_data : :class:`samplers.Sampler`
-            The sampler object that load the validation set in mini-batches.
-        metric : :obj:`str`
-            The metric used during the validation to select the best model.
-            To see the valid strings for the metric please see the module :mod:`metrics`.
-
-        Returns
-        -------
-        :obj:`numpy.array`
-            Numpy array containing the value of the metric for each user.
-        """
-        results = []
-        for _, (data_tensor, heldout) in enumerate(valid_data):
-            data_tensor = data_tensor.view(data_tensor.shape[0], -1)
-            recon_batch = self.predict(data_tensor)[0].cpu().numpy()
-            heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
-            results.append(Metrics.compute(recon_batch, heldout, [metric])[metric])
-
-        return np.concatenate(results)
-
     def __str__(self):
         s = self.__class__.__name__ + "(\n"
         for k, v in self.__dict__.items():
@@ -1423,3 +1384,252 @@ class CFGAN(RecSysModel):
         self.opt_d.load_state_dict(checkpoint['optimizer_d'])
         logger.info("Model checkpoint loaded!")
         return checkpoint
+
+
+class ADMM_Slim(RecSysModel):
+    r"""ADMM SLIM: Sparse Recommendations for Many Users.
+
+    ADMM SLIM [ADMMS]_ is a model similar to SLIM [SLIM]_ in which the objective function is solved
+    using Alternating Directions Method of Multipliers (ADMM). In particular,
+    given the rating matrix :math:`\mathbf{X} \in \mathbb{R}^{n \times m}` with *n* users and *m*
+    items, ADMM SLIM aims at solving the following optimization problem:
+
+    :math:`\min_{B,C,\Gamma} \frac{1}{2}\|X-X B\|_{F}^{2}+\frac{\lambda_{2}}{2} \cdot\|B\|_{F}^{2}+\
+    \lambda_{1} \cdot\|C\|_{1} +\
+    \langle\Gamma, B-C\rangle_{F}+\frac{\rho}{2} \cdot\|B-C\|_{F}^{2}`
+
+    with :math:`\textrm{diag}(B)=0`, :math:`\Gamma \in \mathbb{R}^{m \times m}`, and the entry of
+    *C* are all greater or equal than 0.
+
+    The prediction for a user-item pair *(u,j)* is then computed by
+    :math:`S_{u j}=\mathbf{X}_{u,:} \cdot \mathbf{B}_{:, j}`.
+
+    Parameters
+    ----------
+    lambda1 : :obj:`float` [optional]
+        Elastic net regularization hyper-parameters :math:`\lambda_1`, by default 5.
+    lambda2 : :obj:`float` [optional]
+        Elastic net regularization hyper-parameters :math:`\lambda_2`, by default 1e3.
+    rho : :obj:`float` [optional]
+        The penalty hyper-parameter :math:`\rho>0` that applies to :math:`\|B-C\|^2_F`,
+        by default 1e5.
+    nn_constr : :obj:`bool` [optional]
+        Whether to keep the non-negativity constraint, by default ``True``.
+    l1_penalty : :obj:`bool` [optional]
+        Whether to keep the L1 penalty, by default ``True``. When ``l1_penalty = False`` then
+        is like to set :math:`\lambda_1 = 0`.
+    item_bias : :obj:`bool` [optional]
+        Whether to model the item biases, by default ``False``. When ``item_bias = True`` then
+        the scoring function for the user-item pair *(u,i)* becomes:
+        :math:`S_{ui}=(\mathbf{X}_{u,:} - \mathbf{b})\cdot \mathbf{B}_{:, i} + \mathbf{b}_i`.
+
+    Attributes
+    ----------
+    See the parameters' section.
+
+    References
+    ----------
+    .. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
+       ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
+       Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+       New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774
+    .. [SLIM] X. Ning and G. Karypis. 2011. SLIM: Sparse Linear Methods for Top-N Recommender
+       Systems. In Proceedings of the IEEE 11th International Conference on Data Mining,
+       Vancouver,BC, 2011, pp. 497-506. DOI: https://doi.org/10.1109/ICDM.2011.134.
+    """
+    def __init__(self,
+                 lambda1=5.,
+                 lambda2=1e3,
+                 rho=1e5,
+                 nn_constr=True,
+                 l1_penalty=True,
+                 item_bias=False):
+        self.lambda1 = lambda1
+        self.lambda2 = lambda2
+        self.rho = rho
+        self.nn_constr = nn_constr
+        self.l1_penalty = l1_penalty
+        self.item_bias = item_bias
+        self.model = None
+
+
+    def train(self, train_data, num_iter=50, verbose=1):
+        r"""Training of ADMM SLIM.
+
+        The training procedure of ADMM SLIM highly depends on the setting of the
+        hyper-parameters. By setting them in specific ways it is possible to define different
+        variants of the algorithm. That are:
+
+        1. (Vanilla) ADMM SLIM - :math:`\lambda_1, \lambda_2, \rho>0`, :attr:`item_bias` =
+        ``False``, and both :attr:`nn_constr` and :attr:`l1_penalty` set to ``True``;
+
+        2. ADMM SLIM w/o non-negativity constraint over C - :attr:`nn_constr` = ``False`` and
+        :attr:`l1_penalty` set to ``True``;
+
+        3. ADMM SLIM w/o the L1 penalty - :attr:`l1_penalty` = ``False`` and
+        :attr:`nn_constr` set to ``True``;
+
+        4. ADMM SLIM w/o L1 penalty and non-negativity constraint: :attr:`nn_constr` =
+        :attr:`l1_penalty` = ``False``.
+
+        All these variants can also be combined with the inclusion of the item biases by setting
+        :attr:`item_bias` to ``True``.
+
+        Parameters
+        ----------
+        train_data : :class:`scipy.sparse.csr_matrix`
+            The training data.
+        num_iter : :obj:`int` [optional]
+            Maximum number of training iterations, by default 50. This argument has no effect
+            if both :attr:`nn_constr` and :attr:`l1_penalty` are set to ``False``.
+        verbose : :obj:`int` [optional]
+            The level of verbosity of the logging, by default 1. The level can have any integer
+            value greater than 0. However, after reaching a maximum (that depends on the size of
+            the training set) verbosity higher values will not have any effect.
+        """
+        def _soft_threshold(a, k):
+            return np.maximum(0., a - k) - np.maximum(0., -a - k)
+
+        X = train_data.toarray()
+        if self.item_bias:
+            b = X.sum(axis=0)
+            X = X - np.outer(np.ones(X.shape[0]), b)
+
+        XtX = X.T.dot(X)
+        logger.info("ADMM_Slim - linear kernel computed")
+        diag_indices = np.diag_indices(XtX.shape[0])
+        XtX[diag_indices] += self.lambda2 + self.rho
+        P = np.linalg.inv(XtX)
+        logger.info("ADMM_Slim - inverse of XtX computed")
+
+        if not self.nn_constr and not self.l1_penalty:
+            C = np.eye(P.shape[0]) - P * np.diag(1. / np.diag(P))
+        else:
+            XtX[diag_indices] -= self.lambda2 + self.rho
+            B_aux = P.dot(XtX)
+            Gamma = np.zeros(XtX.shape, dtype=float)
+            C = np.zeros(XtX.shape, dtype=float)
+
+            log_delay = max(5, num_iter // (10*verbose))
+            for j in range(num_iter):
+                B_tilde = B_aux + P.dot(self.rho * C - Gamma)
+                gamma = np.diag(B_tilde) / np.diag(P)
+                B = B_tilde - P * np.diag(gamma)
+                C = _soft_threshold(B + Gamma / self.rho, self.lambda1 / self.rho)
+                if self.nn_constr and self.l1_penalty:
+                    C = np.maximum(C, 0.)
+                elif self.nn_constr and not self.l1_penalty:
+                    C = np.maximum(B, 0.)
+                Gamma += self.rho * (B - C)
+                if not (j+1) % log_delay:
+                    logger.info("| iteration %d/%d |", j+1, num_iter)
+
+        self.model = np.dot(X, C)
+        if self.item_bias:
+            self.model += b
+
+    def predict(self, ids_te_users, test_tr, remove_train=True):
+        pred = self.model[ids_te_users, :]
+        if remove_train:
+            pred[test_tr.nonzero()] = -np.inf
+        return (pred, )
+
+    def save_model(self, filepath):
+        state = {'lambda1': self.lambda1,
+                 'lambda2': self.lambda2,
+                 'rho' : self.rho,
+                 'model': self.model,
+                 'nn_constr' : self.nn_constr,
+                 'l1_penalty' : self.l1_penalty,
+                 'item_bias' : self.item_bias
+                }
+        logger.info("Saving ADMM_Slim model to %s...", filepath)
+        np.save(filepath, state)
+        logger.info("Model saved!")
+
+    def load_model(self, filepath):
+        assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
+        logger.info("Loading ADMM_Slim model from %s...", filepath)
+        state = np.load(filepath, allow_pickle=True)[()]
+        self.lambda1 = state["lambda1"]
+        self.lambda2 = state["lambda2"]
+        self.rho = state["rho"]
+        self.nn_constr = state["nn_constr"]
+        self.l1_penalty = state["l1_penalty"]
+        self.item_bias = state["item_bias"]
+        self.model = state["model"]
+        logger.info("Model loaded!")
+        return state
+
+    def __str__(self):
+        s = "ADMM_Slim(lambda1=%.4f, lamdba2=%.4f" %(self.lambda1, self.lambda2)
+        s += ", rho=%.4f" %self.rho
+        s += ", non_negativity=%s" %self.nn_constr
+        s += ", L1_penalty=%s" %self.l1_penalty
+        s += ", item_bias=%s" %self.item_bias
+        if self.model is not None:
+            s += ", model size=(%d, %d))" %self.model.shape
+        else:
+            s += ") - not trained yet!"
+        return s
+
+    def __repr__(self):
+        return str(self)
+
+
+#TODO documentation
+class SVAE(MultiVAE):
+    r"""Sequential Variational Autoencoders for Collaborative Filtering.
+
+    **UNDOCUMENTED** [SVAE]_
+
+    Parameters
+    ----------
+    mvae_net : :class:`torch.nn.Module`
+        The variational autoencoder neural network.
+    beta : :obj:`float` [optional]
+        The :math:`\beta` hyper-parameter of Multi-VAE. When ``anneal_steps > 0`` then this
+        value is the value to anneal starting from 0, otherwise the ``beta`` will be fixed to
+        the given value for the duration of the training. By default 1.
+    anneal_steps : :obj:`int` [optional]
+        Number of annealing step for reaching the target value ``beta``, by default 0.
+        0 means that no annealing will be performed and the regularization parameter will be
+        fixed to ``beta``.
+    learning_rate : :obj:`float` [optional]
+        The learning rate for the optimizer, by default 1e-3.
+
+    References
+    ----------
+    .. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+        Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the
+        Twelfth ACM International Conference on Web Search and Data Mining (WSDM '19).
+        Association for Computing Machinery, New York, NY, USA, 600–608.
+        DOI: https://doi.org/10.1145/3289600.3291007
+    """
+    def __init__(self,
+                 svae_net,
+                 beta=1.,
+                 anneal_steps=0,
+                 learning_rate=1e-3):
+        super(SVAE, self).__init__(svae_net,
+                                   beta=beta,
+                                   anneal_steps=anneal_steps,
+                                   learning_rate=learning_rate)
+        self.optimizer = optim.Adam(self.network.parameters(),
+                                    lr=learning_rate,
+                                    weight_decay=5e-3)
+
+    def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
+        likelihood_n = -torch.sum(torch.sum(F.log_softmax(recon_x, -1) * x.view(recon_x.shape), -1))
+        likelihood_d = float(torch.sum(x[0, :recon_x.shape[2]]))
+        KLD = -0.5 * torch.mean(torch.sum(1 + logvar - mu.pow(2) - logvar.exp(), dim=-1))
+        return likelihood_n / likelihood_d + beta * KLD
+
+    def predict(self, x, remove_train=True):
+        self.network.eval()
+        with torch.no_grad():
+            x_tensor = x.to(self.device)
+            recon_x, mu, logvar = self.network(x_tensor)
+            if remove_train:
+                recon_x[0, -1, x_tensor] = -np.inf
+            return recon_x[:, -1, :], mu, logvar

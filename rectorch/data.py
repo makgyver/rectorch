@@ -1,6 +1,6 @@
 r"""The ``data`` module manages the reading, writing and loading of the data sets.
 
-The supported data set format is standard `csv \
+The supported data set format is standard `csv
 <https://it.wikipedia.org/wiki/Comma-separated_values>`_.
 For more information about the expected data set fromat please visit :ref:`csv-format`.
 The data processing and loading configurations are managed through the configuration files
@@ -46,14 +46,14 @@ logger = logging.getLogger(__name__)
 class DataProcessing:
     r"""Class that manages the pre-processing of raw data sets.
 
-    Data sets are expected of being `csv <https://it.wikipedia.org/wiki/Comma-separated_values>`
+    Data sets are expected of being `csv <https://it.wikipedia.org/wiki/Comma-separated_values>`_
     files where each row represents a rating. More details about the allowed format are described
     in :ref:`csv-format`. The pre-processing is performed following the parameters settings defined
     in the data configuration file (see :ref:`config-format` for more information).
 
     Parameters
     ----------
-    data_config : :class:`configuration.DataConfig` or :obj:`str`:
+    data_config : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
         Represents the data pre-processing configurations.
         When ``type(data_config) == str`` is expected to be the path to the data configuration file.
         In that case a :class:`configuration.DataConfig` object is contextually created.
@@ -65,8 +65,9 @@ class DataProcessing:
 
     Attributes
     ----------
-    cfg : :class:`configuration.DataConfig`
-        The :class:`DataConfig` object containing the pre-processing configurations.
+    cfg : :class:`rectorch.configuration.DataConfig`
+        The :class:`rectorch.configuration.DataConfig` object containing the pre-processing
+        configurations.
     i2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
         Dictionary which maps the raw item id, i.e., as in the raw `csv` file, to an internal id
         which is an integer between 0 and the total number of items -1.
@@ -140,6 +141,7 @@ class DataProcessing:
         logger.info("Applying filtering.")
         imin, umin = int(self.cfg.i_min), int(self.cfg.u_min)
         raw_data, user_activity, _ = self._filter(raw_data, umin, imin)
+        print(raw_data.head())
 
         unique_uid = user_activity.index
         idx_perm = np.random.permutation(unique_uid.size)
@@ -167,13 +169,12 @@ class DataProcessing:
         val_data = val_data.loc[val_data[uhead].isin(vcnt[vcnt >= 2].index)]
         test_data = test_data.loc[test_data[uhead].isin(tcnt[tcnt >= 2].index)]
 
-        #TODO warning
-        #vcnt_after = val_data[[uhead]].groupby(uhead, as_index=False).size()
-        #tcnt_after = test_data[[uhead]].groupby(uhead, as_index=False).size()
-        #if vcnt_after < vcnt:
-        #    logger.warning("Skipped %d users in validation set.", vcnt - vcnt_after)
-        #if tcnt_after < tcnt:
-        #    logger.warning("Skipped %d users in test set.", tcnt - tcnt_after)
+        vcnt_diff = len(vcnt) - len(pd.unique(val_data[uhead]))
+        tcnt_diff = len(tcnt) - len(pd.unique(test_data[uhead]))
+        if vcnt_diff > 0:
+            logger.warning("Skipped %d users in validation set.", vcnt_diff)
+        if tcnt_diff > 0:
+            logger.warning("Skipped %d users in test set.", tcnt_diff)
 
         val_data_tr, val_data_te = self._split_train_test(val_data)
         test_data_tr, test_data_te = self._split_train_test(test_data)
@@ -244,7 +245,7 @@ class DataProcessing:
             dic_data = {'uid': uid, 'iid': iid}
             for c in data.columns.values[2:]:
                 dic_data[c] = data[c]
-            cols = ['uid', 'iid'] + list(data.columns.values[2:])
+            cols = ['uid', 'iid'] + list(data.columns[2:])
             return pd.DataFrame(data=dic_data, columns=cols)
 
     def _split_train_test(self, data):
@@ -281,14 +282,14 @@ class DataReader():
 
     Parameters
     ----------
-    data_config : :class:`configuration.DataConfig` or :obj:`str`:
+    data_config : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
         Represents the data pre-processing configurations.
         When ``type(data_config) == str`` is expected to be the path to the data configuration file.
         In that case a :class:`DataConfig` object is contextually created.
 
     Attributes
     ----------
-    cfg : :class:`configuration.DataConfig`
+    cfg : :class:`rectorch.configuration.DataConfig`
         Object containing the loading configurations.
     n_items : :obj:`int`
         The number of items in the data set.
@@ -296,7 +297,8 @@ class DataReader():
     Raises
     ------
     :class:`TypeError`
-        Raised when ``data_config`` is neither a :obj:`str` nor a :class:`configuration.DataConfig`.
+        Raised when ``data_config`` is neither a :obj:`str` nor a
+        :class:`rectorch.configuration.DataConfig`.
     """
     def __init__(self, data_config):
         if isinstance(data_config, DataConfig):
@@ -315,8 +317,7 @@ class DataReader():
 
         Parameters
         ----------
-        datatype : :obj:`str` in the set {``'train'``, ``'validation'``, ``'test'``, ``'full'``},\
-            [optional]
+        datatype : :obj:`str` in {``'train'``, ``'validation'``, ``'test'``, ``'full'``} [optional]
             String representing the type of data that has to be loaded, by default ``'train'``.
             When ``datatype`` is equal to ``'full'`` the entire data set is loaded into a sparse
             matrix.
@@ -327,7 +328,7 @@ class DataReader():
             The data set or part of it. When ``datatype`` is ``'full'`` or ``'train'`` a single
             sparse matrix is returned representing the full data set or the training set,
             respectively. While, if ``datatype`` is ``'validation'`` or ``'test'`` a pair of
-            sparse matrices is returned. The first matrix is the training part (i.e., for each
+            sparse matrices are returned. The first matrix is the training part (i.e., for each
             user its training set of items), and the second matrix is the test part (i.e., for each
             user its test set of items).
 
@@ -407,6 +408,92 @@ class DataReader():
         #keep_idx = tr_idx * te_idx
         return data_tr[tr_idx], data_te[tr_idx]
 
+    def _to_dict(self, data, col="timestamp"):
+        data = data.sort_values(col)
+        imin = data["uid"].min()
+        #ugly but it works
+        grouped = data.groupby(by="uid")
+        grouped = grouped.apply(lambda x: x.sort_values(col)).reset_index(drop=True)
+        grouped = grouped.groupby(by="uid")
+        return {idx - imin : list(group["iid"]) for idx, group in grouped}
+
+    def _split_train_test(self, data, col):
+        np.random.seed(self.cfg.seed)
+        test_prop = float(self.cfg.test_prop) if self.cfg.test_prop else 0.2
+        uhead = data.columns.values[0]
+        #ugly but it works
+        data_grouped_by_user = data.groupby(uhead)
+        data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(col))
+        data_grouped_by_user = data_grouped_by_user.reset_index(drop=True)
+        data_grouped_by_user = data_grouped_by_user.groupby(uhead)
+        tr_list, te_list = [], []
+
+        for _, group in data_grouped_by_user:
+            n_items_u = len(group)
+            idx = np.zeros(n_items_u, dtype='bool')
+            sz = max(int(test_prop * n_items_u), 1)
+            idx[-sz:] = True
+            tr_list.append(group[np.logical_not(idx)])
+            te_list.append(group[idx])
+
+        data_tr = pd.concat(tr_list)
+        data_te = pd.concat(te_list)
+        return data_tr, data_te
+
+    def load_data_as_dict(self, datatype='train', col="timestamp"):
+        r"""Load the data as a dictionary
+
+        The loaded dictionary has users as keys and lists of items as values. An entry
+        of the dictionary represents the list of rated items (sorted by ``col``) by the user,
+        i.e., the key.
+
+        Parameters
+        ----------
+        datatype : :obj:`str` in {``'train'``, ``'validation'``, ``'test'``} [optional]
+            String representing the type of data that has to be loaded, by default ``'train'``.
+        col : :obj:`str` of :obj:`None` [optional]
+            The name of the column on which items are ordered, by default "timestamp". If
+            :obj:`None` no ordered is applied.
+
+        Returns
+        -------
+        :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`) or :obj:`tuple` of :obj:`dict`
+            When ``datatype`` is ``'train'`` a single dictionary is returned representing the
+            training set. While, if ``datatype`` is ``'validation'`` or ``'test'`` a pair of
+            dictionaries returned. The first dictionary is the training part (i.e., for each
+            user its training set of items), and the second dictionart is the test part (i.e., for
+            each user its test set of items).
+        """
+        if datatype == 'train':
+            path = os.path.join(self.cfg.proc_path, 'train.csv')
+            data = pd.read_csv(path)
+            return self._to_dict(data, col)
+        elif datatype == 'validation':
+            path_tr = os.path.join(self.cfg.proc_path, 'validation_tr.csv')
+            path_te = os.path.join(self.cfg.proc_path, 'validation_te.csv')
+        elif datatype == 'test':
+            path_tr = os.path.join(self.cfg.proc_path, 'test_tr.csv')
+            path_te = os.path.join(self.cfg.proc_path, 'test_te.csv')
+        elif datatype == 'full':
+            data_list = [pd.read_csv(os.path.join(self.cfg.proc_path, 'train.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'validation_tr.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'validation_te.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'test_tr.csv')),
+                         pd.read_csv(os.path.join(self.cfg.proc_path, 'test_te.csv'))]
+            combined = pd.concat(data_list)
+            return self._to_dict(combined, col)
+        else:
+            raise ValueError("Possible datatype values are 'train', 'validation', 'test', 'full'.")
+
+        data_tr = pd.read_csv(path_tr)
+        data_te = pd.read_csv(path_te)
+
+        combined = pd.concat([data_tr, data_te], ignore_index=True)
+        combined = combined.sort_values(col)
+        data_tr, data_te = self._split_train_test(combined, col)
+
+        return self._to_dict(data_tr, col), self._to_dict(data_te, col)
+
 
 class DatasetManager():
     """Helper class for handling data sets.
@@ -419,7 +506,7 @@ class DatasetManager():
 
     Parameters
     ----------
-    config_file : :class:`configuration.DataConfig` or :obj:`str`:
+    config_file : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
         Represents the data pre-processing configurations.
         When ``type(config_file) == str`` is expected to be the path to the data configuration file.
         In that case a :class:`DataConfig` object is contextually created.
@@ -430,7 +517,7 @@ class DatasetManager():
         Number of items in the data set.
     training_set : :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
         The first matrix is the sparse training set matrix, while the  second element of the tuple
-        is :obj:``None``.
+        is :obj:`None`.
     validation_set : :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
         The first matrix is the training part of the validation set (i.e., for each user its
         training set of items), and the second matrix is the test part of the validation set (i.e.,
@@ -465,5 +552,6 @@ class DatasetManager():
             The first matrix is the training set, the second one is the test set.
         """
         tr = sparse.vstack([self.training_set[0], sum(self.validation_set), self.test_set[0]])
-        te = self.test_set[1]
+        shape = tr.shape[0] - self.test_set[1].shape[0], tr.shape[1]
+        te = sparse.vstack([sparse.csr_matrix(shape), self.test_set[1]])
         return tr, te

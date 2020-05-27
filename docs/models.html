@@ -258,6 +258,12 @@
 <tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.models.CFGAN" title="rectorch.models.CFGAN"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.models.CFGAN</span></code></a>(generator, discriminator)</p></td>
 <td><p>A Generic Collaborative Filtering Framework based on Generative Adversarial Networks.</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#rectorch.models.ADMM_Slim" title="rectorch.models.ADMM_Slim"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.models.ADMM_Slim</span></code></a>([lambda1, …])</p></td>
+<td><p>ADMM SLIM: Sparse Recommendations for Many Users.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#rectorch.models.SVAE" title="rectorch.models.SVAE"><code class="xref py py-obj docutils literal notranslate"><span class="pre">rectorch.models.SVAE</span></code></a>(svae_net[, beta, …])</p></td>
+<td><p>Sequential Variational Autoencoders for Collaborative Filtering.</p></td>
+</tr>
 </tbody>
 </table>
 <span class="target" id="module-rectorch.models"></span><p>This module includes the training algorithm for a bunch of state-of-the-art recommender systems.</p>
@@ -268,27 +274,21 @@ In these first releases of <strong>rectorch</strong> all models will be located 
 we plan to improve the structure of the library creating sub-modules.</p>
 <p>Currently the implemented training algorithms are:</p>
 <ul class="simple">
-<li><dl class="simple">
-<li><a class="reference internal" href="#rectorch.models.MultiDAE" title="rectorch.models.MultiDAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiDAE</span></code></a>: Denoising Autoencoder for Collaborative filtering with Multinomial prior</li><ul><p>(in the paper <em>Mult-DAE</em>) <a class="reference internal" href="#rd0d07cdfe4c4-vae" id="id1"><span>[Rd0d07cdfe4c4-VAE]</span></a>;</p>
-</ul>
-</dl>
-</li>
-<li><dl class="simple">
-<li><a class="reference internal" href="#rectorch.models.MultiVAE" title="rectorch.models.MultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiVAE</span></code></a>: Variational Autoencoder for Collaborative filtering with Multinomial prior</li><ul><p>(in the paper <em>Mult-VAE</em>) <a class="reference internal" href="#rd0d07cdfe4c4-vae" id="id2"><span>[Rd0d07cdfe4c4-VAE]</span></a>;</p>
-</ul>
-</dl>
-</li>
+<li><p><a class="reference internal" href="#rectorch.models.MultiDAE" title="rectorch.models.MultiDAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiDAE</span></code></a>: Denoising Autoencoder for Collaborative filtering with Multinomial prior (in the paper <em>Mult-DAE</em>) <a class="reference internal" href="#rd0d07cdfe4c4-vae" id="id1"><span>[Rd0d07cdfe4c4-VAE]</span></a>;</p></li>
+<li><p><a class="reference internal" href="#rectorch.models.MultiVAE" title="rectorch.models.MultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiVAE</span></code></a>: Variational Autoencoder for Collaborative filtering with Multinomial prior (in the paper <em>Mult-VAE</em>) <a class="reference internal" href="#rd0d07cdfe4c4-vae" id="id2"><span>[Rd0d07cdfe4c4-VAE]</span></a>;</p></li>
 <li><p><a class="reference internal" href="#rectorch.models.CMultiVAE" title="rectorch.models.CMultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">CMultiVAE</span></code></a>: Conditioned Variational Autoencoder (in the paper <em>C-VAE</em>) <a class="reference internal" href="#rd0d07cdfe4c4-cvae" id="id3"><span>[Rd0d07cdfe4c4-CVAE]</span></a>;</p></li>
 <li><p><a class="reference internal" href="#rectorch.models.CFGAN" title="rectorch.models.CFGAN"><code class="xref py py-class docutils literal notranslate"><span class="pre">CFGAN</span></code></a>: Collaborative Filtering with Generative Adversarial Networks <a class="reference internal" href="#rd0d07cdfe4c4-cfgan" id="id4"><span>[Rd0d07cdfe4c4-CFGAN]</span></a>;</p></li>
 <li><p><a class="reference internal" href="#rectorch.models.EASE" title="rectorch.models.EASE"><code class="xref py py-class docutils literal notranslate"><span class="pre">EASE</span></code></a>: Embarrassingly shallow autoencoder for sparse data <a class="reference internal" href="#rd0d07cdfe4c4-ease" id="id5"><span>[Rd0d07cdfe4c4-EASE]</span></a>.</p></li>
+<li><p><a class="reference internal" href="#rectorch.models.ADMM_Slim" title="rectorch.models.ADMM_Slim"><code class="xref py py-class docutils literal notranslate"><span class="pre">ADMM_Slim</span></code></a>: ADMM SLIM: Sparse Recommendations for Many Users <a class="reference internal" href="#rd0d07cdfe4c4-admms" id="id6"><span>[Rd0d07cdfe4c4-ADMMS]</span></a>.</p></li>
+<li><p><a class="reference internal" href="#rectorch.models.SVAE" title="rectorch.models.SVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">SVAE</span></code></a>: Sequential Variational Autoencoders for Collaborative Filtering <a class="reference internal" href="#rd0d07cdfe4c4-svae" id="id7"><span>[Rd0d07cdfe4c4-SVAE]</span></a>.</p></li>
 </ul>
 <p>It is also implemented a generic Variational autoencoder trainer (<a class="reference internal" href="#rectorch.models.VAE" title="rectorch.models.VAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">VAE</span></code></a>) based on the classic
 loss function <em>cross-entropy</em> based reconstruction loss, plus the KL loss.</p>
 <div class="admonition seealso">
 <p class="admonition-title">See also</p>
 <p>Modules:
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">nets</span></code>
-<code class="xref py py-mod docutils literal notranslate"><span class="pre">samplers</span></code></p>
+<a class="reference internal" href="nets.html#module-rectorch.nets" title="rectorch.nets"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nets</span></code></a>
+<a class="reference internal" href="samplers.html#module-rectorch.samplers" title="rectorch.samplers"><code class="xref py py-mod docutils literal notranslate"><span class="pre">samplers</span></code></a></p>
 </div>
 <div class="admonition-references admonition">
 <p class="admonition-title">References</p>
@@ -316,6 +316,18 @@ DOI: <a class="reference external" href="https://doi.org/10.1145/3269206.3271743
 <dd><p>Harald Steck. 2019. Embarrassingly Shallow Autoencoders for Sparse Data.
 In The World Wide Web Conference (WWW ’19). Association for Computing Machinery,
 New York, NY, USA, 3251–3257. DOI: <a class="reference external" href="https://doi.org/10.1145/3308558.3313710">https://doi.org/10.1145/3308558.3313710</a></p>
+</dd>
+<dt class="label" id="rd0d07cdfe4c4-admms"><span class="brackets"><a class="fn-backref" href="#id6">Rd0d07cdfe4c4-ADMMS</a></span></dt>
+<dd><p>Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
+ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
+Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+New York, NY, USA, 555–563. DOI: <a class="reference external" href="https://doi.org/10.1145/3336191.3371774">https://doi.org/10.1145/3336191.3371774</a></p>
+</dd>
+<dt class="label" id="rd0d07cdfe4c4-svae"><span class="brackets"><a class="fn-backref" href="#id7">Rd0d07cdfe4c4-SVAE</a></span></dt>
+<dd><p>Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the Twelfth
+ACM International Conference on Web Search and Data Mining (WSDM ’19). Association for Computing
+Machinery, New York, NY, USA, 600–608. DOI: <a class="reference external" href="https://doi.org/10.1145/3289600.3291007">https://doi.org/10.1145/3289600.3291007</a></p>
 </dd>
 </dl>
 </div>
@@ -359,7 +371,8 @@ after the training procedure (<a class="reference internal" href="#rectorch.mode
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>x</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input for which the prediction has to be computed.</p>
+<li><strong>x</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or</span></li><ul><p><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>
+The input for which the prediction has to be computed.</p>
 </ul>
 <li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
 prediction.</p>
@@ -413,9 +426,9 @@ model should be ready to be queried for predictions.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>train_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or</span></li><ul><p><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>
+<li><strong>train_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or</span></li><ul><p><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>
 This object represents the training data. If the training procedure is based on
-mini-batches, then <code class="docutils literal notranslate"><span class="pre">train_data</span></code> should be a <code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code>.</p>
+mini-batches, then <code class="docutils literal notranslate"><span class="pre">train_data</span></code> should be a <a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a>.</p>
 </ul>
 <li><strong>**kargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> [optional]</span></li><ul><p>These are the potential keyword parameters useful to the model for performing the
 training.</p>
@@ -502,7 +515,8 @@ after the training procedure (<a class="reference internal" href="#rectorch.mode
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>x</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input for which the prediction has to be computed.</p>
+<li><strong>x</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or</span></li><ul><p><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>
+The input for which the prediction has to be computed.</p>
 </ul>
 <li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
 prediction.</p>
@@ -523,19 +537,22 @@ prediction.</p>
 
 <dl class="py method">
 <dt id="rectorch.models.TorchNNTrainer.train">
-<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">train_data</em>, <em class="sig-param">valid_data=None</em>, <em class="sig-param">valid_metric=None</em>, <em class="sig-param">num_epochs=100</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">\*\*kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#TorchNNTrainer.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.TorchNNTrainer.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param">self</em>, <em class="sig-param">train_data</em>, <em class="sig-param">valid_data=None</em>, <em class="sig-param">valid_metric=None</em>, <em class="sig-param">valid_func=ValidFunc(fun='evaluate'</em>, <em class="sig-param">params=None)</em>, <em class="sig-param">num_epochs=100</em>, <em class="sig-param">verbose=1</em>, <em class="sig-param">\*\*kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#TorchNNTrainer.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.TorchNNTrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Training of a neural network-based model.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>train_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
+<li><strong>train_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
 </ul>
-<li><strong>valid_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> [optional]</span></li><ul><p>The sampler object that load the validation set in mini-batches, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+<li><strong>valid_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> [optional]</span></li><ul><p>The sampler object that load the validation set in mini-batches, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 If the model does not have any validation procedure set this parameter to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </ul>
 <li><strong>valid_metric</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> [optional]</span></li><ul><p>The metric used during the validation to select the best model, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 If <code class="docutils literal notranslate"><span class="pre">valid_data</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code> then <code class="docutils literal notranslate"><span class="pre">valid_metric</span></code> must be not <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 To see the valid strings for the metric please see the module <code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code>.</p>
+</ul>
+<li><strong>valid_func</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">evaluation.ValidFunc</span></code> [optional]</span></li><ul><p>The validation function, by default a standard validation procedure, i.e.,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">evaluation.evaluate()</span></code>.</p>
 </ul>
 <li><strong>num_epochs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>Number of training epochs, by default 100.</p>
 </ul>
@@ -593,36 +610,13 @@ training on the batch.</p>
 <dd class="field-odd"><dl>
 <li><strong>epoch</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Epoch’s number.</p>
 </ul>
-<li><strong>train_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
+<li><strong>train_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
 </ul>
 <li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
 training.</p>
 </ul>
 <li><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> [optional]</span></li><ul><p>These are the potential keyword parameters useful to the model for performing the
 training.</p>
-</ul>
-</dl>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><dl class="simple">
-<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a></li><ul><p>Raised when not implemeneted in the sub-class.</p>
-</ul>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="rectorch.models.TorchNNTrainer.validate">
-<code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">valid_data</span></em>, <em class="sig-param"><span class="n">metric</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#TorchNNTrainer.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.TorchNNTrainer.validate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Validation procedure for the current model.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl>
-<li><strong>valid_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the validation set in mini-batches.</p>
-</ul>
-<li><strong>metric</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></span></li><ul><p>The metric used during the validation to select the best model.
-To see the valid strings for the metric please see the module <code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code>.</p>
 </ul>
 </dl>
 </dd>
@@ -760,19 +754,22 @@ It is meant to be the reconstruction over the input batch <code class="docutils 
 
 <dl class="py method">
 <dt id="rectorch.models.AETrainer.train">
-<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em>, <em class="sig-param"><span class="n">valid_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_epochs</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#AETrainer.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.AETrainer.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em>, <em class="sig-param"><span class="n">valid_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_func</span><span class="o">=</span><span class="default_value">ValidFunc(fun='evaluate', params=None)</span></em>, <em class="sig-param"><span class="n">num_epochs</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#AETrainer.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.AETrainer.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Training of a neural network-based model.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>train_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
+<li><strong>train_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
 </ul>
-<li><strong>valid_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> [optional]</span></li><ul><p>The sampler object that load the validation set in mini-batches, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+<li><strong>valid_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> [optional]</span></li><ul><p>The sampler object that load the validation set in mini-batches, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 If the model does not have any validation procedure set this parameter to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </ul>
 <li><strong>valid_metric</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> [optional]</span></li><ul><p>The metric used during the validation to select the best model, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 If <code class="docutils literal notranslate"><span class="pre">valid_data</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code> then <code class="docutils literal notranslate"><span class="pre">valid_metric</span></code> must be not <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 To see the valid strings for the metric please see the module <code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code>.</p>
+</ul>
+<li><strong>valid_func</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">evaluation.ValidFunc</span></code> [optional]</span></li><ul><p>The validation function, by default a standard validation procedure, i.e.,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">evaluation.evaluate()</span></code>.</p>
 </ul>
 <li><strong>num_epochs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>Number of training epochs, by default 100.</p>
 </ul>
@@ -824,7 +821,7 @@ the training set) verbosity higher values will not have any effect.</p>
 <dd class="field-odd"><dl>
 <li><strong>epoch</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a></span></li><ul><p>Epoch’s number.</p>
 </ul>
-<li><strong>train_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
+<li><strong>train_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
 </ul>
 <li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
 training.</p>
@@ -843,29 +840,6 @@ training.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="rectorch.models.AETrainer.validate">
-<code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">test_loader</span></em>, <em class="sig-param"><span class="n">metric</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#AETrainer.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.AETrainer.validate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Validation procedure for the current model.</p>
-<dl class="field-list">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><dl>
-<li><strong>valid_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the validation set in mini-batches.</p>
-</ul>
-<li><strong>metric</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></span></li><ul><p>The metric used during the validation to select the best model.
-To see the valid strings for the metric please see the module <code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code>.</p>
-</ul>
-</dl>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><dl class="simple">
-<li><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></li><ul><p>Numpy array containing the value of the metric for each user.</p>
-</ul>
-</dl>
-</dd>
-</dl>
-</dd></dl>
-
 </dd></dl>
 
 <dl class="py class">
@@ -873,7 +847,7 @@ To see the valid strings for the metric please see the module <code class="xref 
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.models.</code><code class="sig-name descname">VAE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ae_net</span></em>, <em class="sig-param"><span class="n">learning_rate</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#VAE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.VAE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#rectorch.models.AETrainer" title="rectorch.models.AETrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.AETrainer</span></code></a></p>
 <p>Class representing a standard Variational Autoencoder.</p>
-<p>The learning follows standard backpropagation minimizing the loss described in <a class="reference internal" href="#r7e07b32cacd8-kingma" id="id6"><span>[R7e07b32cacd8-KINGMA]</span></a>.
+<p>The learning follows standard backpropagation minimizing the loss described in <a class="reference internal" href="#r7e07b32cacd8-kingma" id="id8"><span>[R7e07b32cacd8-KINGMA]</span></a>.
 See <a class="reference internal" href="#rectorch.models.VAE.loss_function" title="rectorch.models.VAE.loss_function"><code class="xref py py-meth docutils literal notranslate"><span class="pre">VAE.loss_function()</span></code></a> for more details.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -881,7 +855,7 @@ See <a class="reference internal" href="#rectorch.models.VAE.loss_function" titl
 </div>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="r7e07b32cacd8-kingma"><span class="brackets"><a class="fn-backref" href="#id6">R7e07b32cacd8-KINGMA</a></span></dt>
+<dt class="label" id="r7e07b32cacd8-kingma"><span class="brackets"><a class="fn-backref" href="#id8">R7e07b32cacd8-KINGMA</a></span></dt>
 <dd><p>Kingma, Diederik P and Welling, Max Auto-Encoding Variational Bayes, 2013.
 arXiv pre-print: <a class="reference external" href="https://arxiv.org/abs/1312.6114">https://arxiv.org/abs/1312.6114</a>.</p>
 </dd>
@@ -890,7 +864,7 @@ arXiv pre-print: <a class="reference external" href="https://arxiv.org/abs/1312.
 <dt id="rectorch.models.VAE.loss_function">
 <code class="sig-name descname">loss_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">recon_x</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">mu</span></em>, <em class="sig-param"><span class="n">logvar</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#VAE.loss_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.VAE.loss_function" title="Permalink to this definition">¶</a></dt>
 <dd><p>Standard VAE loss function.</p>
-<p>This method implements the loss function described in <a class="reference internal" href="#r40dbbfcad4ed-kingma" id="id8">[KINGMA]</a> assuming a Gaussian latent,
+<p>This method implements the loss function described in <a class="reference internal" href="#r40dbbfcad4ed-kingma" id="id10">[KINGMA]</a> assuming a Gaussian latent,
 that is:</p>
 <p><span class="math notranslate nohighlight">\(\mathcal{L} = \mathcal{L}_{rec} + \mathcal{L}_{KL}\)</span></p>
 <p>where</p>
@@ -928,7 +902,7 @@ batch.</p>
 </dl>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="r40dbbfcad4ed-kingma"><span class="brackets"><a class="fn-backref" href="#id8">KINGMA</a></span></dt>
+<dt class="label" id="r40dbbfcad4ed-kingma"><span class="brackets"><a class="fn-backref" href="#id10">KINGMA</a></span></dt>
 <dd><p>Kingma, Diederik P and Welling, Max Auto-Encoding Variational Bayes, 2013.
 arXiv pre-print: <a class="reference external" href="https://arxiv.org/abs/1312.6114">https://arxiv.org/abs/1312.6114</a>.</p>
 </dd>
@@ -1000,7 +974,7 @@ reparameteriation trick.</p>
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.models.</code><code class="sig-name descname">MultiDAE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mdae_net</span></em>, <em class="sig-param"><span class="n">lam</span><span class="o">=</span><span class="default_value">0.2</span></em>, <em class="sig-param"><span class="n">learning_rate</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#MultiDAE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.MultiDAE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#rectorch.models.AETrainer" title="rectorch.models.AETrainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.AETrainer</span></code></a></p>
 <p>Denoising Autoencoder with multinomial likelihood for collaborative filtering.</p>
-<p>This model has been proposed in <a class="reference internal" href="#r124de05ddb52-vae" id="id10"><span>[R124de05ddb52-VAE]</span></a> as a baseline method to compare with Mult-VAE.
+<p>This model has been proposed in <a class="reference internal" href="#r124de05ddb52-vae" id="id12"><span>[R124de05ddb52-VAE]</span></a> as a baseline method to compare with Mult-VAE.
 The model represent a standard denoising autoencoder in which the data is assumed to be
 multinomial distributed.</p>
 <dl class="field-list">
@@ -1008,7 +982,7 @@ multinomial distributed.</p>
 <dd class="field-odd"><dl>
 <li><strong>mdae_net</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/nn.html#torch.nn.Module" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></a></span></li><ul><p>The autoencoder neural network.</p>
 </ul>
-<li><strong>lam</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The regularization hyper-parameter <span class="math notranslate nohighlight">\(\lambda\)</span> as defined in <a class="reference internal" href="#r124de05ddb52-vae" id="id11"><span>[R124de05ddb52-VAE]</span></a>, by default 0.2.</p>
+<li><strong>lam</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The regularization hyper-parameter <span class="math notranslate nohighlight">\(\lambda\)</span> as defined in <a class="reference internal" href="#r124de05ddb52-vae" id="id13"><span>[R124de05ddb52-VAE]</span></a>, by default 0.2.</p>
 </ul>
 <li><strong>learning_rate</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The learning rate for the optimizer, by default 1e-3.</p>
 </ul>
@@ -1017,7 +991,7 @@ multinomial distributed.</p>
 </dl>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="r124de05ddb52-vae"><span class="brackets">R124de05ddb52-VAE</span><span class="fn-backref">(<a href="#id10">1</a>,<a href="#id11">2</a>)</span></dt>
+<dt class="label" id="r124de05ddb52-vae"><span class="brackets">R124de05ddb52-VAE</span><span class="fn-backref">(<a href="#id12">1</a>,<a href="#id13">2</a>)</span></dt>
 <dd><p>Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
 Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
 World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
@@ -1071,7 +1045,7 @@ batch.</p>
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.models.</code><code class="sig-name descname">MultiVAE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mvae_net</span></em>, <em class="sig-param"><span class="n">beta</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">anneal_steps</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">learning_rate</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#MultiVAE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.MultiVAE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#rectorch.models.VAE" title="rectorch.models.VAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.VAE</span></code></a></p>
 <p>Variational Autoencoder for collaborative Filtering.</p>
-<p>MultiVAE (dubbed Mult-VAE in <a class="reference internal" href="#rd1a0b0462d7a-vae" id="id13"><span>[Rd1a0b0462d7a-VAE]</span></a>) is a vanilla VAE in which the data distribution is
+<p>MultiVAE (dubbed Mult-VAE in <a class="reference internal" href="#rd1a0b0462d7a-vae" id="id15"><span>[Rd1a0b0462d7a-VAE]</span></a>) is a vanilla VAE in which the data distribution is
 assumed to be multinomial and the objective function is an under-regularized version
 of the standard VAE loss function. Specifically, the Kullbach-Liebler divergence term is
 weighted by an hyper-parameter (<span class="math notranslate nohighlight">\(\beta\)</span>) that shows to improve de recommendations’
@@ -1098,7 +1072,7 @@ fixed to <code class="docutils literal notranslate"><span class="pre">beta</span
 </dl>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="rd1a0b0462d7a-vae"><span class="brackets"><a class="fn-backref" href="#id13">Rd1a0b0462d7a-VAE</a></span></dt>
+<dt class="label" id="rd1a0b0462d7a-vae"><span class="brackets"><a class="fn-backref" href="#id15">Rd1a0b0462d7a-VAE</a></span></dt>
 <dd><p>Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
 Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
 World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
@@ -1208,7 +1182,7 @@ batch.</p>
 
 <dl class="py method">
 <dt id="rectorch.models.MultiVAE.train">
-<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em>, <em class="sig-param"><span class="n">valid_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_epochs</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">best_path</span><span class="o">=</span><span class="default_value">'chkpt_best.pth'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#MultiVAE.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.MultiVAE.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em>, <em class="sig-param"><span class="n">valid_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_func</span><span class="o">=</span><span class="default_value">ValidFunc(fun='evaluate', params=None)</span></em>, <em class="sig-param"><span class="n">num_epochs</span><span class="o">=</span><span class="default_value">200</span></em>, <em class="sig-param"><span class="n">best_path</span><span class="o">=</span><span class="default_value">'chkpt_best.pth'</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#MultiVAE.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.MultiVAE.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Training procedure for Multi-VAE.</p>
 <p>The training of MultiVAE follows pretty much the same as a standard VAE with the only
 difference in the (possible) annealing of the hyper-parameter <span class="math notranslate nohighlight">\(\beta\)</span>. This model
@@ -1218,14 +1192,17 @@ will be saved in the file indicated in the parameter <code class="docutils liter
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>train_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
+<li><strong>train_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a></span></li><ul><p>The sampler object that load the training set in mini-batches.</p>
 </ul>
-<li><strong>valid_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> [optional]</span></li><ul><p>The sampler object that load the validation set in mini-batches, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
+<li><strong>valid_data</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> [optional]</span></li><ul><p>The sampler object that load the validation set in mini-batches, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 If the model does not have any validation procedure set this parameter to <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
 </ul>
 <li><strong>valid_metric</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> [optional]</span></li><ul><p>The metric used during the validation to select the best model, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 If <code class="docutils literal notranslate"><span class="pre">valid_data</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code> then <code class="docutils literal notranslate"><span class="pre">valid_metric</span></code> must be not <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 To see the valid strings for the metric please see the module <code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code>.</p>
+</ul>
+<li><strong>valid_func</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">evaluation.ValidFunc</span></code> [optional]</span></li><ul><p>The validation function, by default a standard validation procedure, i.e.,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">evaluation.evaluate()</span></code>.</p>
 </ul>
 <li><strong>num_epochs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>Number of training epochs, by default 100.</p>
 </ul>
@@ -1284,7 +1261,7 @@ The loss function can be seen in two ways:</p>
 </li>
 <li><p>a modified loss which performs the filtering by itself.</p></li>
 </ul>
-<p>More details about the loss function are given in the paper <a class="reference internal" href="#r616c5a496243-cvae" id="id15"><span>[R616c5a496243-CVAE]</span></a>.</p>
+<p>More details about the loss function are given in the paper <a class="reference internal" href="#r616c5a496243-cvae" id="id17"><span>[R616c5a496243-CVAE]</span></a>.</p>
 <p>The training process is almost identical to the one of <a class="reference internal" href="#rectorch.models.MultiVAE" title="rectorch.models.MultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">MultiVAE</span></code></a> but the sampler
 must be a <code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.ConditionedDataSampler</span></code>.</p>
 <div class="admonition note">
@@ -1293,7 +1270,7 @@ must be a <code class="xref py py-class docutils literal notranslate"><span clas
 </div>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="r616c5a496243-cvae"><span class="brackets"><a class="fn-backref" href="#id15">R616c5a496243-CVAE</a></span></dt>
+<dt class="label" id="r616c5a496243-cvae"><span class="brackets"><a class="fn-backref" href="#id17">R616c5a496243-CVAE</a></span></dt>
 <dd><p>Tommaso Carraro, Mirko Polato and Fabio Aiolli. Conditioned Variational
 Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
 <a class="reference external" href="https://arxiv.org/abs/2004.11141">https://arxiv.org/abs/2004.11141</a></p>
@@ -1340,7 +1317,7 @@ reparameteriation trick.</p>
 <em class="property">class </em><code class="sig-prename descclassname">rectorch.models.</code><code class="sig-name descname">EASE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lam</span><span class="o">=</span><span class="default_value">100.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#EASE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.EASE" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#rectorch.models.RecSysModel" title="rectorch.models.RecSysModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.RecSysModel</span></code></a></p>
 <p>Embarrassingly Shallow AutoEncoders for Sparse Data (EASE) model.</p>
-<p>This model has been proposed in <a class="reference internal" href="#r616dc10ef7fc-ease" id="id17"><span>[R616dc10ef7fc-EASE]</span></a> and it can be summarized as follows.
+<p>This model has been proposed in <a class="reference internal" href="#r616dc10ef7fc-ease" id="id19"><span>[R616dc10ef7fc-EASE]</span></a> and it can be summarized as follows.
 Given the rating matrix <span class="math notranslate nohighlight">\(\mathbf{X} \in \mathbb{R}^{n \times m}\)</span> with <em>n</em> users and <em>m</em>
 items, EASE aims at solving the following optimization problem:</p>
 <p><span class="math notranslate nohighlight">\(\min_{\mathbf{B}} \|\mathbf{X}-\mathbf{X} \mathbf{B}\|_{F}^{2}+\
@@ -1364,7 +1341,7 @@ Then, a prediction for a user-item pair <em>(u,j)</em> will be computed by
 </dl>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="r616dc10ef7fc-ease"><span class="brackets"><a class="fn-backref" href="#id17">R616dc10ef7fc-EASE</a></span></dt>
+<dt class="label" id="r616dc10ef7fc-ease"><span class="brackets"><a class="fn-backref" href="#id19">R616dc10ef7fc-EASE</a></span></dt>
 <dd><p>Harald Steck. 2019. Embarrassingly Shallow Autoencoders for Sparse Data.
 In The World Wide Web Conference (WWW ’19). Association for Computing Machinery,
 New York, NY, USA, 3251–3257. DOI: <a class="reference external" href="https://doi.org/10.1145/3308558.3313710">https://doi.org/10.1145/3308558.3313710</a></p>
@@ -1468,24 +1445,11 @@ prediction.</p>
 <dl class="py method">
 <dt id="rectorch.models.EASE.train">
 <code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#EASE.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.EASE.train" title="Permalink to this definition">¶</a></dt>
-<dd><p>Training procedure.</p>
-<p>This method is meant to execute all the training phase. Once the method ends, the
-model should be ready to be queried for predictions.</p>
+<dd><p>Training of the EASE model.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>train_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or</span></li><ul><p><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>
-This object represents the training data. If the training procedure is based on
-mini-batches, then <code class="docutils literal notranslate"><span class="pre">train_data</span></code> should be a <code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code>.</p>
-</ul>
-<li><strong>**kargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> [optional]</span></li><ul><p>These are the potential keyword parameters useful to the model for performing the
-training.</p>
-</ul>
-</dl>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><dl class="simple">
-<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a></li><ul><p>Raised when not implemeneted in the sub-class.</p>
+<li><strong>train_data</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training data.</p>
 </ul>
 </dl>
 </dd>
@@ -1523,7 +1487,7 @@ The two networks try to optimize the followng loss functions:</p>
 indicator vector such that <span class="math notranslate nohighlight">\(k_{uj} = 1\)</span> iff
 <em>j</em> is a negative sampled item, <span class="math notranslate nohighlight">\(\hat{\mathbf{r}}_u\)</span> is a fake user profile, and
 <span class="math notranslate nohighlight">\(\mathbf{e}_u\)</span> is the masking vector to remove the non-rated items.
-For more details please refer to the original paper <a class="reference internal" href="#rd8d00c5b2c0a-cfgan" id="id19"><span>[Rd8d00c5b2c0a-CFGAN]</span></a>.</p>
+For more details please refer to the original paper <a class="reference internal" href="#rd8d00c5b2c0a-cfgan" id="id21"><span>[Rd8d00c5b2c0a-CFGAN]</span></a>.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
@@ -1548,7 +1512,7 @@ is the number of nodes of the hidden layer <em>i</em>.</p>
 </dl>
 <p class="rubric">References</p>
 <dl class="citation">
-<dt class="label" id="rd8d00c5b2c0a-cfgan"><span class="brackets"><a class="fn-backref" href="#id19">Rd8d00c5b2c0a-CFGAN</a></span></dt>
+<dt class="label" id="rd8d00c5b2c0a-cfgan"><span class="brackets"><a class="fn-backref" href="#id21">Rd8d00c5b2c0a-CFGAN</a></span></dt>
 <dd><p>Dong-Kyu Chae, Jin-Soo Kang, Sang-Wook Kim, and Jung-Tae Lee. 2018.
 CFGAN: A Generic Collaborative Filtering Framework based on Generative Adversarial Networks.
 In Proceedings of the 27th ACM International Conference on Information and Knowledge
@@ -1613,7 +1577,8 @@ after the training procedure (<a class="reference internal" href="#rectorch.mode
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>x</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or <a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input for which the prediction has to be computed.</p>
+<li><strong>x</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or</span></li><ul><p><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>
+The input for which the prediction has to be computed.</p>
 </ul>
 <li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
 prediction.</p>
@@ -1660,7 +1625,7 @@ prediction.</p>
 
 <dl class="py method">
 <dt id="rectorch.models.CFGAN.train">
-<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em>, <em class="sig-param"><span class="n">valid_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">num_epochs</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">g_steps</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">d_steps</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#CFGAN.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.CFGAN.train" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em>, <em class="sig-param"><span class="n">valid_data</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_metric</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">valid_func</span><span class="o">=</span><span class="default_value">ValidFunc(fun='evaluate', params=None)</span></em>, <em class="sig-param"><span class="n">num_epochs</span><span class="o">=</span><span class="default_value">1000</span></em>, <em class="sig-param"><span class="n">g_steps</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">d_steps</span><span class="o">=</span><span class="default_value">5</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#CFGAN.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.CFGAN.train" title="Permalink to this definition">¶</a></dt>
 <dd><p>Training procedure of CFGAN.</p>
 <p>The training works in an alternate way between generator and discriminator.
 The number of training batches in each epochs are <code class="docutils literal notranslate"><span class="pre">g_steps</span></code> and <code class="docutils literal notranslate"><span class="pre">d_steps</span></code>, respectively.</p>
@@ -1675,6 +1640,9 @@ If the model does not have any validation procedure set this parameter to <code 
 <li><strong>valid_metric</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a> [optional]</span></li><ul><p>The metric used during the validation to select the best model, by default <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 If <code class="docutils literal notranslate"><span class="pre">valid_data</span></code> is not <code class="docutils literal notranslate"><span class="pre">None</span></code> then <code class="docutils literal notranslate"><span class="pre">valid_metric</span></code> must be not <code class="docutils literal notranslate"><span class="pre">None</span></code>.
 To see the valid strings for the metric please see the module <code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code>.</p>
+</ul>
+<li><strong>valid_func</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">evaluation.ValidFunc</span></code> [optional]</span></li><ul><p>The validation function, by default a standard validation procedure, i.e.,
+<code class="xref py py-func docutils literal notranslate"><span class="pre">evaluation.evaluate()</span></code>.</p>
 </ul>
 <li><strong>num_epochs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>Number of training epochs, by default 1000.</p>
 </ul>
@@ -1731,23 +1699,288 @@ the training set) verbosity higher values will not have any effect.</p>
 </dl>
 </dd></dl>
 
-<dl class="py method">
-<dt id="rectorch.models.CFGAN.validate">
-<code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">valid_data</span></em>, <em class="sig-param"><span class="n">metric</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#CFGAN.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.CFGAN.validate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Validation procedure for the current CFGAN model.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.models.ADMM_Slim">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.models.</code><code class="sig-name descname">ADMM_Slim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lambda1</span><span class="o">=</span><span class="default_value">5.0</span></em>, <em class="sig-param"><span class="n">lambda2</span><span class="o">=</span><span class="default_value">1000.0</span></em>, <em class="sig-param"><span class="n">rho</span><span class="o">=</span><span class="default_value">100000.0</span></em>, <em class="sig-param"><span class="n">nn_constr</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">l1_penalty</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">item_bias</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#ADMM_Slim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.ADMM_Slim" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.models.RecSysModel" title="rectorch.models.RecSysModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.RecSysModel</span></code></a></p>
+<p>ADMM SLIM: Sparse Recommendations for Many Users.</p>
+<p>ADMM SLIM <a class="reference internal" href="#r767f3a747c1d-admms" id="id23"><span>[R767f3a747c1d-ADMMS]</span></a> is a model similar to SLIM <a class="reference internal" href="#r767f3a747c1d-slim" id="id24"><span>[R767f3a747c1d-SLIM]</span></a> in which the objective function is solved
+using Alternating Directions Method of Multipliers (ADMM). In particular,
+given the rating matrix <span class="math notranslate nohighlight">\(\mathbf{X} \in \mathbb{R}^{n \times m}\)</span> with <em>n</em> users and <em>m</em>
+items, ADMM SLIM aims at solving the following optimization problem:</p>
+<p><span class="math notranslate nohighlight">\(\min_{B,C,\Gamma} \frac{1}{2}\|X-X B\|_{F}^{2}+\frac{\lambda_{2}}{2} \cdot\|B\|_{F}^{2}+\
+\lambda_{1} \cdot\|C\|_{1} +\
+\langle\Gamma, B-C\rangle_{F}+\frac{\rho}{2} \cdot\|B-C\|_{F}^{2}\)</span></p>
+<p>with <span class="math notranslate nohighlight">\(\textrm{diag}(B)=0\)</span>, <span class="math notranslate nohighlight">\(\Gamma \in \mathbb{R}^{m \times m}\)</span>, and the entry of
+<em>C</em> are all greater or equal than 0.</p>
+<p>The prediction for a user-item pair <em>(u,j)</em> is then computed by
+<span class="math notranslate nohighlight">\(S_{u j}=\mathbf{X}_{u,:} \cdot \mathbf{B}_{:, j}\)</span>.</p>
 <dl class="field-list">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl>
-<li><strong>valid_data</strong><span class="classifier"><code class="xref py py-class docutils literal notranslate"><span class="pre">samplers.Sampler</span></code></span></li><ul><p>The sampler object that load the validation set in mini-batches.</p>
+<li><strong>lambda1</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>Elastic net regularization hyper-parameters <span class="math notranslate nohighlight">\(\lambda_1\)</span>, by default 5.</p>
 </ul>
-<li><strong>metric</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></span></li><ul><p>The metric used during the validation to select the best model.
-To see the valid strings for the metric please see the module <code class="xref py py-mod docutils literal notranslate"><span class="pre">metrics</span></code>.</p>
+<li><strong>lambda2</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>Elastic net regularization hyper-parameters <span class="math notranslate nohighlight">\(\lambda_2\)</span>, by default 1e3.</p>
+</ul>
+<li><strong>rho</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The penalty hyper-parameter <span class="math notranslate nohighlight">\(\rho&gt;0\)</span> that applies to <span class="math notranslate nohighlight">\(\|B-C\|^2_F\)</span>,
+by default 1e5.</p>
+</ul>
+<li><strong>nn_constr</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether to keep the non-negativity constraint, by default <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</ul>
+<li><strong>l1_penalty</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether to keep the L1 penalty, by default <code class="docutils literal notranslate"><span class="pre">True</span></code>. When <code class="docutils literal notranslate"><span class="pre">l1_penalty</span> <span class="pre">=</span> <span class="pre">False</span></code> then
+is like to set <span class="math notranslate nohighlight">\(\lambda_1 = 0\)</span>.</p>
+</ul>
+<li><strong>item_bias</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether to model the item biases, by default <code class="docutils literal notranslate"><span class="pre">False</span></code>. When <code class="docutils literal notranslate"><span class="pre">item_bias</span> <span class="pre">=</span> <span class="pre">True</span></code> then
+the scoring function for the user-item pair <em>(u,i)</em> becomes:
+<span class="math notranslate nohighlight">\(S_{ui}=(\mathbf{X}_{u,:} - \mathbf{b})\cdot \mathbf{B}_{:, i} + \mathbf{b}_i\)</span>.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r767f3a747c1d-admms"><span class="brackets"><a class="fn-backref" href="#id23">R767f3a747c1d-ADMMS</a></span></dt>
+<dd><p>Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
+ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
+Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+New York, NY, USA, 555–563. DOI: <a class="reference external" href="https://doi.org/10.1145/3336191.3371774">https://doi.org/10.1145/3336191.3371774</a></p>
+</dd>
+<dt class="label" id="r767f3a747c1d-slim"><span class="brackets"><a class="fn-backref" href="#id24">R767f3a747c1d-SLIM</a></span></dt>
+<dd><p>X. Ning and G. Karypis. 2011. SLIM: Sparse Linear Methods for Top-N Recommender
+Systems. In Proceedings of the IEEE 11th International Conference on Data Mining,
+Vancouver,BC, 2011, pp. 497-506. DOI: <a class="reference external" href="https://doi.org/10.1109/ICDM.2011.134">https://doi.org/10.1109/ICDM.2011.134</a>.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Attributes</dt>
+<dd class="field-odd"><dl class="simple">
+<li><strong>See the parameters’ section.</strong></li><ul></ul>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.models.ADMM_Slim.load_model">
+<code class="sig-name descname">load_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">filepath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#ADMM_Slim.load_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.ADMM_Slim.load_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the model from file.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>filepath</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></span></li><ul><p>String representing the path to the file where the model is saved.</p>
+</ul>
+<li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
+prediction.</p>
+</ul>
+<li><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> [optional]</span></li><ul><p>These are the potential keyword parameters useful to the model for performing the
+prediction.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a></li><ul><p>Raised when not implemeneted in the sub-class.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.models.ADMM_Slim.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">ids_te_users</span></em>, <em class="sig-param"><span class="n">test_tr</span></em>, <em class="sig-param"><span class="n">remove_train</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#ADMM_Slim.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.ADMM_Slim.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the prediction using a trained model.</p>
+<p>The prediction is preformed over a generic input <code class="docutils literal notranslate"><span class="pre">x</span></code> and the method should be callable
+after the training procedure (<a class="reference internal" href="#rectorch.models.RecSysModel.train" title="rectorch.models.RecSysModel.train"><code class="xref py py-meth docutils literal notranslate"><span class="pre">RecSysModel.train()</span></code></a>).</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference internal" href="samplers.html#rectorch.samplers.Sampler" title="rectorch.samplers.Sampler"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.samplers.Sampler</span></code></a> or <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a> or</span></li><ul><p><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a>
+The input for which the prediction has to be computed.</p>
+</ul>
+<li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
+prediction.</p>
+</ul>
+<li><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> [optional]</span></li><ul><p>These are the potential keyword parameters useful to the model for performing the
+prediction.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a></li><ul><p>Raised when not implemeneted in the sub-class.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.models.ADMM_Slim.save_model">
+<code class="sig-name descname">save_model</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">filepath</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#ADMM_Slim.save_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.ADMM_Slim.save_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save the model to file.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>filepath</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">str</span></code></a></span></li><ul><p>String representing the path to the file to save the model.</p>
+</ul>
+<li><strong>*args</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">list</span></code></a> [optional]</span></li><ul><p>These are the potential additional parameters useful to the model for performing the
+prediction.</p>
+</ul>
+<li><strong>**kwargs</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">dict</span></code></a> [optional]</span></li><ul><p>These are the potential keyword parameters useful to the model for performing the
+prediction.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><dl class="simple">
+<li><a class="reference external" href="https://docs.python.org/3/library/exceptions.html#NotImplementedError" title="(in Python v3.8)"><code class="xref py py-class docutils literal notranslate"><span class="pre">NotImplementedError</span></code></a></li><ul><p>Raised when not implemeneted in the sub-class.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.models.ADMM_Slim.train">
+<code class="sig-name descname">train</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">train_data</span></em>, <em class="sig-param"><span class="n">num_iter</span><span class="o">=</span><span class="default_value">50</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#ADMM_Slim.train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.ADMM_Slim.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training of ADMM SLIM.</p>
+<p>The training procedure of ADMM SLIM highly depends on the setting of the
+hyper-parameters. By setting them in specific ways it is possible to define different
+variants of the algorithm. That are:</p>
+<p>1. (Vanilla) ADMM SLIM - <span class="math notranslate nohighlight">\(\lambda_1, \lambda_2, \rho&gt;0\)</span>, <code class="xref py py-attr docutils literal notranslate"><span class="pre">item_bias</span></code> =
+<code class="docutils literal notranslate"><span class="pre">False</span></code>, and both <code class="xref py py-attr docutils literal notranslate"><span class="pre">nn_constr</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">l1_penalty</span></code> set to <code class="docutils literal notranslate"><span class="pre">True</span></code>;</p>
+<p>2. ADMM SLIM w/o non-negativity constraint over C - <code class="xref py py-attr docutils literal notranslate"><span class="pre">nn_constr</span></code> = <code class="docutils literal notranslate"><span class="pre">False</span></code> and
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">l1_penalty</span></code> set to <code class="docutils literal notranslate"><span class="pre">True</span></code>;</p>
+<p>3. ADMM SLIM w/o the L1 penalty - <code class="xref py py-attr docutils literal notranslate"><span class="pre">l1_penalty</span></code> = <code class="docutils literal notranslate"><span class="pre">False</span></code> and
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">nn_constr</span></code> set to <code class="docutils literal notranslate"><span class="pre">True</span></code>;</p>
+<p>4. ADMM SLIM w/o L1 penalty and non-negativity constraint: <code class="xref py py-attr docutils literal notranslate"><span class="pre">nn_constr</span></code> =
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">l1_penalty</span></code> = <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+<p>All these variants can also be combined with the inclusion of the item biases by setting
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">item_bias</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>train_data</strong><span class="classifier"><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.sparse.csr_matrix.html#scipy.sparse.csr_matrix" title="(in SciPy v1.4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">scipy.sparse.csr_matrix</span></code></a></span></li><ul><p>The training data.</p>
+</ul>
+<li><strong>num_iter</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>Maximum number of training iterations, by default 50. This argument has no effect
+if both <code class="xref py py-attr docutils literal notranslate"><span class="pre">nn_constr</span></code> and <code class="xref py py-attr docutils literal notranslate"><span class="pre">l1_penalty</span></code> are set to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p>
+</ul>
+<li><strong>verbose</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>The level of verbosity of the logging, by default 1. The level can have any integer
+value greater than 0. However, after reaching a maximum (that depends on the size of
+the training set) verbosity higher values will not have any effect.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="rectorch.models.SVAE">
+<em class="property">class </em><code class="sig-prename descclassname">rectorch.models.</code><code class="sig-name descname">SVAE</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">svae_net</span></em>, <em class="sig-param"><span class="n">beta</span><span class="o">=</span><span class="default_value">1.0</span></em>, <em class="sig-param"><span class="n">anneal_steps</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">learning_rate</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#SVAE"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.SVAE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#rectorch.models.MultiVAE" title="rectorch.models.MultiVAE"><code class="xref py py-class docutils literal notranslate"><span class="pre">rectorch.models.MultiVAE</span></code></a></p>
+<p>Sequential Variational Autoencoders for Collaborative Filtering.</p>
+<p><strong>UNDOCUMENTED</strong> <a class="reference internal" href="#r7eeeb4f18906-svae" id="id27"><span>[R7eeeb4f18906-SVAE]</span></a></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>mvae_net</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/nn.html#torch.nn.Module" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.nn.Module</span></code></a></span></li><ul><p>The variational autoencoder neural network.</p>
+</ul>
+<li><strong>beta</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The <span class="math notranslate nohighlight">\(\beta\)</span> hyper-parameter of Multi-VAE. When <code class="docutils literal notranslate"><span class="pre">anneal_steps</span> <span class="pre">&gt;</span> <span class="pre">0</span></code> then this
+value is the value to anneal starting from 0, otherwise the <code class="docutils literal notranslate"><span class="pre">beta</span></code> will be fixed to
+the given value for the duration of the training. By default 1.</p>
+</ul>
+<li><strong>anneal_steps</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">int</span></code></a> [optional]</span></li><ul><p>Number of annealing step for reaching the target value <code class="docutils literal notranslate"><span class="pre">beta</span></code>, by default 0.
+0 means that no annealing will be performed and the regularization parameter will be
+fixed to <code class="docutils literal notranslate"><span class="pre">beta</span></code>.</p>
+</ul>
+<li><strong>learning_rate</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The learning rate for the optimizer, by default 1e-3.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r7eeeb4f18906-svae"><span class="brackets"><a class="fn-backref" href="#id27">R7eeeb4f18906-SVAE</a></span></dt>
+<dd><p>Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
+Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the
+Twelfth ACM International Conference on Web Search and Data Mining (WSDM ‘19).
+Association for Computing Machinery, New York, NY, USA, 600–608.
+DOI: <a class="reference external" href="https://doi.org/10.1145/3289600.3291007">https://doi.org/10.1145/3289600.3291007</a></p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="rectorch.models.SVAE.loss_function">
+<code class="sig-name descname">loss_function</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">recon_x</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">mu</span></em>, <em class="sig-param"><span class="n">logvar</span></em>, <em class="sig-param"><span class="n">beta</span><span class="o">=</span><span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#SVAE.loss_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.SVAE.loss_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>VAE for collaborative filtering loss function.</p>
+<p>MultiVAE assumes a multinomial distribution over the input and this is reflected in the loss
+function. The loss is a <span class="math notranslate nohighlight">\(\beta\)</span> ELBO (Evidence Lower BOund) in which the
+regularization part is weighted by a hyper-parameter <span class="math notranslate nohighlight">\(\beta\)</span>. Moreover, as in
+MultiDAE, the reconstruction loss is based on the multinomial likelihood.
+Specifically, the loss function of MultiVAE is defined as:</p>
+<p><span class="math notranslate nohighlight">\(\mathcal{L}_{\beta}(\mathbf{x}_{u} ; \theta, \phi)=\
+\mathbb{E}_{q_{\phi}(\mathbf{z}_{u} | \mathbf{x}_{u})}[\log p_{\theta}\
+(\mathbf{x}_{u} | \mathbf{z}_{u})]-\beta \cdot \operatorname{KL}(q_{\phi}\
+(\mathbf{z}_{u} | \mathbf{x}_{u}) \| p(\mathbf{z}_{u}))\)</span></p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>recon_x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The reconstructed input, i.e., the output of the variational autoencoder. It is meant
+to be the reconstruction over a batch.</p>
+</ul>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input, and hence the target tensor. It is meant to be a batch size input.</p>
+</ul>
+<li><strong>mu</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The mean part of latent space for the given <code class="docutils literal notranslate"><span class="pre">x</span></code>. Together with <code class="docutils literal notranslate"><span class="pre">logvar</span></code> represents
+the representation of the input <code class="docutils literal notranslate"><span class="pre">x</span></code> before the reparameteriation trick.</p>
+</ul>
+<li><strong>logvar</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The (logarithm of the) variance part of latent space for the given <code class="docutils literal notranslate"><span class="pre">x</span></code>. Together with
+<code class="docutils literal notranslate"><span class="pre">mu</span></code> represents the representation of the input <code class="docutils literal notranslate"><span class="pre">x</span></code> before the reparameteriation
+trick.</p>
+</ul>
+<li><strong>beta</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">float</span></code></a> [optional]</span></li><ul><p>The current <span class="math notranslate nohighlight">\(\beta\)</span> regularization hyper-parameter, by default 1.0.</p>
 </ul>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
-<li><a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.array.html#numpy.array" title="(in NumPy v1.18)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">numpy.array</span></code></a></li><ul><p>Numpy array containing the value of the metric for each user.</p>
+<li><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></li><ul><p>Tensor (<span class="math notranslate nohighlight">\(1 \times 1\)</span>) representing the average loss incurred over the input
+batch.</p>
+</ul>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="rectorch.models.SVAE.predict">
+<code class="sig-name descname">predict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">self</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">remove_train</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rectorch/models.html#SVAE.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rectorch.models.SVAE.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform the prediction using a trained Variational Autoencoder.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl>
+<li><strong>x</strong><span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The input batch tensor for which the prediction must be computed.</p>
+</ul>
+<li><strong>remove_train</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">bool</span></code></a> [optional]</span></li><ul><p>Whether to remove the training set from the prediction, by default True. Removing
+the training items means set their scores to <span class="math notranslate nohighlight">\(-\infty\)</span>.</p>
+</ul>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<li><strong>recon_x, mu, logvar</strong><span class="classifier"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#tuple" title="(in Python v3.8)"><code class="xref py py-obj docutils literal notranslate"><span class="pre">tuple</span></code></a></span></li><ul><dl>
+<li>recon_x<span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The reconstructed input, i.e., the output of the variational autoencoder.
+It is meant to be the reconstruction over the input batch <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p>
+</ul>
+<li>mu<span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The mean part of latent space for the given <code class="docutils literal notranslate"><span class="pre">x</span></code>. Together with <code class="docutils literal notranslate"><span class="pre">logvar</span></code>
+represents the representation of the input <code class="docutils literal notranslate"><span class="pre">x</span></code> before the reparameteriation trick.</p>
+</ul>
+<li>logvar<span class="classifier"><a class="reference external" href="https://pytorch.org/docs/stable/tensors.html#torch.Tensor" title="(in PyTorch vmaster (1.5.0a0+2a01d34 ))"><code class="xref py py-class docutils literal notranslate"><span class="pre">torch.Tensor</span></code></a></span></li><ul><p>The (logarithm of the) variance part of latent space for the given <code class="docutils literal notranslate"><span class="pre">x</span></code>. Together
+with <code class="docutils literal notranslate"><span class="pre">mu</span></code> represents the representation of the input <code class="docutils literal notranslate"><span class="pre">x</span></code> before the
+reparameteriation trick.</p>
+</ul>
+</dl>
 </ul>
 </dl>
 </dd>
