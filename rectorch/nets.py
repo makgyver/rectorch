@@ -14,7 +14,7 @@ from torch.nn.init import normal_ as normal_init
 from torch.nn.init import xavier_uniform_ as xavier_init
 
 __all__ = ['AE_net', 'MultiDAE_net', 'VAE_net', 'MultiVAE_net', 'CMultiVAE_net', 'CFGAN_G_net',\
-    'CFGAN_D_net']
+    'CFGAN_D_net', 'SVAE_net']
 
 logger = logging.getLogger(__name__)
 
