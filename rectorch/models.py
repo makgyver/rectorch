@@ -198,15 +198,11 @@ class TorchNNTrainer(RecSysModel):
         else:
             self.device = torch.device("cpu")
 
-    def loss_function(self, prediction, ground_truth, *args, **kwargs):
+    def loss_function(self, *args, **kwargs):
         r"""The loss function that the model wants to minimize.
 
         Parameters
         ----------
-        prediction : :class:`torch.Tensor`
-            The prediction tensor.
-        ground_truth : :class:`torch.Tensor`
-            The ground truth tensor that the model should have reconstructed correctly.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for computing the
             loss.
@@ -255,9 +251,22 @@ class TorchNNTrainer(RecSysModel):
         Raises
         ------
         :class:`NotImplementedError`
-            Raised when not implemeneted in the sub-class.
+            Raised when not implemeneted in the sub-class because :meth:`train_epoch` must be
+            implemented.
         """
-        raise NotImplementedError()
+        try:
+            for epoch in range(1, num_epochs + 1):
+                self.train_epoch(epoch, train_data, verbose)
+                if valid_data is not None:
+                    assert valid_metric is not None, \
+                                "In case of validation 'valid_metric' must be provided"
+                    valid_res = valid_func(self, valid_data, valid_metric)
+                    mu_val = np.mean(valid_res)
+                    std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
+                    logger.info('| epoch %d | %s %.3f (%.4f) |',
+                                epoch, valid_metric, mu_val, std_err_val)
+        except KeyboardInterrupt:
+            logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
     def train_epoch(self, epoch, train_data, *args, **kwargs):
         r"""Training of a single epoch.
@@ -309,6 +318,27 @@ class TorchNNTrainer(RecSysModel):
 
     def predict(self, x, *args, **kwargs):
         raise NotImplementedError()
+
+    def save_model(self, filepath, cur_epoch):
+        r"""Save the model to file.
+
+        Parameters
+        ----------
+        filepath : :obj:`str`
+            String representing the path to the file to save the model.
+        cur_epoch : :obj:`int`
+            The last training epoch.
+        """
+        state = {'epoch': cur_epoch,
+                 'state_dict': self.network.state_dict(),
+                 'optimizer': self.optimizer.state_dict()
+                }
+        self._save_checkpoint(filepath, state)
+
+    def _save_checkpoint(self, filepath, state):
+        logger.info("Saving model checkpoint to %s...", filepath)
+        torch.save(state, filepath)
+        logger.info("Model checkpoint saved!")
 
     def __str__(self):
         s = self.__class__.__name__ + "(\n"
@@ -375,28 +405,6 @@ class AETrainer(TorchNNTrainer):
             batch.
         """
         return torch.nn.MSELoss()(ground_truth, prediction)
-
-    def train(self,
-              train_data,
-              valid_data=None,
-              valid_metric=None,
-              valid_func=ValidFunc(evaluate),
-              num_epochs=100,
-              verbose=1):
-        try:
-            for epoch in range(1, num_epochs + 1):
-                self.train_epoch(epoch, train_data, verbose)
-                if valid_data is not None:
-                    assert valid_metric is not None, \
-                                "In case of validation 'valid_metric' must be provided"
-                    valid_res = valid_func(self, valid_data, valid_metric)
-                    mu_val = np.mean(valid_res)
-                    std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                    logger.info('| epoch %d | %s %.3f (%.4f) |',
-                                epoch, valid_metric, mu_val, std_err_val)
-        except KeyboardInterrupt:
-            logger.warning('Handled KeyboardInterrupt: exiting from training early')
-
 
     def train_epoch(self, epoch, train_loader, verbose=1):
         self.network.train()
@@ -471,27 +479,6 @@ class AETrainer(TorchNNTrainer):
             if remove_train:
                 recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
             return (recon_x, )
-
-    def save_model(self, filepath, cur_epoch):
-        r"""Save the model to file.
-
-        Parameters
-        ----------
-        filepath : :obj:`str`
-            String representing the path to the file to save the model.
-        cur_epoch : :obj:`int`
-            The last training epoch.
-        """
-        state = {'epoch': cur_epoch,
-                 'state_dict': self.network.state_dict(),
-                 'optimizer': self.optimizer.state_dict()
-                }
-        self._save_checkpoint(filepath, state)
-
-    def _save_checkpoint(self, filepath, state):
-        logger.info("Saving model checkpoint to %s...", filepath)
-        torch.save(state, filepath)
-        logger.info("Model checkpoint saved!")
 
     def load_model(self, filepath):
         r"""Load the model from file.

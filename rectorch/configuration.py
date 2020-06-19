@@ -28,16 +28,20 @@ class DataConfig(DefaultMunch):
 
     Parameters
     ----------
-    file_path : :obj:`str`
-        The path to the data configuration `.json <https://www.json.org/json-en.html>`_ file.
+    conf_info : :obj:`str` or :obj:`dict`
+        If of type string is the path to the data configuration
+        `.json <https://www.json.org/json-en.html>`_ file. Otherwise is the dictionary with the
+        data configuration.
 
     Notes
     -----
-    The data configuration file **must** have the structure described in :ref:`config-format`.
+    The data configuration file/dict **must** have the structure described in :ref:`config-format`.
     """
 
-    def __init__(self, file_path):
-        super(DataConfig, self).__init__(None, json.load(open(file_path, "r")))
+    def __init__(self, conf_info):
+        super(DataConfig, self).__init__(None,
+                                         json.load(open(conf_info, "r"))
+                                         if isinstance(conf_info, str) else conf_info)
 
     def __str__(self):
         return "DataConfig(" + ", ".join(["%s=%s" %(k, self[k]) for k in self]) + ")"

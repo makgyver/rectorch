@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
 setup(
     name='rectorch',
     packages=find_packages(exclude=['build', 'doc', 'templates']),
-    version='0.0.6b',
+    version='0.0.9b',
     install_requires=[
         "numpy",
         "scipy",
@@ -25,7 +25,7 @@ setup(
     author_email='mak1788@gmail.com',
     url='https://github.com/makgyver/rectorch',
     download_url='https://github.com/makgyver/rectorch',
-    keywords=['recommender-system', 'pytorch', 'machine-learning', 'algorithm'],
+    keywords=['recommender-system', 'pytorch', 'machine-learning', 'algorithm', 'variational-autoencoder', 'gan'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3.7',

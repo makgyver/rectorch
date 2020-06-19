@@ -53,9 +53,10 @@ class DataProcessing:
 
     Parameters
     ----------
-    data_config : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
+    data_config : :class:`rectorch.configuration.DataConfig`, :obj:`str`: or :obj:`dict`
         Represents the data pre-processing configurations.
         When ``type(data_config) == str`` is expected to be the path to the data configuration file.
+        When ``type(data_config) == dict`` is expected to be the data configuration dictionary.
         In that case a :class:`configuration.DataConfig` object is contextually created.
 
     Raises
@@ -78,7 +79,7 @@ class DataProcessing:
     def __init__(self, data_config):
         if isinstance(data_config, DataConfig):
             self.cfg = data_config
-        elif isinstance(data_config, str):
+        elif isinstance(data_config, (str, dict)):
             self.cfg = DataConfig(data_config)
         else:
             raise TypeError("'data_config' must be of type 'DataConfig' or 'str'.")
@@ -141,7 +142,6 @@ class DataProcessing:
         logger.info("Applying filtering.")
         imin, umin = int(self.cfg.i_min), int(self.cfg.u_min)
         raw_data, user_activity, _ = self._filter(raw_data, umin, imin)
-        print(raw_data.head())
 
         unique_uid = user_activity.index
         idx_perm = np.random.permutation(unique_uid.size)
@@ -408,12 +408,14 @@ class DataReader():
         #keep_idx = tr_idx * te_idx
         return data_tr[tr_idx], data_te[tr_idx]
 
-    def _to_dict(self, data, col="timestamp"):
-        data = data.sort_values(col)
+    def _to_dict(self, data, col=None):
+        if col:
+            data = data.sort_values(col)
         imin = data["uid"].min()
         #ugly but it works
         grouped = data.groupby(by="uid")
-        grouped = grouped.apply(lambda x: x.sort_values(col)).reset_index(drop=True)
+        if col:
+            grouped = grouped.apply(lambda x: x.sort_values(col)).reset_index(drop=True)
         grouped = grouped.groupby(by="uid")
         return {idx - imin : list(group["iid"]) for idx, group in grouped}
 
@@ -440,7 +442,7 @@ class DataReader():
         data_te = pd.concat(te_list)
         return data_tr, data_te
 
-    def load_data_as_dict(self, datatype='train', col="timestamp"):
+    def load_data_as_dict(self, datatype='train', col=None):
         r"""Load the data as a dictionary
 
         The loaded dictionary has users as keys and lists of items as values. An entry
@@ -453,7 +455,7 @@ class DataReader():
             String representing the type of data that has to be loaded, by default ``'train'``.
         col : :obj:`str` of :obj:`None` [optional]
             The name of the column on which items are ordered, by default "timestamp". If
-            :obj:`None` no ordered is applied.
+            :obj:`None` no ordered is applied, by default :obj:`None`
 
         Returns
         -------
