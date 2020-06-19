@@ -407,10 +407,10 @@ def test_DataReaderAsDict():
         with pytest.raises(ValueError):
             reader.load_data("training")
 
-        d_train = reader.load_data_as_dict("train")
-        d_vtr, d_vte = reader.load_data_as_dict("validation")
-        d_ttr, d_tte = reader.load_data_as_dict("test")
-        d_full = reader.load_data_as_dict("full")
+        d_train = reader.load_data_as_dict("train", sort_by="timestamp")
+        d_vtr, d_vte = reader.load_data_as_dict("validation", sort_by="timestamp")
+        d_ttr, d_tte = reader.load_data_as_dict("test", sort_by="timestamp")
+        d_full = reader.load_data_as_dict("full", sort_by="timestamp")
 
         assert d_train[0] == [0, 1], "d_train[0] should be [0,1]"
         assert d_train[1] == [2, 1], "d_train[1] should be [2,1]"

@@ -408,24 +408,24 @@ class DataReader():
         #keep_idx = tr_idx * te_idx
         return data_tr[tr_idx], data_te[tr_idx]
 
-    def _to_dict(self, data, col=None):
-        if col:
-            data = data.sort_values(col)
+    def _to_dict(self, data, sort_by=None):
+        if sort_by:
+            data = data.sort_values(sort_by)
         imin = data["uid"].min()
         #ugly but it works
         grouped = data.groupby(by="uid")
-        if col:
-            grouped = grouped.apply(lambda x: x.sort_values(col)).reset_index(drop=True)
+        if sort_by:
+            grouped = grouped.apply(lambda x: x.sort_values(sort_by)).reset_index(drop=True)
         grouped = grouped.groupby(by="uid")
         return {idx - imin : list(group["iid"]) for idx, group in grouped}
 
-    def _split_train_test(self, data, col):
+    def _split_train_test(self, data, sort_by):
         np.random.seed(self.cfg.seed)
         test_prop = float(self.cfg.test_prop) if self.cfg.test_prop else 0.2
         uhead = data.columns.values[0]
         #ugly but it works
         data_grouped_by_user = data.groupby(uhead)
-        data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(col))
+        data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(sort_by))
         data_grouped_by_user = data_grouped_by_user.reset_index(drop=True)
         data_grouped_by_user = data_grouped_by_user.groupby(uhead)
         tr_list, te_list = [], []
@@ -442,19 +442,19 @@ class DataReader():
         data_te = pd.concat(te_list)
         return data_tr, data_te
 
-    def load_data_as_dict(self, datatype='train', col=None):
+    def load_data_as_dict(self, datatype='train', sort_by=None):
         r"""Load the data as a dictionary
 
         The loaded dictionary has users as keys and lists of items as values. An entry
-        of the dictionary represents the list of rated items (sorted by ``col``) by the user,
+        of the dictionary represents the list of rated items (sorted by ``sort_by``) by the user,
         i.e., the key.
 
         Parameters
         ----------
         datatype : :obj:`str` in {``'train'``, ``'validation'``, ``'test'``} [optional]
             String representing the type of data that has to be loaded, by default ``'train'``.
-        col : :obj:`str` of :obj:`None` [optional]
-            The name of the column on which items are ordered, by default "timestamp". If
+        sort_by : :obj:`str` of :obj:`None` [optional]
+            The name of the column on which items are ordered. If
             :obj:`None` no ordered is applied, by default :obj:`None`
 
         Returns
@@ -469,7 +469,7 @@ class DataReader():
         if datatype == 'train':
             path = os.path.join(self.cfg.proc_path, 'train.csv')
             data = pd.read_csv(path)
-            return self._to_dict(data, col)
+            return self._to_dict(data, sort_by)
         elif datatype == 'validation':
             path_tr = os.path.join(self.cfg.proc_path, 'validation_tr.csv')
             path_te = os.path.join(self.cfg.proc_path, 'validation_te.csv')
@@ -483,7 +483,7 @@ class DataReader():
                          pd.read_csv(os.path.join(self.cfg.proc_path, 'test_tr.csv')),
                          pd.read_csv(os.path.join(self.cfg.proc_path, 'test_te.csv'))]
             combined = pd.concat(data_list)
-            return self._to_dict(combined, col)
+            return self._to_dict(combined, sort_by)
         else:
             raise ValueError("Possible datatype values are 'train', 'validation', 'test', 'full'.")
 
@@ -491,10 +491,10 @@ class DataReader():
         data_te = pd.read_csv(path_te)
 
         combined = pd.concat([data_tr, data_te], ignore_index=True)
-        combined = combined.sort_values(col)
-        data_tr, data_te = self._split_train_test(combined, col)
+        combined = combined.sort_values(sort_by)
+        data_tr, data_te = self._split_train_test(combined, sort_by)
 
-        return self._to_dict(data_tr, col), self._to_dict(data_te, col)
+        return self._to_dict(data_tr, sort_by), self._to_dict(data_te, sort_by)
 
 
 class DatasetManager():
