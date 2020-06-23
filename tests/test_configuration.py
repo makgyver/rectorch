@@ -15,26 +15,44 @@ def test_DataConfig():
     tmp = tempfile.NamedTemporaryFile()
 
     cfg = {
-        "data_path": "path/to/data",
-        "proc_path": "path/to/preproc/folder",
-        "seed": 42,
-        "threshold": 1,
-        "separator": ",",
-        "u_min": 5,
-        "i_min": 2,
-        "heldout": 100,
-        "test_prop": 0.2,
-        "topn": 1
+        "processing": {
+            "data_path": "path/to/data",
+            "threshold": 1,
+            "separator": ",",
+            "header": None,
+            "u_min": 5,
+            "i_min": 2
+        },
+        "splitting": {
+            "split_type": "vertical",
+            "sort_by": None,
+            "seed": 42,
+            "shuffle": False,
+            "valid_size": 100,
+            "test_size": 100,
+            "test_prop": .5
+        }
     }
+
+    with pytest.raises(ValueError):
+        DataConfig(1.2)
 
     json.dump(cfg, open(tmp.name, "w"))
     data_config = DataConfig(tmp.name)
 
     assert str(data_config) == data_config.__repr__(), "__str__ and __repr__ should be the same"
+    assert hasattr(data_config, "processing")
+    assert hasattr(data_config, "splitting")
 
-    for k in cfg:
-        assert hasattr(data_config, k)
-        assert data_config[k] == cfg[k], "%s: got %s expected %s" %(k, data_config[k], cfg[k])
+    for k in cfg["processing"]:
+        assert hasattr(data_config.processing, k)
+        assert data_config.processing[k] == cfg["processing"][k],\
+            "%s: got %s expected %s" %(k, data_config.processing[k], cfg["processing"][k])
+
+    for k in cfg["splitting"]:
+        assert hasattr(data_config.splitting, k)
+        assert data_config.splitting[k] == cfg["splitting"][k],\
+            "%s: got %s expected %s" %(k, data_config.splitting[k], cfg["splitting"][k])
 
 
 def test_ModelConfig():
@@ -94,16 +112,23 @@ def test_ConfigManager():
 
     tmp_d = tempfile.NamedTemporaryFile()
     cfg_d = {
-        "data_path": "path/to/data",
-        "proc_path": "path/to/preproc/folder",
-        "seed": 42,
-        "threshold": 1,
-        "separator": ",",
-        "u_min": 5,
-        "i_min": 2,
-        "heldout": 100,
-        "test_prop": 0.2,
-        "topn": 1
+        "processing": {
+            "data_path": "path/to/data",
+            "threshold": 1,
+            "separator": ",",
+            "header": None,
+            "u_min": 5,
+            "i_min": 2
+        },
+        "splitting": {
+            "split_type": "vertical",
+            "sort_by": None,
+            "seed": 42,
+            "shuffle": False,
+            "valid_size": 100,
+            "test_size": 100,
+            "test_prop": .5
+        }
     }
     json.dump(cfg_d, open(tmp_d.name, "w"))
 

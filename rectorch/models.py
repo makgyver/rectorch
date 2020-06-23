@@ -59,6 +59,7 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
+from rectorch import env
 from .evaluation import ValidFunc, evaluate
 
 __all__ = ['RecSysModel', 'TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
@@ -189,14 +190,10 @@ class TorchNNTrainer(RecSysModel):
         Device where the pytorch tensors are saved.
     """
     def __init__(self, net, learning_rate=1e-3):
-        self.network = net
+        self.device = env.device
+        self.network = net.to(self.device)
         self.learning_rate = learning_rate
         self.optimizer = None #to be initialized in the sub-classes
-
-        if next(self.network.parameters()).is_cuda:
-            self.device = torch.device("cuda")
-        else:
-            self.device = torch.device("cpu")
 
     def loss_function(self, *args, **kwargs):
         r"""The loss function that the model wants to minimize.
@@ -1148,14 +1145,9 @@ class CFGAN(RecSysModel):
                  s_pm=.7,
                  s_zr=.5,
                  learning_rate=0.001):
-        self.generator = generator
-        self.discriminator = discriminator
-
-        #TODO: check this # pylint: disable=fixme
-        if next(self.generator.parameters()).is_cuda:
-            self.device = torch.device("cuda")
-        else:
-            self.device = torch.device("cpu")
+        self.device = env.device
+        self.generator = generator.to(self.device)
+        self.discriminator = discriminator.to(self.device)
 
         self.s_pm = s_pm
         self.s_zr = s_zr

@@ -23,12 +23,12 @@ class Singleton(type):
         return cls._instance
 
 
-class DataConfig(DefaultMunch):
+class DataConfig():
     r"""Class containing the configurations for reading/writing the data set.
 
     Parameters
     ----------
-    conf_info : :obj:`str` or :obj:`dict`
+    data_cfg : :obj:`str` or :obj:`dict`
         If of type string is the path to the data configuration
         `.json <https://www.json.org/json-en.html>`_ file. Otherwise is the dictionary with the
         data configuration.
@@ -37,14 +37,22 @@ class DataConfig(DefaultMunch):
     -----
     The data configuration file/dict **must** have the structure described in :ref:`config-format`.
     """
+    def __init__(self, data_cfg):
+        if isinstance(data_cfg, str):
+            json_cfg = json.load(open(data_cfg, "r"))
+        elif isinstance(data_cfg, dict):
+            json_cfg = data_cfg
+        else:
+            raise ValueError("data_cfg must be a string or a dictionary")
 
-    def __init__(self, conf_info):
-        super(DataConfig, self).__init__(None,
-                                         json.load(open(conf_info, "r"))
-                                         if isinstance(conf_info, str) else conf_info)
+        self.processing = DefaultMunch(None, json_cfg["processing"])
+        self.splitting = DefaultMunch(None, json_cfg["splitting"])
 
     def __str__(self):
-        return "DataConfig(" + ", ".join(["%s=%s" %(k, self[k]) for k in self]) + ")"
+        out = "DataConfig(\n\tprocessing={\n\t\t%s\n\t}, \n\tsplitting={\n\t\t%s\n\t}\n)"
+        inner1 = ",\n\t\t".join(["%s=%s" %(k, self.processing[k]) for k in self.processing])
+        inner2 = ",\n\t\t".join(["%s=%s" %(k, self.splitting[k]) for k in self.splitting])
+        return out %(inner1, inner2)
 
     def __repr__(self):
         return str(self)

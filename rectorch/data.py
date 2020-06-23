@@ -5,23 +5,18 @@ The supported data set format is standard `csv
 For more information about the expected data set fromat please visit :ref:`csv-format`.
 The data processing and loading configurations are managed through the configuration files
 as described in :ref:`config-format`.
-The data pre-processing phase is highly inspired by `VAE-CF source code
+The vertical data splitting phase is highly inspired by `VAE-CF source code
 <https://github.com/dawenl/vae_cf>`_, which has been lately used on several other research works.
 
 Examples
 --------
 This module is mainly meant to be used in the following way:
 
->>> from rectorch.data import DataProcessing, DatasetManager
->>> dproc = DataProcessing("/path/to/the/config/file")
->>> dproc.process()
->>> man = DatasetManager(dproc.cfg)
+>>> from rectorch.data import DataProcessing
+>>> dataset = DataProcessing("/path/to/the/config/file").process()
 
 See Also
 --------
-Research paper: `Variational Autoencoders for Collaborative Filtering
-<https://arxiv.org/pdf/1802.05814.pdf>`_
-
 Module:
 :mod:`configuration`
 """
@@ -30,10 +25,12 @@ import os
 import sys
 import numpy as np
 import pandas as pd
-from scipy import sparse
+from pandas import DataFrame
+from scipy.sparse import csr_matrix
+import torch
 from .configuration import DataConfig
 
-__all__ = ['DataProcessing', 'DataReader', 'DatasetManager']
+__all__ = ['DataProcessing', 'Dataset']
 
 logging.basicConfig(level=logging.INFO,
                     format="[%(asctime)s]  %(message)s",
@@ -41,6 +38,402 @@ logging.basicConfig(level=logging.INFO,
                     stream=sys.stdout)
 
 logger = logging.getLogger(__name__)
+
+
+class Dataset():
+    r"""RecSys dataset.
+
+    Dataset containing training, [validation], and test set.
+
+    Parameters
+    ----------
+    uids: :obj:`list` of :obj:`int`
+        List of user ids.
+    iids: :obj:`list` of :obj:`int`
+        List of item ids.
+    train_set: :class:`pandas.DataFrame`
+        The training set data frame.
+    valid_set: :obj:`None` or :class:`pandas.DataFrame` or sequence of :class:`pandas.DataFrame`
+        The validation set data frame. When the dataset is vertically splitted the validation
+        set is a pair of data frames that correspond to the training part and the test
+        part of the set. When it is set to :obj:`None` it means that no validation
+        set has been created.
+    test_set: :class:`pandas.DataFrame` or sequence of :class:`pandas.DataFrame`
+        The test set data frame. When the dataset is vertically splitted the test
+        set is a pair of data frames that correspond to the training part and the test
+        part of the set.
+    numerize: :obj:`bool`, optional
+        Whether the user/item ids must be re-mapped, by default :obj:`True`.
+
+    Attributes
+    ----------
+    n_users: :obj:`int`
+        The number of users.
+    n_items: :obj:`int`
+        The number of items.
+    unique_uid: :obj:`list` of :obj:`int`
+        List of user ids. It is the list version of :attr:`u2id`.
+    unique_iid: :obj:`list` of :obj:`int`
+        List of item ids. It is the list version of :attr:`i2id`.
+    u2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
+        Dictionary which maps the raw user id, i.e., as in the raw `csv` file, to an internal id
+        which is an integer between 0 and the total number of users minus one.
+    i2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
+        Dictionary which maps the raw item id, i.e., as in the raw `csv` file, to an internal id
+        which is an integer between 0 and the total number of items minus one.
+    train_set: :class:`pandas.DataFrame`
+        See ``train_set`` parameter.
+    valid_set: :obj:`None` or :class:`pandas.DataFrame` or tuple of :class:`pandas.DataFrame`
+        See ``valid_set`` parameter.
+    test_set: :class:`pandas.DataFrame` or tuple of :class:`pandas.DataFrame`
+        See ``test_set`` parameter.
+    """
+    def __init__(self, train_set, valid_set, test_set, uids, iids, numerize=True):
+        assert isinstance(train_set, DataFrame), "train_set must be a DataFrame"
+        if valid_set is not None:
+            assert isinstance(valid_set, (DataFrame, tuple, list, np.ndarray)),\
+                "valid_set must be a DataFrame or a tuple/list/array of DataFrames"
+        assert isinstance(test_set, (DataFrame, tuple, list, np.ndarray)),\
+            "test_set must be a DataFrame or a tuple of DataFrames"
+
+        if not isinstance(valid_set, DataFrame) and valid_set is not None:
+            assert len(valid_set) == 2, "valid_set must be a sequence of DataFrames of length 2"
+            if valid_set[0] is not None:
+                assert isinstance(valid_set[0], DataFrame) and isinstance(valid_set[1], DataFrame),\
+                    "valid_set must be a sequence of DataFrames"
+            else:
+                valid_set = None
+
+        self.unique_uid = uids
+        self.unique_iid = iids
+        self.n_users = len(uids)
+        self.n_items = len(iids)
+        self.u2id, self.i2id = self._mapping()
+
+        if numerize:
+            self.train_set = self._numerize(train_set)
+            if valid_set is not None:
+                if isinstance(valid_set, DataFrame):
+                    self.valid_set = self._numerize(valid_set)
+                else:
+                    self.valid_set = [self._numerize(v) for v in valid_set]
+            else:
+                self.valid_set = None
+            if isinstance(test_set, DataFrame):
+                self.test_set = self._numerize(test_set)
+            else:
+                self.test_set = [self._numerize(t) for t in test_set]
+        else:
+            self.train_set = train_set
+            self.valid_set = valid_set
+            self.test_set = test_set
+
+        self.n_ratings = len(self.train_set)
+        if self.valid_set is not None:
+            if isinstance(self.valid_set, DataFrame):
+                self.n_ratings += len(self.valid_set)
+            else:
+                self.n_ratings += len(self.valid_set[0]) + len(self.valid_set[1])
+
+        if isinstance(self.test_set, DataFrame):
+            self.n_ratings += len(self.test_set)
+        else:
+            self.n_ratings += len(self.test_set[0]) + len(self.test_set[1])
+
+    def _mapping(self):
+        u2id = dict((uid, i) for (i, uid) in enumerate(self.unique_uid))
+        i2id = dict((iid, i) for (i, iid) in enumerate(self.unique_iid))
+        return u2id, i2id
+
+    def _numerize(self, data):
+        uhead, ihead = data.columns.values[:2]
+        uid = data[uhead].apply(lambda x: self.u2id[x])
+        iid = data[ihead].apply(lambda x: self.i2id[x])
+        dic_data = {'uid': uid, 'iid': iid, 'rating': data[data.columns.values[2]]}
+        for c in data.columns.values[3:]:
+            dic_data[c] = data[c]
+        cols = ['uid', 'iid', 'rating'] + list(data.columns[3:])
+        return pd.DataFrame(data=dic_data, columns=cols)
+
+    def save(self, pro_dir):
+        r"""Save the dataset.
+
+        The dataset is saved as a series of files that changes on the basis of the
+        nature of the dataset. Specifically, the output consists of a series of
+        files saved in ``pro_dir``:
+
+        * ``train.csv`` : (`csv` file) the training ratings corresponding to all ratings of the\
+            training users;
+        * ``validation_tr.csv`` (*) : (`csv` file) the ratings corresponding to the validation set.
+        * ``validation_tr.csv`` (**) : (`csv` file) the training ratings corresponding to the\
+            validation users.
+        * ``validation_te.csv`` (**) : (`csv` file) the test ratings corresponding to the\
+            validation users;
+        * ``test_tr.csv`` (*) : (`csv` file) the ratings corresponding to the test set;
+        * ``test_tr.csv`` (**): (`csv` file) the training ratings corresponding to the test users;
+        * ``test_te.csv`` (**): (`csv` file) the test ratings corresponding to the test users;
+        * ``unique_uid.txt`` : (`txt` file) with the user id mapping. Line numbers represent the\
+            internal id, while the string on the corresponding line is the raw id;
+        * ``unique_iid.txt`` : (`txt` file) with the item id mapping. Line numbers represent the\
+            internal id, while the string on the corresponding line is the raw id;
+
+        Where (*) means that the file is created only in the case of horizontal splitting, and
+        (**) means that the file is created only in the case of vertical splitting.
+
+
+        Parameters
+        ----------
+        pro_dir: :obj:`str`
+            Path to the folder where files will be saved.
+        """
+        logger.info("Saving unique_iid.txt.")
+        if not os.path.exists(pro_dir):
+            os.makedirs(pro_dir)
+
+        with open(os.path.join(pro_dir, 'unique_iid.txt'), 'w') as f:
+            for iid in self.unique_iid:
+                f.write('%s\n' % iid)
+
+        logger.info("Saving unique_uid.txt.")
+        with open(os.path.join(pro_dir, 'unique_uid.txt'), 'w') as f:
+            for uid in self.unique_uid:
+                f.write('%s\n' % uid)
+
+        logger.info("Saving all the files.")
+        self.train_set.to_csv(os.path.join(pro_dir, 'train.csv'), index=False)
+        if self.valid_set:
+            if isinstance(self.valid_set, DataFrame):
+                self.valid_set.to_csv(os.path.join(pro_dir, 'validation.csv'), index=False)
+            else:
+                self.valid_set[0].to_csv(os.path.join(pro_dir, 'validation_tr.csv'), index=False)
+                self.valid_set[1].to_csv(os.path.join(pro_dir, 'validation_te.csv'), index=False)
+
+        if isinstance(self.test_set, DataFrame):
+            self.test_set.to_csv(os.path.join(pro_dir, 'test.csv'), index=False)
+        else:
+            self.test_set[0].to_csv(os.path.join(pro_dir, 'test_tr.csv'), index=False)
+            self.test_set[1].to_csv(os.path.join(pro_dir, 'test_te.csv'), index=False)
+
+        logger.info("Dataset saved successfully!")
+
+    @classmethod
+    def load(cls, pro_dir):
+        r"""Load the dataset.
+
+        Load the dataset according to the files in the ``pro_dir`` folder.
+
+        Paramaters
+        ----------
+        pro_dir: :obj:`str`
+            Path to the folder where the dataset files are stored.
+        """
+        unique_uid = []
+        with open(os.path.join(pro_dir, 'unique_uid.txt'), 'r') as f:
+            for line in f:
+                unique_uid.append(line.strip())
+
+        unique_iid = []
+        with open(os.path.join(pro_dir, 'unique_iid.txt'), 'r') as f:
+            for line in f:
+                unique_iid.append(line.strip())
+
+        path = os.path.join(pro_dir, 'train.csv')
+        train_data = pd.read_csv(path)
+
+        val_path = os.path.join(pro_dir, 'validation.csv')
+        if os.path.isfile(val_path):
+            val_data = pd.read_csv(val_path)
+        else:
+            vtr_path = os.path.join(pro_dir, 'validation_tr.csv')
+            if os.path.isfile(vtr_path):
+                vte_path = os.path.join(pro_dir, 'validation_te.csv')
+                val_data = [pd.read_csv(vtr_path), pd.read_csv(vte_path)]
+            else:
+                val_data = None
+
+        test_path = os.path.join(pro_dir, 'test.csv')
+        if os.path.isfile(test_path):
+            test_data = pd.read_csv(test_path)
+        else:
+            ttr_path = os.path.join(pro_dir, 'test_tr.csv')
+            tte_path = os.path.join(pro_dir, 'test_te.csv')
+            test_data = [pd.read_csv(ttr_path), pd.read_csv(tte_path)]
+
+        return Dataset(train_data, val_data, test_data, unique_uid, unique_iid, numerize=False)
+
+    def to_dict(self, binarize=True):
+        r"""Convert the dataset to dictionaries
+
+        The dataset is converted into a series of dictionaries. Each dictionary
+        has users as keys and list of items as values.
+
+        Parameters
+        ----------
+        binarize: :obj:`bool`
+            Whether the ratings have to be binarized.
+
+        Returns
+        -------
+        data_tr: :obj:`dictionary` (key: :obj:`int` - value: :obj:`int`)
+            Dictionary containing the training ratings.
+        data_val: [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`) or :obj:`None`
+            If the dataset is horizontally splitted it is a dictionary containing
+            the validation ratings. Otherwise, it is a pair of dictionaries containing
+            the training and test part of the validation ratings. In case of no validation
+            set it is a :obj:`None` object.
+        data_te: [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`)
+            If the dataset is horizontally splitted it is a dictionary containing
+            the test ratings. Otherwise, it is a pair of dictionaries containing
+            the training and test part of the test ratings.
+        """
+        data_tr = self._to_dict(self.train_set, binarize)
+        if isinstance(self.valid_set, DataFrame):
+            data_val = self._to_dict(self.valid_set, binarize)
+            data_te = self._to_dict(self.test_set, binarize)
+        else:
+            if self.valid_set is not None:
+                data_val = [self._to_dict(v, binarize) for v in self.valid_set]
+            else:
+                data_val = None
+            data_te = [self._to_dict(t, binarize) for t in self.test_set]
+        return data_tr, data_val, data_te
+
+    def _to_dict(self, data, binarize):
+        grouped = data.groupby(by="uid")
+        if binarize:
+            return {idx : list(group["iid"]) for idx, group in grouped}
+        else:
+            return {idx : zip(list(gr["iid"]), list(gr["rating"])) for idx, gr in grouped}
+
+    def to_sparse(self, binarize=True):
+        r"""[summary]
+
+        Parameters
+        ----------
+        binarize : bool, optional
+            [description], by default True
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
+        data_tr = self._df_to_sparse(self.train_set, binarize)
+        if isinstance(self.valid_set, DataFrame):
+            data_val = self._df_to_sparse(self.valid_set, binarize)
+            data_te = self._df_to_sparse(self.test_set, binarize)
+        else:
+            if self.valid_set is not None:
+                data_val = self._seq_to_sparse(self.valid_set, binarize)
+            else:
+                data_val = None
+            data_te = self._seq_to_sparse(self.test_set, binarize)
+        return data_tr, data_val, data_te
+
+    def _df_to_sparse(self, data, binarize):
+        rows, cols = data['uid'], data['iid']
+        n_tr_users = data['uid'].max() + 1
+        values = np.ones_like(rows) if binarize else data[data.columns.values[2]]
+        return csr_matrix((values, (rows, cols)),
+                          dtype='float64',
+                          shape=(n_tr_users, self.n_items))
+
+    def _seq_to_sparse(self, data, binarize):
+        data_tr, data_te = data[0], data[1]
+
+        start_idx = min(data_tr['uid'].min(), data_te['uid'].min())
+        end_idx = max(data_tr['uid'].max(), data_te['uid'].max())
+
+        rows_tr, cols_tr = data_tr['uid'] - start_idx, data_tr['iid']
+        rows_te, cols_te = data_te['uid'] - start_idx, data_te['iid']
+
+        if binarize:
+            values_tr = np.ones_like(rows_tr)
+            values_te = np.ones_like(rows_te)
+        else:
+            values_tr = data_tr[data_tr.columns.values[2]]
+            values_te = data_te[data_tr.columns.values[2]]
+
+        data_tr = csr_matrix((values_tr, (rows_tr, cols_tr)),
+                             dtype='float64',
+                             shape=(end_idx - start_idx + 1, self.n_items))
+        data_te = csr_matrix((values_te, (rows_te, cols_te)),
+                             dtype='float64',
+                             shape=(end_idx - start_idx + 1, self.n_items))
+
+        tr_idx = np.diff(data_tr.indptr) != 0
+        return data_tr[tr_idx], data_te[tr_idx]
+
+    def to_tensor(self, binarize=True, sparse=True):
+        r"""[summary]
+
+        Parameters
+        ----------
+        binarize : bool, optional
+            [description], by default True
+        sparse : bool, optional
+            [description], by default True
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
+        data_tr = self._df_to_tensor(self.train_set, binarize, sparse)
+        if isinstance(self.valid_set, DataFrame):
+            data_val = self._df_to_tensor(self.valid_set, binarize, sparse)
+            data_te = self._df_to_tensor(self.test_set, binarize, sparse)
+        else:
+            if self.valid_set is not None:
+                data_val = self._seq_to_tensor(self.valid_set, binarize, sparse)
+            else:
+                data_val = None
+            data_te = self._seq_to_tensor(self.test_set, binarize, sparse)
+        return data_tr, data_val, data_te
+
+    def _df_to_tensor(self, data, binarize=True, sparse=True):
+        idx = torch.LongTensor([list(data['uid']), list(data['iid'])])
+        n_tr_users = data['uid'].max() + 1
+        values = np.ones(len(data)) if binarize else data[data.columns.values[2]]
+        v = torch.FloatTensor(values)
+        tensor = torch.sparse.FloatTensor(idx, v, torch.Size([n_tr_users, self.n_items]))
+        return tensor if sparse else tensor.to_dense()
+
+    def _seq_to_tensor(self, data, binarize=True, sparse=True):
+        data_tr, data_te = data[0], data[1]
+
+        start_idx = min(data_tr['uid'].min(), data_te['uid'].min())
+        end_idx = max(data_tr['uid'].max(), data_te['uid'].max())
+
+        idx_tr = torch.LongTensor([list(data_tr['uid'] - start_idx), list(data_tr['iid'])])
+        idx_te = torch.LongTensor([list(data_te['uid'] - start_idx), list(data_te['iid'])])
+
+        if binarize:
+            values_tr = np.ones(len(data_tr))
+            values_te = np.ones(len(data_te))
+        else:
+            values_tr = data_tr[data_tr.columns.values[2]]
+            values_te = data_te[data_tr.columns.values[2]]
+
+        v_tr = torch.FloatTensor(values_tr)
+        v_te = torch.FloatTensor(values_te)
+
+        tensor_tr = torch.sparse.FloatTensor(idx_tr,
+                                             v_tr,
+                                             torch.Size([end_idx - start_idx + 1, self.n_items]))
+        tensor_te = torch.sparse.FloatTensor(idx_te,
+                                             v_te,
+                                             torch.Size([end_idx - start_idx + 1, self.n_items]))
+
+        return (tensor_tr, tensor_te) if sparse else (tensor_tr.to_dense(), tensor_te.to_dense())
+
+    def __str__(self):
+        return "Dataset(n_users=%d, n_items=%d, n_ratings=%d)" %(self.n_users,
+                                                                 self.n_items,
+                                                                 self.n_ratings)
+
+    def __repr__(self):
+        return str(self)
 
 
 class DataProcessing:
@@ -69,103 +462,208 @@ class DataProcessing:
     cfg : :class:`rectorch.configuration.DataConfig`
         The :class:`rectorch.configuration.DataConfig` object containing the pre-processing
         configurations.
-    i2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
-        Dictionary which maps the raw item id, i.e., as in the raw `csv` file, to an internal id
-        which is an integer between 0 and the total number of items -1.
-    u2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
-        Dictionary which maps the raw user id, i.e., as in the raw `csv` file, to an internal id
-        which is an integer between 0 and the total number of users -1.
     """
+
     def __init__(self, data_config):
         if isinstance(data_config, DataConfig):
             self.cfg = data_config
         elif isinstance(data_config, (str, dict)):
             self.cfg = DataConfig(data_config)
         else:
-            raise TypeError("'data_config' must be of type 'DataConfig' or 'str'.")
+            raise TypeError("'data_config' must be of type 'DataConfig', 'dict', or 'str'.")
 
-        self.i2id = {}
-        self.u2id = {}
 
     def process(self):
-        r"""Perform the entire pre-processing.
+        r""" Process the data set raw file.
 
-        The pre-processing relies on the configurations provided in the data configuration file.
-        The full pre-processing follows a specific pipeline (the meaning of each configuration
-        parameter is defined in :ref:`config-format`):
+        The pre-processing relies on the configurations provided in the data configurations
+        :attr:`cfg`. The full pre-processing follows a specific pipeline (the meaning of
+        each configuration parameter is defined in :ref:`config-format`):
 
-        1. Reading the CSV file named ``data_path``;
-        2. Filtering the ratings on the basis of the ``threshold``;
-        3. Filtering the users and items according to ``u_min`` and ``i_min``, respectively;
-        4. Splitting the users in training, validation and test sets;
-        5. Splitting the validation and test set user ratings in training and test items according\
-            to ``test_prop``;
-        6. Creating the id mappings (see :attr:`i2id` and :attr:`u2id`);
-        7. Saving the pre-processed data set files in ``proc_path`` folder.
+        1. Read the CSV file named ``data_path``;
+        2. Filter the ratings on the basis of the ``threshold``;
+        3. Filter the users and items according to ``u_min`` and ``i_min``, respectively;
+        4. Split the users in training, validation and test sets;
+        5. (In case of vertical splitting) Split the validation and test set user ratings\
+            in training and test items according to ``test_prop``;
+        6. Returns the corresponding :class:`Dataset` object.
 
         .. warning:: In step (4) there is the possibility that users in the validation or test set\
            have less than 2 ratings making step (5) inconsistent for those users. For this reason,\
            this set of users is simply discarded.
 
         .. warning:: In step (5) there is the possibility that users in the validation or test set\
-           have a number of items which could cause problems in applying the diviion between\
+           have a number of items which could cause problems in applying the division between\
            training items and test items (e.g., users with 2 ratings and ``test_prop`` = 0.1).\
            In these cases, it is always guaranteed that there is at least one item in the test part\
            of the users.
 
-        The output consists of a series of files saved in ``proc_path``:
-
-        * ``train.csv`` : (`csv` file) the training ratings corresponding to all ratings of the\
-            training users;
-        * ``validation_tr.csv`` : (`csv` file) the training ratings corresponding to the validation\
-            users;
-        * ``validation_te.csv`` : (`csv` file) the test ratings corresponding to the validation\
-            users;
-        * ``test_tr.csv`` : (`csv` file) the training ratings corresponding to the test users;
-        * ``test_te.csv`` : (`csv` file) the test ratings corresponding to the test users;
-        * ``unique_uid.txt`` : (`txt` file) with the user id mapping. Line numbers represent the\
-            internal id, while the string on the corresponding line is the raw id;
-        * ``unique_iid.txt`` : (`txt` file) with the item id mapping. Line numbers represent the\
-            internal id, while the string on the corresponding line is the raw id;
-
+        Returns
+        -------
+        :class:`Dataset`
+            The pre-processed and splitted dataset.
         """
-        np.random.seed(int(self.cfg.seed))
+        logger.info("Reading raw data file %s.", self.cfg.processing.data_path)
 
-        logger.info("Reading data file %s.", self.cfg.data_path)
+        sep = self.cfg.processing.separator if self.cfg.processing.separator else ','
+        data = pd.read_csv(self.cfg.processing.data_path,
+                           sep=sep,
+                           header=self.cfg.processing.header,
+                           engine='python')
 
-        sep = self.cfg.separator if self.cfg.separator else ','
-        raw_data = pd.read_csv(self.cfg.data_path, sep=sep, header=self.cfg.header)
-
-        if self.cfg.threshold:
-            raw_data = raw_data[raw_data[raw_data.columns.values[2]] > float(self.cfg.threshold)]
+        cnt = len(data)
+        if self.cfg.processing.threshold:
+            data = data[data[data.columns.values[2]] > float(self.cfg.processing.threshold)]
+            if cnt - len(data) > 0:
+                logger.warning("Thresholded %d ratings.", cnt - len(data))
 
         logger.info("Applying filtering.")
-        imin, umin = int(self.cfg.i_min), int(self.cfg.u_min)
-        raw_data, user_activity, _ = self._filter(raw_data, umin, imin)
+        imin, umin = int(self.cfg.processing.i_min), int(self.cfg.processing.u_min)
+        cnt = len(data)
+        data = self._filter(data, umin, imin)
+        if cnt - len(data) > 0:
+            logger.warning("Filtered %d ratings.", cnt - len(data))
 
-        unique_uid = user_activity.index
-        idx_perm = np.random.permutation(unique_uid.size)
-        unique_uid = unique_uid[idx_perm]
+        splitted = self._split(data, **self.cfg.splitting)
+        return Dataset(*splitted)
+
+
+    def _split(self, data, split_type, valid_size, test_size, test_prop, sort_by, shuffle, seed):
+        if split_type == "horizontal":
+            return self._horizontal_split(data, valid_size, test_size, sort_by, shuffle, seed)
+        elif split_type == "vertical":
+            return self._vertical_split(data,
+                                        valid_size,
+                                        test_size,
+                                        test_prop,
+                                        sort_by,
+                                        shuffle,
+                                        seed)
+        else:
+            raise ValueError("Splitting type must be 'vertical' or 'horizontal'")
+
+    def _get_count(self, data, idx):
+        return data[[idx]].groupby(idx, as_index=False).size()
+
+    def _filter(self, data, min_u=5, min_i=0):
+        [uhead, ihead] = data.columns.values[:2]
+        if min_i > 0:
+            icnt = self._get_count(data, ihead)
+            data = data[data[ihead].isin(icnt.index[icnt >= min_i])]
+
+        if min_u > 0:
+            ucnt = self._get_count(data, uhead)
+            data = data[data[uhead].isin(ucnt.index[ucnt >= min_u])]
+
+        return data
+
+
+    def _horizontal_split(self, data, valid_size, test_size, sort_by=None, shuffle=True, seed=0):
+        assert 0 <= valid_size <= 1, "Invalid validation set size"
+        assert 0 < test_size <= 1, "Invalid test set size"
+
+        uhead, ihead = data.columns.values[:2]
+
+        if shuffle and sort_by is None:
+            logger.info("Shuffling data.")
+            np.random.seed(seed)
+            data = data.reindex(np.random.permutation(data.index))
+
+        data_grouped_by_user = data.groupby(uhead)
+        if sort_by is not None:
+            data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(sort_by))
+
+        logger.info("Creating training, validation and test set.")
+        tr_list, val_list, te_list = [], [], []
+        for _, group in data_grouped_by_user:
+            n_items_u = len(group)
+            if n_items_u > 2 or (n_items_u == 2 and uval_sz == 0):
+                if valid_size > 0:
+                    uval_sz = max(1, int(n_items_u * valid_size)) if valid_size < 1 else 1
+                else:
+                    uval_sz = 0
+                ute_sz = max(1, int(n_items_u * test_size)) if test_size < 1 else 1
+                tr_list.append(group[:-uval_sz-ute_sz])
+                if uval_sz > 0:
+                    val_list.append(group[-uval_sz-ute_sz:-ute_sz])
+                te_list.append(group[-ute_sz:])
+            else:
+                tr_list.append(group)
+
+        data_tr = pd.concat(tr_list)
+        data_val = pd.concat(val_list) if val_list else None
+        data_te = pd.concat(te_list)
+
+        unique_iid = pd.unique(data_tr[ihead])
+        unique_uid = pd.unique(data_tr[uhead])
+
+        if data_val is not None:
+            vcnt = len(data_val)
+            data_val = data_val.loc[data_val[ihead].isin(unique_iid)]
+            if vcnt - len(data_val) > 0:
+                logger.warning("Skipped %d ratings in validation set.", vcnt - len(data_val))
+
+        tcnt = len(data_te)
+        data_te = data_te.loc[data_te[ihead].isin(unique_iid)]
+        if tcnt - len(data_te) > 0:
+            logger.warning("Skipped %d ratings in test set.", tcnt - len(data_te))
+
+        return data_tr, data_val, data_te, unique_uid, unique_iid
+
+
+    def _vertical_split(self,
+                        data,
+                        valid_size,
+                        test_size,
+                        test_prop=.2,
+                        sort_by=None,
+                        shuffle=True,
+                        seed=0):
+        assert valid_size >= 0, "Invalid validation set size"
+        assert test_size > 0, "Invalid test set size"
+        assert 0 < test_prop <= 1, "Invalid test_prop"
+
+        np.random.seed(seed)
+        uhead, ihead = data.columns.values[:2]
+        cnt = self._get_count(data, uhead)
+
+        unique_uid = cnt.index
+        idx_perm = list(range(unique_uid.size))
+        if shuffle:
+            logger.info("Shuffling data.")
+            idx_perm = np.random.permutation(unique_uid.size)
+            unique_uid = unique_uid[idx_perm]
+        elif sort_by:
+            logger.info("Sorting data.")
+            unique_uid = unique_uid.apply(lambda x: x.sort_values(sort_by))
+
         n_users = unique_uid.size
-        n_heldout = self.cfg.heldout
+        valid_heldout = int(valid_size * n_users) if valid_size < 1 else valid_size
+        test_heldout = int(test_size * n_users) if test_size < 1 else test_size
 
         logger.info("Calculating splits.")
-        tr_users = unique_uid[:(n_users - n_heldout * 2)]
-        vd_users = unique_uid[(n_users - n_heldout * 2): (n_users - n_heldout)]
-        te_users = unique_uid[(n_users - n_heldout):]
+        tr_users = unique_uid[:(n_users - valid_heldout - test_heldout)]
+        vd_users = unique_uid[(n_users - valid_heldout - test_heldout): (n_users - test_heldout)]
+        te_users = unique_uid[(n_users - test_heldout):]
 
-        [uhead, ihead] = raw_data.columns.values[:2]
-        train_data = raw_data.loc[raw_data[uhead].isin(tr_users)]
+        train_data = data.loc[data[uhead].isin(tr_users)]
         unique_iid = pd.unique(train_data[ihead])
 
         logger.info("Creating validation and test set.")
-        val_data = raw_data.loc[raw_data[uhead].isin(vd_users)]
+        val_data = data.loc[data[uhead].isin(vd_users)]
+        vcnt = len(val_data)
         val_data = val_data.loc[val_data[ihead].isin(unique_iid)]
-        test_data = raw_data.loc[raw_data[uhead].isin(te_users)]
+        test_data = data.loc[data[uhead].isin(te_users)]
+        tcnt = len(test_data)
         test_data = test_data.loc[test_data[ihead].isin(unique_iid)]
 
-        vcnt = val_data[[uhead]].groupby(uhead, as_index=False).size()
-        tcnt = test_data[[uhead]].groupby(uhead, as_index=False).size()
+        if vcnt - len(val_data) > 0:
+            logger.warning("Skipped %d ratings in validation set.", vcnt - len(val_data))
+        if tcnt - len(test_data) > 0:
+            logger.warning("Skipped %d ratings in test set.", tcnt - len(test_data))
+
+        vcnt = self._get_count(val_data, uhead)
+        tcnt = self._get_count(test_data, uhead)
         val_data = val_data.loc[val_data[uhead].isin(vcnt[vcnt >= 2].index)]
         test_data = test_data.loc[test_data[uhead].isin(tcnt[tcnt >= 2].index)]
 
@@ -176,384 +674,27 @@ class DataProcessing:
         if tcnt_diff > 0:
             logger.warning("Skipped %d users in test set.", tcnt_diff)
 
-        val_data_tr, val_data_te = self._split_train_test(val_data)
-        test_data_tr, test_data_te = self._split_train_test(test_data)
-
-        val_us = list(val_data.groupby(uhead).count().index)
-        te_us = list(test_data.groupby(uhead).count().index)
-        us = val_us + te_us
-
-        unique_uid = list(unique_uid)
-        todel = [u for u in unique_uid[len(tr_users):] if u not in us]
-        for u in todel:
-            unique_uid.remove(u)
-
-        self.i2id = dict((iid, i) for (i, iid) in enumerate(unique_iid))
-        self.u2id = dict((uid, i) for (i, uid) in enumerate(unique_uid))
-
-        logger.info("Saving unique_iid.txt.")
-        pro_dir = self.cfg.proc_path
-        if not os.path.exists(pro_dir):
-            os.makedirs(pro_dir)
-
-        with open(os.path.join(pro_dir, 'unique_iid.txt'), 'w') as f:
-            for iid in unique_iid:
-                f.write('%s\n' % iid)
-
-        logger.info("Saving unique_uid.txt.")
-        with open(os.path.join(pro_dir, 'unique_uid.txt'), 'w') as f:
-            for uid in unique_uid:
-                f.write('%s\n' % uid)
-
-        train_data = self._numerize(train_data, self.u2id, self.i2id)
-        val_data_tr = self._numerize(val_data_tr, self.u2id, self.i2id)
-        val_data_te = self._numerize(val_data_te, self.u2id, self.i2id)
-        test_data_tr = self._numerize(test_data_tr, self.u2id, self.i2id)
-        test_data_te = self._numerize(test_data_te, self.u2id, self.i2id)
-
-        logger.info("Saving all the files.")
-        train_data.to_csv(os.path.join(pro_dir, 'train.csv'), index=False)
-        val_data_tr.to_csv(os.path.join(pro_dir, 'validation_tr.csv'), index=False)
-        val_data_te.to_csv(os.path.join(pro_dir, 'validation_te.csv'), index=False)
-        test_data_tr.to_csv(os.path.join(pro_dir, 'test_tr.csv'), index=False)
-        test_data_te.to_csv(os.path.join(pro_dir, 'test_te.csv'), index=False)
-        logger.info("Preprocessing complete!")
-
-    def _filter(self, data, min_u=5, min_i=0):
-        def get_count(data, idx):
-            return data[[idx]].groupby(idx, as_index=False).size()
-
-        [uhead, ihead] = data.columns.values[:2]
-        if min_i > 0:
-            icnt = get_count(data, ihead)
-            data = data[data[ihead].isin(icnt.index[icnt >= min_i])]
-
-        if min_u > 0:
-            ucnt = get_count(data, uhead)
-            data = data[data[uhead].isin(ucnt.index[ucnt >= min_u])]
-
-        ucnt, icnt = get_count(data, uhead), get_count(data, ihead)
-        return data, ucnt, icnt
-
-    def _numerize(self, data, u2id, i2id):
-        [uhead, ihead] = data.columns.values[:2]
-        uid = data[uhead].apply(lambda x: u2id[x])
-        iid = data[ihead].apply(lambda x: i2id[x])
-        if self.cfg.topn:
-            return pd.DataFrame(data={'uid': uid, 'iid': iid}, columns=['uid', 'iid'])
+        if valid_size > 0:
+            val_data_tr, val_data_te = self._split_train_test(val_data, test_prop)
         else:
-            dic_data = {'uid': uid, 'iid': iid}
-            for c in data.columns.values[2:]:
-                dic_data[c] = data[c]
-            cols = ['uid', 'iid'] + list(data.columns[2:])
-            return pd.DataFrame(data=dic_data, columns=cols)
+            val_data_tr, val_data_te = None, None
+        test_data_tr, test_data_te = self._split_train_test(test_data, test_prop)
 
-    def _split_train_test(self, data):
-        np.random.seed(self.cfg.seed)
-        test_prop = float(self.cfg.test_prop) if self.cfg.test_prop else 0.2
+        return train_data, (val_data_tr, val_data_te), (test_data_tr, test_data_te), unique_uid, unique_iid
+
+    def _split_train_test(self, data, test_prop, seed=0):
+        np.random.seed(seed)
         uhead = data.columns.values[0]
         data_grouped_by_user = data.groupby(uhead)
         tr_list, te_list = [], []
-
         for _, group in data_grouped_by_user:
             n_items_u = len(group)
-            if n_items_u > 1:
-                idx = np.zeros(n_items_u, dtype='bool')
-                sz = max(int(test_prop * n_items_u), 1)
-                idx[np.random.choice(n_items_u, size=sz, replace=False).astype('int64')] = True
-                tr_list.append(group[np.logical_not(idx)])
-                te_list.append(group[idx])
+            if n_items_u >= 2:
+                ute_sz = max(1, int(n_items_u * test_prop)) if test_prop < 1 else 1
+                tr_list.append(group[:-ute_sz])
+                te_list.append(group[-ute_sz:])
             else:
-                # This should never be True
-                logger.warning("Skipped user in test set: number of ratings <= 1.")
-
+                tr_list.append(group)
         data_tr = pd.concat(tr_list)
         data_te = pd.concat(te_list)
         return data_tr, data_te
-
-
-class DataReader():
-    r"""Utility class for reading pre-processed dataset.
-
-    The reader assumes that the data set has been previously pre-processed using
-    :meth:`DataProcessing.process`. To avoid malfunctioning, the same configuration file used for
-    the pre-processing should be used to load the data set. Once a reader is created it is possible
-    to load to the training, validation and test set using :meth:`load_data`.
-
-    Parameters
-    ----------
-    data_config : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
-        Represents the data pre-processing configurations.
-        When ``type(data_config) == str`` is expected to be the path to the data configuration file.
-        In that case a :class:`DataConfig` object is contextually created.
-
-    Attributes
-    ----------
-    cfg : :class:`rectorch.configuration.DataConfig`
-        Object containing the loading configurations.
-    n_items : :obj:`int`
-        The number of items in the data set.
-
-    Raises
-    ------
-    :class:`TypeError`
-        Raised when ``data_config`` is neither a :obj:`str` nor a
-        :class:`rectorch.configuration.DataConfig`.
-    """
-    def __init__(self, data_config):
-        if isinstance(data_config, DataConfig):
-            self.cfg = data_config
-        elif isinstance(data_config, str):
-            self.cfg = DataConfig(data_config)
-        else:
-            raise TypeError("'data_config' must be of type 'DataConfig' or 'str'.")
-        self.n_items = self._load_n_items()
-
-    def load_data(self, datatype='train'):
-        r"""Load (part of) the pre-processed data set.
-
-        Load from the pre-processed file the data set, or part of it, accordingly to the
-        ``datatype``.
-
-        Parameters
-        ----------
-        datatype : :obj:`str` in {``'train'``, ``'validation'``, ``'test'``, ``'full'``} [optional]
-            String representing the type of data that has to be loaded, by default ``'train'``.
-            When ``datatype`` is equal to ``'full'`` the entire data set is loaded into a sparse
-            matrix.
-
-        Returns
-        -------
-        :obj:`scipy.sparse.csr_matrix` or :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
-            The data set or part of it. When ``datatype`` is ``'full'`` or ``'train'`` a single
-            sparse matrix is returned representing the full data set or the training set,
-            respectively. While, if ``datatype`` is ``'validation'`` or ``'test'`` a pair of
-            sparse matrices are returned. The first matrix is the training part (i.e., for each
-            user its training set of items), and the second matrix is the test part (i.e., for each
-            user its test set of items).
-
-        Raises
-        ------
-        :class:`ValueError`
-            Raised when ``datatype`` does not match any of the valid strings.
-        """
-        if datatype == 'train':
-            return self._load_train_data()
-        elif datatype == 'validation':
-            return self._load_train_test_data(datatype)
-        elif datatype == 'test':
-            return self._load_train_test_data(datatype)
-        elif datatype == 'full':
-            tr = self._load_train_data()
-            val_tr, val_te = self._load_train_test_data("validation")
-            te_tr, te_te = self._load_train_test_data("test")
-            val = val_tr + val_te
-            te = te_tr + te_te
-            return sparse.vstack([tr, val, te])
-        else:
-            raise ValueError("Possible datatype values are 'train', 'validation', 'test', 'full'.")
-
-    def _load_n_items(self):
-        unique_iid = []
-        with open(os.path.join(self.cfg.proc_path, 'unique_iid.txt'), 'r') as f:
-            for line in f:
-                unique_iid.append(line.strip())
-        return len(unique_iid)
-
-    def _load_train_data(self):
-        path = os.path.join(self.cfg.proc_path, 'train.csv')
-        data = pd.read_csv(path)
-        n_users = data['uid'].max() + 1
-
-        rows, cols = data['uid'], data['iid']
-        if self.cfg.topn:
-            values = np.ones_like(rows)
-        else:
-            values = data[data.columns.values[2]]
-
-        data = sparse.csr_matrix((values, (rows, cols)),
-                                 dtype='float64',
-                                 shape=(n_users, self.n_items))
-        return data
-
-    def _load_train_test_data(self, datatype='test'):
-        tr_path = os.path.join(self.cfg.proc_path, f'{datatype}_tr.csv')
-        te_path = os.path.join(self.cfg.proc_path, f'{datatype}_te.csv')
-
-        data_tr = pd.read_csv(tr_path)
-        data_te = pd.read_csv(te_path)
-
-        start_idx = min(data_tr['uid'].min(), data_te['uid'].min())
-        end_idx = max(data_tr['uid'].max(), data_te['uid'].max())
-
-        rows_tr, cols_tr = data_tr['uid'] - start_idx, data_tr['iid']
-        rows_te, cols_te = data_te['uid'] - start_idx, data_te['iid']
-
-        if self.cfg.topn:
-            values_tr = np.ones_like(rows_tr)
-            values_te = np.ones_like(rows_te)
-        else:
-            values_tr = data_tr[data_tr.columns.values[2]]
-            values_te = data_te[data_tr.columns.values[2]]
-
-        data_tr = sparse.csr_matrix((values_tr, (rows_tr, cols_tr)),
-                                    dtype='float64',
-                                    shape=(end_idx - start_idx + 1, self.n_items))
-        data_te = sparse.csr_matrix((values_te, (rows_te, cols_te)),
-                                    dtype='float64',
-                                    shape=(end_idx - start_idx + 1, self.n_items))
-
-        tr_idx = np.diff(data_tr.indptr) != 0
-        #te_idx = np.diff(data_te.indptr) != 0
-        #keep_idx = tr_idx * te_idx
-        return data_tr[tr_idx], data_te[tr_idx]
-
-    def _to_dict(self, data, sort_by=None):
-        if sort_by:
-            data = data.sort_values(sort_by)
-        imin = data["uid"].min()
-        #ugly but it works
-        grouped = data.groupby(by="uid")
-        if sort_by:
-            grouped = grouped.apply(lambda x: x.sort_values(sort_by)).reset_index(drop=True)
-        grouped = grouped.groupby(by="uid")
-        return {idx - imin : list(group["iid"]) for idx, group in grouped}
-
-    def _split_train_test(self, data, sort_by):
-        np.random.seed(self.cfg.seed)
-        test_prop = float(self.cfg.test_prop) if self.cfg.test_prop else 0.2
-        uhead = data.columns.values[0]
-        #ugly but it works
-        data_grouped_by_user = data.groupby(uhead)
-        data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(sort_by))
-        data_grouped_by_user = data_grouped_by_user.reset_index(drop=True)
-        data_grouped_by_user = data_grouped_by_user.groupby(uhead)
-        tr_list, te_list = [], []
-
-        for _, group in data_grouped_by_user:
-            n_items_u = len(group)
-            idx = np.zeros(n_items_u, dtype='bool')
-            sz = max(int(test_prop * n_items_u), 1)
-            idx[-sz:] = True
-            tr_list.append(group[np.logical_not(idx)])
-            te_list.append(group[idx])
-
-        data_tr = pd.concat(tr_list)
-        data_te = pd.concat(te_list)
-        return data_tr, data_te
-
-    def load_data_as_dict(self, datatype='train', sort_by=None):
-        r"""Load the data as a dictionary
-
-        The loaded dictionary has users as keys and lists of items as values. An entry
-        of the dictionary represents the list of rated items (sorted by ``sort_by``) by the user,
-        i.e., the key.
-
-        Parameters
-        ----------
-        datatype : :obj:`str` in {``'train'``, ``'validation'``, ``'test'``} [optional]
-            String representing the type of data that has to be loaded, by default ``'train'``.
-        sort_by : :obj:`str` of :obj:`None` [optional]
-            The name of the column on which items are ordered. If
-            :obj:`None` no ordered is applied, by default :obj:`None`
-
-        Returns
-        -------
-        :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`) or :obj:`tuple` of :obj:`dict`
-            When ``datatype`` is ``'train'`` a single dictionary is returned representing the
-            training set. While, if ``datatype`` is ``'validation'`` or ``'test'`` a pair of
-            dictionaries returned. The first dictionary is the training part (i.e., for each
-            user its training set of items), and the second dictionart is the test part (i.e., for
-            each user its test set of items).
-        """
-        if datatype == 'train':
-            path = os.path.join(self.cfg.proc_path, 'train.csv')
-            data = pd.read_csv(path)
-            return self._to_dict(data, sort_by)
-        elif datatype == 'validation':
-            path_tr = os.path.join(self.cfg.proc_path, 'validation_tr.csv')
-            path_te = os.path.join(self.cfg.proc_path, 'validation_te.csv')
-        elif datatype == 'test':
-            path_tr = os.path.join(self.cfg.proc_path, 'test_tr.csv')
-            path_te = os.path.join(self.cfg.proc_path, 'test_te.csv')
-        elif datatype == 'full':
-            data_list = [pd.read_csv(os.path.join(self.cfg.proc_path, 'train.csv')),
-                         pd.read_csv(os.path.join(self.cfg.proc_path, 'validation_tr.csv')),
-                         pd.read_csv(os.path.join(self.cfg.proc_path, 'validation_te.csv')),
-                         pd.read_csv(os.path.join(self.cfg.proc_path, 'test_tr.csv')),
-                         pd.read_csv(os.path.join(self.cfg.proc_path, 'test_te.csv'))]
-            combined = pd.concat(data_list)
-            return self._to_dict(combined, sort_by)
-        else:
-            raise ValueError("Possible datatype values are 'train', 'validation', 'test', 'full'.")
-
-        data_tr = pd.read_csv(path_tr)
-        data_te = pd.read_csv(path_te)
-
-        combined = pd.concat([data_tr, data_te], ignore_index=True)
-        combined = combined.sort_values(sort_by)
-        data_tr, data_te = self._split_train_test(combined, sort_by)
-
-        return self._to_dict(data_tr, sort_by), self._to_dict(data_te, sort_by)
-
-
-class DatasetManager():
-    """Helper class for handling data sets.
-
-    Given the configuration file, :class:`DatasetManager` automatically load training, validation,
-    and test sets that will be accessible from its attributes. It also gives the possibility of
-    loading the data set into only a training and a test set. In this latter case, training,
-    validation and the training part of the test set are merged together to form a bigger training
-    set. The test set will be only the test part of the test set.
-
-    Parameters
-    ----------
-    config_file : :class:`rectorch.configuration.DataConfig` or :obj:`str`:
-        Represents the data pre-processing configurations.
-        When ``type(config_file) == str`` is expected to be the path to the data configuration file.
-        In that case a :class:`DataConfig` object is contextually created.
-
-    Attributes
-    ----------
-    n_items : :obj:`int`
-        Number of items in the data set.
-    training_set : :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
-        The first matrix is the sparse training set matrix, while the  second element of the tuple
-        is :obj:`None`.
-    validation_set : :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
-        The first matrix is the training part of the validation set (i.e., for each user its
-        training set of items), and the second matrix is the test part of the validation set (i.e.,
-        for each user its test set of items).
-    test_set : :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
-        The first matrix is the training part of the test set (i.e., for each user its
-        training set of items), and the second matrix is the test part of the test set (i.e.,
-        for each user its test set of items).
-    """
-    def __init__(self, config_file):
-        reader = DataReader(config_file)
-        train_data = reader.load_data('train')
-        vad_data_tr, vad_data_te = reader.load_data('validation')
-        test_data_tr, test_data_te = reader.load_data('test')
-
-        self.n_items = reader.n_items
-        self.training_set = (train_data, None)
-        self.validation_set = (vad_data_tr, vad_data_te)
-        self.test_set = (test_data_tr, test_data_te)
-
-    def get_train_and_test(self):
-        r"""Return a training and a test set.
-
-        Load the data set into only a training and a test set. Training, validation and the training
-        part of the test set are merged together to form a bigger training set.
-        The test set will be only the test part of the test set. The training part of the test users
-        are the last ``t`` rows of the training matrix, where ``t`` is the number of test users.
-
-        Returns
-        -------
-        :obj:`tuple` of :obj:`scipy.sparse.csr_matrix`
-            The first matrix is the training set, the second one is the test set.
-        """
-        tr = sparse.vstack([self.training_set[0], sum(self.validation_set), self.test_set[0]])
-        shape = tr.shape[0] - self.test_set[1].shape[0], tr.shape[1]
-        te = sparse.vstack([sparse.csr_matrix(shape), self.test_set[1]])
-        return tr, te
