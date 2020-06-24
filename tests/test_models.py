@@ -1,4 +1,4 @@
-"""Unit tests for the rectorch.models module
+"""Unit tests for the rectorch.models.nn module
 """
 import os
 import sys

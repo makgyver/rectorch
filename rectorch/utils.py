@@ -2,8 +2,8 @@ r"""Module containing utility functions.
 """
 import os
 import json
-import rectorch
 from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
+import rectorch
 
 __all__ = ['init_optimizer', 'get_data_cfg']
 

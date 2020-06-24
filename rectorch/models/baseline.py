@@ -58,6 +58,7 @@ class Random(RecSysModel):
     def save_model(self, filepath):
         env.logger.info("Saving model checkpoint to %s...", filepath)
         with open(filepath, "w") as f:
+            f.write(str(self.n_items) + "\n")
             f.write(str(self.seed) + "\n")
             f.write(str(1 if self.fixed else 0))
         env.logger.info("Model checkpoint saved!")
@@ -66,6 +67,7 @@ class Random(RecSysModel):
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
         env.logger.info("Loading model checkpoint from %s...", filepath)
         with open(filepath, "r") as f:
+            self.n_items = int(f.readline().strip())
             self.seed = int(f.readline().strip())
             self.fixed = bool(f.readline().strip())
         env.logger.info("Model checkpoint loaded!")
@@ -95,12 +97,23 @@ class Popularity(RecSysModel):
         self.model = None
 
     def train(self, train_data, retrain=False):
+        r"""[summary]
+
+        Parameters
+        ----------
+        train_data : [type]
+            [description]
+        retrain : bool, optional
+            [description], by default False
+        """
         if not retrain and self.model is not None:
             return
 
         if isinstance(train_data, csr_matrix):
-            nparray = train_data.sum(axis=0).toarray().flatten()
+            nparray = np.array(train_data.sum(axis=0)).flatten()
             self.model = torch.from_numpy(nparray).float()
+        if isinstance(train_data, (torch.FloatTensor, torch.sparse.FloatTensor)):
+            self.model = torch.sum(train_data, 0)
         elif isinstance(train_data, dict):
             occs = Counter([i for items in train_data.values() for i in items])
             self.model = torch.zeros(self.n_items, dtype=torch.float)
