@@ -4,6 +4,7 @@ import os
 import sys
 import json
 import tempfile
+import pandas as pd
 import pytest
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -48,7 +49,11 @@ def test_DataProcessing():
             DataProcessing(1)
 
         dp = DataProcessing(tmp_d.name)
-        dataset = dp.process()
+        data = dp.process()
+        assert isinstance(data, pd.DataFrame)
+        assert len(data) == 12
+
+        dataset = dp.split(data)
 
         assert dataset.n_users == 4
         assert dataset.n_items == 3
@@ -98,7 +103,7 @@ def test_DataProcessing():
 
         dc = DataConfig(tmp_d.name)
         dp = DataProcessing(dc)
-        dataset0 = dp.process()
+        dataset0 = dp.split(dp.process())
 
         assert dataset0.n_users == 4
         assert dataset0.n_items == 5
@@ -114,19 +119,22 @@ def test_DataProcessing():
 
     with pytest.raises(ValueError):
         cfg_d["splitting"]["split_type"] = "pippo"
-        DataProcessing(cfg_d).process()
+        DataProcessing(cfg_d).process_and_split()
 
     cfg_d["splitting"]["split_type"] = "horizontal"
     cfg_d["splitting"]["shuffle"] = True
-    dataset2 = DataProcessing(cfg_d).process()
+    dp = DataProcessing(cfg_d)
+    dataset2 = dp.split(dp.process())
     assert list(dataset2.train_set.index) != list(dataset0.train_set.index)
 
     cfg_d["splitting"]["split_type"] = "vertical"
-    dataset3 = DataProcessing(cfg_d).process()
+    dp = DataProcessing(cfg_d)
+    dataset3 = dp.split(dp.process())
     assert list(dataset3.train_set.index) != list(dataset.train_set.index)
 
     cfg_d["splitting"]["valid_size"] = 0
-    dataset = DataProcessing(cfg_d).process()
+    dp = DataProcessing(cfg_d)
+    dataset = dp.split(dp.process())
     assert dataset.valid_set is None
 
 
@@ -159,7 +167,8 @@ def test_Dataset():
             "test_prop": .5
         }
     }
-    dataset = DataProcessing(cfg_d).process()
+    dp = DataProcessing(cfg_d)
+    dataset = dp.split(dp.process())
 
     with tempfile.TemporaryDirectory() as tmp_folder:
         dataset.save(tmp_folder)

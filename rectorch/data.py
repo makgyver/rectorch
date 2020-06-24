@@ -475,7 +475,7 @@ class DataProcessing:
 
 
     def process(self):
-        r""" Process the data set raw file.
+        r"""Process the data set raw file.
 
         The pre-processing relies on the configurations provided in the data configurations
         :attr:`cfg`. The full pre-processing follows a specific pipeline (the meaning of
@@ -484,25 +484,11 @@ class DataProcessing:
         1. Read the CSV file named ``data_path``;
         2. Filter the ratings on the basis of the ``threshold``;
         3. Filter the users and items according to ``u_min`` and ``i_min``, respectively;
-        4. Split the users in training, validation and test sets;
-        5. (In case of vertical splitting) Split the validation and test set user ratings\
-            in training and test items according to ``test_prop``;
-        6. Returns the corresponding :class:`Dataset` object.
-
-        .. warning:: In step (4) there is the possibility that users in the validation or test set\
-           have less than 2 ratings making step (5) inconsistent for those users. For this reason,\
-           this set of users is simply discarded.
-
-        .. warning:: In step (5) there is the possibility that users in the validation or test set\
-           have a number of items which could cause problems in applying the division between\
-           training items and test items (e.g., users with 2 ratings and ``test_prop`` = 0.1).\
-           In these cases, it is always guaranteed that there is at least one item in the test part\
-           of the users.
 
         Returns
         -------
-        :class:`Dataset`
-            The pre-processed and splitted dataset.
+        :class:`pandas.DataFrame`
+            The pre-processed dataset.
         """
         env.logger.info("Reading raw data file %s.", self.cfg.processing.data_path)
 
@@ -525,9 +511,53 @@ class DataProcessing:
         if cnt - len(data) > 0:
             env.logger.warning("Filtered %d ratings.", cnt - len(data))
 
+        return data
+
+    def split(self, data):
+        r"""Split the data set.
+
+        The splitting relies on the configurations provided in the data configurations
+        :attr:`cfg`. The splitting procedure follows a specific pipeline:
+
+        1. Split the users in training, validation and test sets;
+        2. (In case of vertical splitting) Split the validation and test set user ratings\
+            in training and test items according to ``test_prop``;
+        3. Returns the corresponding :class:`Dataset` object.
+
+        .. warning:: In step (1) there is the possibility that users in the validation or test set\
+           have less than 2 ratings making step (2) inconsistent for those users. For this reason,\
+           this set of users is simply discarded.
+
+        .. warning:: In step (2) there is the possibility that users in the validation or test set\
+           have a number of items which could cause problems in applying the division between\
+           training items and test items (e.g., users with 2 ratings and ``test_prop`` = 0.1).\
+           In these cases, it is always guaranteed that there is at least one item in the test part\
+           of the users.
+
+        Parameters
+        ----------
+        data : :class:`pandas.DataFrame`
+            The dataset to split.
+
+        Returns
+        -------
+        :class:`Dataset`
+            The splitted dataset.
+        """
         splitted = self._split(data, **self.cfg.splitting)
         return Dataset(*splitted)
 
+    def process_and_split(self):
+        r"""Process and split the dataset.
+
+        It is the equivalent of calling ``split(process())``.
+
+        Returns
+        -------
+        :class:`Dataset`
+            The processed and splitted dataset.
+        """
+        return self.split(self.process())
 
     def _split(self, data, split_type, valid_size, test_size, test_prop, sort_by, shuffle, seed):
         if split_type == "horizontal":
@@ -559,7 +589,7 @@ class DataProcessing:
         return data
 
 
-    def _horizontal_split(self, data, valid_size, test_size, sort_by=None, shuffle=True, seed=0):
+    def _horizontal_split(self, data, valid_size, test_size, sort_by=None, shuffle=True, seed=None):
         assert 0 <= valid_size <= 1, "Invalid validation set size"
         assert 0 < test_size <= 1, "Invalid test set size"
 
@@ -567,7 +597,8 @@ class DataProcessing:
 
         if shuffle and sort_by is None:
             env.logger.info("Shuffling data.")
-            np.random.seed(seed)
+            if seed is not None:
+                np.random.seed(seed)
             data = data.reindex(np.random.permutation(data.index))
 
         data_grouped_by_user = data.groupby(uhead)
@@ -619,12 +650,13 @@ class DataProcessing:
                         test_prop=.2,
                         sort_by=None,
                         shuffle=True,
-                        seed=0):
+                        seed=None):
         assert valid_size >= 0, "Invalid validation set size"
         assert test_size > 0, "Invalid test set size"
         assert 0 < test_prop <= 1, "Invalid test_prop"
 
-        np.random.seed(seed)
+        if seed is not None:
+            np.random.seed(seed)
         uhead, ihead = data.columns.values[:2]
         cnt = self._get_count(data, uhead)
 
@@ -687,8 +719,9 @@ class DataProcessing:
                 unique_uid,
                 unique_iid)
 
-    def _split_train_test(self, data, test_prop, seed=0):
-        np.random.seed(seed)
+    def _split_train_test(self, data, test_prop, seed=None):
+        if seed is not None:
+            np.random.seed(seed)
         uhead = data.columns.values[0]
         data_grouped_by_user = data.groupby(uhead)
         tr_list, te_list = [], []

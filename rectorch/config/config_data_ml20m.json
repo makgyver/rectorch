@@ -1,0 +1,19 @@
+{
+    "processing": {
+        "data_path": "./ml-20m/ratings.csv",
+        "threshold": 3.5,
+        "separator": ",",
+        "header": 0,
+        "u_min": 5,
+        "i_min": 0
+    },
+    "splitting": {
+        "split_type": "vertical", 
+        "sort_by": null, 
+        "seed": 98765,
+        "shuffle": 1,
+        "valid_size": 10000,
+        "test_size": 10000,
+        "test_prop": 0.2
+    }
+}

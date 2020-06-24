@@ -1,4 +1,4 @@
-"""This module conntains some baseline recommender systems.
+r"""This module conntains some baseline recommender systems.
 """
 import os
 from collections import Counter
@@ -11,7 +11,7 @@ from rectorch import env
 __all__ = ['Random', 'Popularity']
 
 class Random(RecSysModel):
-    """Random recommender.
+    r"""Random recommender.
 
     This recommendation method simply give random recommendations.
 
@@ -73,7 +73,7 @@ class Random(RecSysModel):
 
 
 class Popularity(RecSysModel):
-    """Popularity-based recommender.
+    r"""Popularity-based recommender.
 
     It recommends the most popular (i.e., rated) items.
 

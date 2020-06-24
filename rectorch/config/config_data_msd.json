@@ -1,0 +1,19 @@
+{
+    "processing": {
+        "data_path": "./msd/training.txt",
+        "threshold": 0.5,
+        "separator": " ",
+        "header": null,
+        "u_min": 20,
+        "i_min": 200
+    },
+    "splitting": {
+        "split_type": "vertical", 
+        "sort_by": null, 
+        "seed": 98765,
+        "shuffle": 1,
+        "valid_size": 50000,
+        "test_size": 50000,
+        "test_prop": 0.2
+    }
+}

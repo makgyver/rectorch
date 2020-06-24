@@ -1,12 +1,12 @@
 """rectorch: state-of-the-art recsys approaches implemented in pytorch.
 """
-__all__ = ['configuration', 'data', 'evaluation', 'metrics', 'models', 'nets', 'samplers']
+__all__ = ['configuration', 'data', 'evaluation', 'metrics', 'models', 'nets', 'samplers', 'utils']
 
 import logging
 import torch
 
 class Environment():
-    """Rectorch environment class
+    r"""Rectorch environment class.
     """
     def __init__(self):
         logging.basicConfig(level=logging.INFO,
@@ -18,7 +18,7 @@ class Environment():
         self._default_env = True
 
     def init(self, device="cpu"):
-        """Initialize the environment.
+        r"""Initialize the environment.
 
         Parameters
         ----------
@@ -41,7 +41,7 @@ class Environment():
                                   so you should probably set the device to 'cuda'.")
 
     def reset(self):
-        """Reset the rectorch environment to the standard configuration.
+        r"""Reset the rectorch environment to the standard configuration.
         """
         self._default_env = True
         self._device = torch.device("cpu")

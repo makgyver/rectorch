@@ -7,8 +7,9 @@ with open("README.md", "r") as fh:
 
 setup(
     name='rectorch',
-    packages=find_packages(exclude=['build', 'doc', 'templates']),
-    version='0.1.0b',
+    packages=find_packages(exclude=['build', 'doc', 'templates', 'tests']),
+    include_package_data=True,
+    version='0.1.0b0',
     install_requires=[
         "numpy",
         "scipy",
