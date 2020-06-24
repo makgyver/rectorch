@@ -47,6 +47,7 @@ def get_data_cfg(ds_name=None):
     ----------
     ds_name : :obj:`str` [optional]
         The name of the dataset. Possible values are:
+
         * 'ml1m' : Movielens 100k;
         * 'ml1m' : Movielens 1 million;
         * 'ml20m': Movielens 20 million;
@@ -60,6 +61,7 @@ def get_data_cfg(ds_name=None):
 
         If :obj:`None` the function returns a generic configuration with no thresholding and
         horizontal leave-one-out splitting. The name of the raw file is empty and must be set.
+
     Returns
     -------
     :obj:`dict`

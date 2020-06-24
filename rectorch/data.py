@@ -13,12 +13,19 @@ Examples
 This module is mainly meant to be used in the following way:
 
 >>> from rectorch.data import DataProcessing
->>> dataset = DataProcessing("/path/to/the/config/file").process()
+>>> proc = DataProcessing("/path/to/the/config/file")
+>>> df = proc.process()
+>>> dataset = proc.split(df)
+
+The same computation can be simplified as follows:
+
+>>> from rectorch.data import DataProcessing
+>>> dataset = DataProcessing("/path/to/the/config/file").process_and_split()
 
 See Also
 --------
-Module:
-:mod:`configuration`
+Modules:
+:mod:`configuration <rectorch.configuration>`
 """
 import os
 import numpy as np
@@ -39,22 +46,22 @@ class Dataset():
 
     Parameters
     ----------
-    uids: :obj:`list` of :obj:`int`
+    uids : :obj:`list` of :obj:`int`
         List of user ids.
-    iids: :obj:`list` of :obj:`int`
+    iids : :obj:`list` of :obj:`int`
         List of item ids.
-    train_set: :class:`pandas.DataFrame`
+    train_set : :class:`pandas.DataFrame`
         The training set data frame.
-    valid_set: :obj:`None` or :class:`pandas.DataFrame` or sequence of :class:`pandas.DataFrame`
+    valid_set : :obj:`None` or :class:`pandas.DataFrame` or sequence of :class:`pandas.DataFrame`
         The validation set data frame. When the dataset is vertically splitted the validation
         set is a pair of data frames that correspond to the training part and the test
         part of the set. When it is set to :obj:`None` it means that no validation
         set has been created.
-    test_set: :class:`pandas.DataFrame` or sequence of :class:`pandas.DataFrame`
+    test_set : :class:`pandas.DataFrame` or sequence of :class:`pandas.DataFrame`
         The test set data frame. When the dataset is vertically splitted the test
         set is a pair of data frames that correspond to the training part and the test
         part of the set.
-    numerize: :obj:`bool`, optional
+    numerize : :obj:`bool`, optional
         Whether the user/item ids must be re-mapped, by default :obj:`True`.
 
     Attributes
@@ -73,11 +80,11 @@ class Dataset():
     i2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
         Dictionary which maps the raw item id, i.e., as in the raw `csv` file, to an internal id
         which is an integer between 0 and the total number of items minus one.
-    train_set: :class:`pandas.DataFrame`
+    train_set : :class:`pandas.DataFrame`
         See ``train_set`` parameter.
-    valid_set: :obj:`None` or :class:`pandas.DataFrame` or tuple of :class:`pandas.DataFrame`
+    valid_set : :obj:`None` or :class:`pandas.DataFrame` or tuple of :class:`pandas.DataFrame`
         See ``valid_set`` parameter.
-    test_set: :class:`pandas.DataFrame` or tuple of :class:`pandas.DataFrame`
+    test_set : :class:`pandas.DataFrame` or tuple of :class:`pandas.DataFrame`
         See ``test_set`` parameter.
     """
     def __init__(self, train_set, valid_set, test_set, uids, iids, numerize=True):
@@ -175,7 +182,7 @@ class Dataset():
 
         Parameters
         ----------
-        pro_dir: :obj:`str`
+        pro_dir : :obj:`str`
             Path to the folder where files will be saved.
         """
         env.logger.info("Saving unique_iid.txt.")
@@ -216,7 +223,7 @@ class Dataset():
 
         Parameters
         ----------
-        pro_dir: :obj:`str`
+        pro_dir : :obj:`str`
             Path to the folder where the dataset files are stored.
         """
         unique_uid = []
@@ -260,19 +267,19 @@ class Dataset():
 
         Parameters
         ----------
-        binarize: :obj:`bool`
+        binarize : :obj:`bool`
             Whether the ratings have to be binarized.
 
         Returns
         -------
-        data_tr: :obj:`dictionary` (key: :obj:`int` - value: :obj:`int`)
+        data_tr : :obj:`dict` (key: :obj:`int` - value: :obj:`int`)
             Dictionary containing the training ratings.
-        data_val: [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`) or :obj:`None`
+        data_val : [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`) or :obj:`None`
             If the dataset is horizontally splitted it is a dictionary containing
             the validation ratings. Otherwise, it is a pair of dictionaries containing
             the training and test part of the validation ratings. In case of no validation
             set it is a :obj:`None` object.
-        data_te: [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`)
+        data_te : [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`)
             If the dataset is horizontally splitted it is a dictionary containing
             the test ratings. Otherwise, it is a pair of dictionaries containing
             the training and test part of the test ratings.
@@ -309,10 +316,10 @@ class Dataset():
         Returns
         -------
         :obj:`tuple` of :class:`scipy.sparse.csr_matrix`
-            In case of horizonal splitting it returns (``training set``, ``validation set``,
-            ``test set``). In case of vertical splitting it returns (``training set``,
-            (``training part of the validation set``, ``test part of the validation set),
-            (``training part of the test set``, ``test part of the test set)).
+            In case of horizonal splitting it returns (training set, validation set,
+            test set). In case of vertical splitting it returns (training set,
+            (training part of the validation set, test part of the validation set),
+            (training part of the test set, test part of the test set))..
         """
         data_tr = self._df_to_sparse(self.train_set, binarize)
         if isinstance(self.valid_set, DataFrame):
@@ -374,11 +381,11 @@ class Dataset():
 
         Returns
         -------
-        :obj:`tuple` of :class:`torch.sparse.FloatTensor`/:class:`torch.FloatTensor`
-            In case of horizonal splitting it returns (``training set``, ``validation set``,
-            ``test set``). In case of vertical splitting it returns (``training set``,
-            (``training part of the validation set``, ``test part of the validation set),
-            (``training part of the test set``, ``test part of the test set)).
+        :obj:`tuple` of :class:`torch.sparse.FloatTensor` / :class:`torch.FloatTensor`
+            In case of horizonal splitting it returns (training set, validation set,
+            test set). In case of vertical splitting it returns (training set,
+            (training part of the validation set, test part of the validation set),
+            (training part of the test set, test part of the test set)).
         """
         data_tr = self._df_to_tensor(self.train_set, binarize, sparse)
         if isinstance(self.valid_set, DataFrame):
@@ -472,7 +479,6 @@ class DataProcessing:
             self.cfg = DataConfig(data_config)
         else:
             raise TypeError("'data_config' must be of type 'DataConfig', 'dict', or 'str'.")
-
 
     def process(self):
         r"""Process the data set raw file.

@@ -4,7 +4,8 @@ the **rectorch** models.
 See Also
 --------
 Modules:
-:mod:`models <models>`
+:mod:`models <rectorch.models>`
+:mod:`models.nn <rectorch.models.nn>`
 """
 import torch
 import torch.nn as nn

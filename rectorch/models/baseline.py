@@ -19,9 +19,9 @@ class Random(RecSysModel):
     ----------
     n_items : :obj:`int`
         Number of items.
-    seed : :obj:`int`, optional
+    seed : :obj:`int` [optional]
         The random seed, by default 0.
-    fixed : :obj:`bool`, optional
+    fixed : :obj:`bool` [optional]
         Whether the random recommendation is the same for each user or not. By default :obj:`False`.
 
     Attributes
@@ -97,14 +97,16 @@ class Popularity(RecSysModel):
         self.model = None
 
     def train(self, train_data, retrain=False):
-        r"""[summary]
+        r"""Compute the items' popularity.
 
         Parameters
         ----------
-        train_data : [type]
-            [description]
-        retrain : bool, optional
-            [description], by default False
+        train_data : :obj:`dict` or :class:`torch.Tensor` or :class:`scipy.sparse.csr_matrix`
+            The rating matrix.
+        retrain : :obj:`bool` [optional]
+            Whether the popularity must be recomputed or not, by default :obj:`False`.
+            If :obj:`False` the computation is avoided iff the model is not empty
+            (i.e., :obj:`None`).
         """
         if not retrain and self.model is not None:
             return

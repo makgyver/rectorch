@@ -21,11 +21,13 @@ rectorch modules
    configuration
    data
    evaluation
-   nets
    metrics
    models
+   models.baseline
    models.nn
+   nets
    samplers
+   utils
 
 configuration
 =============

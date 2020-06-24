@@ -1,4 +1,5 @@
-r"""This module includes the training algorithm for a bunch of state-of-the-art recommender systems.
+r"""This module includes the training algorithm for a bunch of state-of-the-art neural netork based
+recommender systems.
 
 Each new model must be a sub-class of the abstract class :class:`RecSysModel`. Moreover,
 if the model is a standard neural network (NN) then it is advisable to inherit from
