@@ -20,24 +20,16 @@ See Also
 Module:
 :mod:`configuration`
 """
-import logging
 import os
-import sys
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
 from scipy.sparse import csr_matrix
 import torch
+from rectorch import env
 from .configuration import DataConfig
 
 __all__ = ['DataProcessing', 'Dataset']
-
-logging.basicConfig(level=logging.INFO,
-                    format="[%(asctime)s]  %(message)s",
-                    datefmt='%H:%M:%S-%d%m%y',
-                    stream=sys.stdout)
-
-logger = logging.getLogger(__name__)
 
 
 class Dataset():
@@ -186,7 +178,7 @@ class Dataset():
         pro_dir: :obj:`str`
             Path to the folder where files will be saved.
         """
-        logger.info("Saving unique_iid.txt.")
+        env.logger.info("Saving unique_iid.txt.")
         if not os.path.exists(pro_dir):
             os.makedirs(pro_dir)
 
@@ -194,12 +186,12 @@ class Dataset():
             for iid in self.unique_iid:
                 f.write('%s\n' % iid)
 
-        logger.info("Saving unique_uid.txt.")
+        env.logger.info("Saving unique_uid.txt.")
         with open(os.path.join(pro_dir, 'unique_uid.txt'), 'w') as f:
             for uid in self.unique_uid:
                 f.write('%s\n' % uid)
 
-        logger.info("Saving all the files.")
+        env.logger.info("Saving all the files.")
         self.train_set.to_csv(os.path.join(pro_dir, 'train.csv'), index=False)
         if self.valid_set:
             if isinstance(self.valid_set, DataFrame):
@@ -214,7 +206,7 @@ class Dataset():
             self.test_set[0].to_csv(os.path.join(pro_dir, 'test_tr.csv'), index=False)
             self.test_set[1].to_csv(os.path.join(pro_dir, 'test_te.csv'), index=False)
 
-        logger.info("Dataset saved successfully!")
+        env.logger.info("Dataset saved successfully!")
 
     @classmethod
     def load(cls, pro_dir):
@@ -222,7 +214,7 @@ class Dataset():
 
         Load the dataset according to the files in the ``pro_dir`` folder.
 
-        Paramaters
+        Parameters
         ----------
         pro_dir: :obj:`str`
             Path to the folder where the dataset files are stored.
@@ -237,8 +229,7 @@ class Dataset():
             for line in f:
                 unique_iid.append(line.strip())
 
-        path = os.path.join(pro_dir, 'train.csv')
-        train_data = pd.read_csv(path)
+        train_data = pd.read_csv(os.path.join(pro_dir, 'train.csv'))
 
         val_path = os.path.join(pro_dir, 'validation.csv')
         if os.path.isfile(val_path):
@@ -306,17 +297,22 @@ class Dataset():
             return {idx : zip(list(gr["iid"]), list(gr["rating"])) for idx, gr in grouped}
 
     def to_sparse(self, binarize=True):
-        r"""[summary]
+        r"""Return the dataset as a scipy sparse csr_matrix.
+
+        The dataset is returned as a tuple according to the way it is splitted.
 
         Parameters
         ----------
-        binarize : bool, optional
-            [description], by default True
+        binarize : :obj:`bool` [optional]
+            Whether the ratings have to be binarize or not, by default :obj:`True`.
 
         Returns
         -------
-        [type]
-            [description]
+        :obj:`tuple` of :class:`scipy.sparse.csr_matrix`
+            In case of horizonal splitting it returns (``training set``, ``validation set``,
+            ``test set``). In case of vertical splitting it returns (``training set``,
+            (``training part of the validation set``, ``test part of the validation set),
+            (``training part of the test set``, ``test part of the test set)).
         """
         data_tr = self._df_to_sparse(self.train_set, binarize)
         if isinstance(self.valid_set, DataFrame):
@@ -365,19 +361,24 @@ class Dataset():
         return data_tr[tr_idx], data_te[tr_idx]
 
     def to_tensor(self, binarize=True, sparse=True):
-        r"""[summary]
+        r"""Return the dataset as a pytorch tensor.
+
+        The dataset is returned as a tuple according to the way it is splitted.
 
         Parameters
         ----------
-        binarize : bool, optional
-            [description], by default True
-        sparse : bool, optional
-            [description], by default True
+        binarize : :obj:`bool` [optional]
+            Whether the ratings have to be binarize or not, by default :obj:`True`.
+        sparse : :obj:`bool` [optional]
+            Whether the returned tensors have to be sparse or not, by default :obj:`True`.
 
         Returns
         -------
-        [type]
-            [description]
+        :obj:`tuple` of :class:`torch.sparse.FloatTensor`/:class:`torch.FloatTensor`
+            In case of horizonal splitting it returns (``training set``, ``validation set``,
+            ``test set``). In case of vertical splitting it returns (``training set``,
+            (``training part of the validation set``, ``test part of the validation set),
+            (``training part of the test set``, ``test part of the test set)).
         """
         data_tr = self._df_to_tensor(self.train_set, binarize, sparse)
         if isinstance(self.valid_set, DataFrame):
@@ -503,7 +504,7 @@ class DataProcessing:
         :class:`Dataset`
             The pre-processed and splitted dataset.
         """
-        logger.info("Reading raw data file %s.", self.cfg.processing.data_path)
+        env.logger.info("Reading raw data file %s.", self.cfg.processing.data_path)
 
         sep = self.cfg.processing.separator if self.cfg.processing.separator else ','
         data = pd.read_csv(self.cfg.processing.data_path,
@@ -515,14 +516,14 @@ class DataProcessing:
         if self.cfg.processing.threshold:
             data = data[data[data.columns.values[2]] > float(self.cfg.processing.threshold)]
             if cnt - len(data) > 0:
-                logger.warning("Thresholded %d ratings.", cnt - len(data))
+                env.logger.warning("Thresholded %d ratings.", cnt - len(data))
 
-        logger.info("Applying filtering.")
+        env.logger.info("Applying filtering.")
         imin, umin = int(self.cfg.processing.i_min), int(self.cfg.processing.u_min)
         cnt = len(data)
         data = self._filter(data, umin, imin)
         if cnt - len(data) > 0:
-            logger.warning("Filtered %d ratings.", cnt - len(data))
+            env.logger.warning("Filtered %d ratings.", cnt - len(data))
 
         splitted = self._split(data, **self.cfg.splitting)
         return Dataset(*splitted)
@@ -565,7 +566,7 @@ class DataProcessing:
         uhead, ihead = data.columns.values[:2]
 
         if shuffle and sort_by is None:
-            logger.info("Shuffling data.")
+            env.logger.info("Shuffling data.")
             np.random.seed(seed)
             data = data.reindex(np.random.permutation(data.index))
 
@@ -573,7 +574,7 @@ class DataProcessing:
         if sort_by is not None:
             data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(sort_by))
 
-        logger.info("Creating training, validation and test set.")
+        env.logger.info("Creating training, validation and test set.")
         tr_list, val_list, te_list = [], [], []
         for _, group in data_grouped_by_user:
             n_items_u = len(group)
@@ -601,12 +602,12 @@ class DataProcessing:
             vcnt = len(data_val)
             data_val = data_val.loc[data_val[ihead].isin(unique_iid)]
             if vcnt - len(data_val) > 0:
-                logger.warning("Skipped %d ratings in validation set.", vcnt - len(data_val))
+                env.logger.warning("Skipped %d ratings in validation set.", vcnt - len(data_val))
 
         tcnt = len(data_te)
         data_te = data_te.loc[data_te[ihead].isin(unique_iid)]
         if tcnt - len(data_te) > 0:
-            logger.warning("Skipped %d ratings in test set.", tcnt - len(data_te))
+            env.logger.warning("Skipped %d ratings in test set.", tcnt - len(data_te))
 
         return data_tr, data_val, data_te, unique_uid, unique_iid
 
@@ -630,18 +631,18 @@ class DataProcessing:
         unique_uid = cnt.index
         idx_perm = list(range(unique_uid.size))
         if shuffle:
-            logger.info("Shuffling data.")
+            env.logger.info("Shuffling data.")
             idx_perm = np.random.permutation(unique_uid.size)
             unique_uid = unique_uid[idx_perm]
         elif sort_by:
-            logger.info("Sorting data.")
+            env.logger.info("Sorting data.")
             unique_uid = unique_uid.apply(lambda x: x.sort_values(sort_by))
 
         n_users = unique_uid.size
         valid_heldout = int(valid_size * n_users) if valid_size < 1 else valid_size
         test_heldout = int(test_size * n_users) if test_size < 1 else test_size
 
-        logger.info("Calculating splits.")
+        env.logger.info("Calculating splits.")
         tr_users = unique_uid[:(n_users - valid_heldout - test_heldout)]
         vd_users = unique_uid[(n_users - valid_heldout - test_heldout): (n_users - test_heldout)]
         te_users = unique_uid[(n_users - test_heldout):]
@@ -649,7 +650,7 @@ class DataProcessing:
         train_data = data.loc[data[uhead].isin(tr_users)]
         unique_iid = pd.unique(train_data[ihead])
 
-        logger.info("Creating validation and test set.")
+        env.logger.info("Creating validation and test set.")
         val_data = data.loc[data[uhead].isin(vd_users)]
         vcnt = len(val_data)
         val_data = val_data.loc[val_data[ihead].isin(unique_iid)]
@@ -658,9 +659,9 @@ class DataProcessing:
         test_data = test_data.loc[test_data[ihead].isin(unique_iid)]
 
         if vcnt - len(val_data) > 0:
-            logger.warning("Skipped %d ratings in validation set.", vcnt - len(val_data))
+            env.logger.warning("Skipped %d ratings in validation set.", vcnt - len(val_data))
         if tcnt - len(test_data) > 0:
-            logger.warning("Skipped %d ratings in test set.", tcnt - len(test_data))
+            env.logger.warning("Skipped %d ratings in test set.", tcnt - len(test_data))
 
         vcnt = self._get_count(val_data, uhead)
         tcnt = self._get_count(test_data, uhead)
@@ -670,9 +671,9 @@ class DataProcessing:
         vcnt_diff = len(vcnt) - len(pd.unique(val_data[uhead]))
         tcnt_diff = len(tcnt) - len(pd.unique(test_data[uhead]))
         if vcnt_diff > 0:
-            logger.warning("Skipped %d users in validation set.", vcnt_diff)
+            env.logger.warning("Skipped %d users in validation set.", vcnt_diff)
         if tcnt_diff > 0:
-            logger.warning("Skipped %d users in test set.", tcnt_diff)
+            env.logger.warning("Skipped %d users in test set.", tcnt_diff)
 
         if valid_size > 0:
             val_data_tr, val_data_te = self._split_train_test(val_data, test_prop)
@@ -680,7 +681,11 @@ class DataProcessing:
             val_data_tr, val_data_te = None, None
         test_data_tr, test_data_te = self._split_train_test(test_data, test_prop)
 
-        return train_data, (val_data_tr, val_data_te), (test_data_tr, test_data_te), unique_uid, unique_iid
+        return (train_data,
+                (val_data_tr, val_data_te),
+                (test_data_tr, test_data_te),
+                unique_uid,
+                unique_iid)
 
     def _split_train_test(self, data, test_prop, seed=0):
         np.random.seed(seed)

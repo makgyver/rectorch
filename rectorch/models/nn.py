@@ -52,114 +52,18 @@ References
    ACM International Conference on Web Search and Data Mining (WSDM ’19). Association for Computing
    Machinery, New York, NY, USA, 600–608. DOI: https://doi.org/10.1145/3289600.3291007
 """
-import logging
 import os
 import time
 import numpy as np
 import torch
 import torch.nn.functional as F
-import torch.optim as optim
 from rectorch import env
-from .evaluation import ValidFunc, evaluate
+from rectorch.models import RecSysModel
+from rectorch.utils import init_optimizer
+from rectorch.evaluation import ValidFunc, evaluate
 
-__all__ = ['RecSysModel', 'TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
+__all__ = ['TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
     'CMultiVAE', 'EASE', 'CFGAN', 'SVAE']
-
-logger = logging.getLogger(__name__)
-
-
-class RecSysModel():
-    r"""Abstract base class that any Recommendation model must inherit from.
-    """
-    def train(self, train_data, **kwargs):
-        r"""Training procedure.
-
-        This method is meant to execute all the training phase. Once the method ends, the
-        model should be ready to be queried for predictions.
-
-        Parameters
-        ----------
-        train_data : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
-            :class:`torch.Tensor`
-            This object represents the training data. If the training procedure is based on
-            mini-batches, then ``train_data`` should be a :class:`rectorch.samplers.Sampler`.
-        **kargs : :obj:`dict` [optional]
-            These are the potential keyword parameters useful to the model for performing the
-            training.
-
-        Raises
-        ------
-        :class:`NotImplementedError`
-            Raised when not implemeneted in the sub-class.
-        """
-        raise NotImplementedError()
-
-    def predict(self, x, *args, **kwargs):
-        r"""Perform the prediction using a trained model.
-
-        The prediction is preformed over a generic input ``x`` and the method should be callable
-        after the training procedure (:meth:`RecSysModel.train`).
-
-        Parameters
-        ----------
-        x : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
-            :class:`torch.Tensor`
-            The input for which the prediction has to be computed.
-        *args : :obj:`list` [optional]
-            These are the potential additional parameters useful to the model for performing the
-            prediction.
-        **kwargs : :obj:`dict` [optional]
-            These are the potential keyword parameters useful to the model for performing the
-            prediction.
-
-        Raises
-        ------
-        :class:`NotImplementedError`
-            Raised when not implemeneted in the sub-class.
-        """
-        raise NotImplementedError()
-
-    def save_model(self, filepath, *args, **kwargs):
-        r"""Save the model to file.
-
-        Parameters
-        ----------
-        filepath : :obj:`str`
-            String representing the path to the file to save the model.
-        *args : :obj:`list` [optional]
-            These are the potential additional parameters useful to the model for performing the
-            prediction.
-        **kwargs : :obj:`dict` [optional]
-            These are the potential keyword parameters useful to the model for performing the
-            prediction.
-
-        Raises
-        ------
-        :class:`NotImplementedError`
-            Raised when not implemeneted in the sub-class.
-        """
-        raise NotImplementedError()
-
-    def load_model(self, filepath, *args, **kwargs):
-        r"""Load the model from file.
-
-        Parameters
-        ----------
-        filepath : :obj:`str`
-            String representing the path to the file where the model is saved.
-        *args : :obj:`list` [optional]
-            These are the potential additional parameters useful to the model for performing the
-            prediction.
-        **kwargs : :obj:`dict` [optional]
-            These are the potential keyword parameters useful to the model for performing the
-            prediction.
-
-        Raises
-        ------
-        :class:`NotImplementedError`
-            Raised when not implemeneted in the sub-class.
-        """
-        raise NotImplementedError()
 
 
 class TorchNNTrainer(RecSysModel):
@@ -189,11 +93,10 @@ class TorchNNTrainer(RecSysModel):
     device : :class:`torch.device`
         Device where the pytorch tensors are saved.
     """
-    def __init__(self, net, learning_rate=1e-3):
+    def __init__(self, net, opt_conf=None):
         self.device = env.device
         self.network = net.to(self.device)
-        self.learning_rate = learning_rate
-        self.optimizer = None #to be initialized in the sub-classes
+        self.optimizer = init_optimizer(self.network.parameters(), opt_conf)
 
     def loss_function(self, *args, **kwargs):
         r"""The loss function that the model wants to minimize.
@@ -229,11 +132,11 @@ class TorchNNTrainer(RecSysModel):
         train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
         valid_data : :class:`rectorch.samplers.Sampler` [optional]
-            The sampler object that load the validation set in mini-batches, by default ``None``.
-            If the model does not have any validation procedure set this parameter to ``None``.
+            The sampler object that load the validation set in mini-batches, by default :obj:`None`.
+            If the model does not have any validation procedure set this parameter to :obj:`None`.
         valid_metric : :obj:`str` [optional]
-            The metric used during the validation to select the best model, by default ``None``.
-            If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
+            The metric used during the validation to select the best model, by default :obj:`None`.
+            If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
             To see the valid strings for the metric please see the module :mod:`metrics`.
         valid_func : :class:`evaluation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
@@ -260,10 +163,10 @@ class TorchNNTrainer(RecSysModel):
                     valid_res = valid_func(self, valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                    logger.info('| epoch %d | %s %.3f (%.4f) |',
-                                epoch, valid_metric, mu_val, std_err_val)
+                    env.logger.info('| epoch %d | %s %.3f (%.4f) |',
+                                    epoch, valid_metric, mu_val, std_err_val)
         except KeyboardInterrupt:
-            logger.warning('Handled KeyboardInterrupt: exiting from training early')
+            env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
     def train_epoch(self, epoch, train_data, *args, **kwargs):
         r"""Training of a single epoch.
@@ -297,8 +200,8 @@ class TorchNNTrainer(RecSysModel):
             Epoch's number.
         tr_batch : :class:`torch.Tensor`
             Traning part of the current batch.
-        te_batch : :class:`torch.Tensor` or ``None``
-            Test part of the current batch, if any, otherwise ``None``.
+        te_batch : :class:`torch.Tensor` or :obj:`None`
+            Test part of the current batch, if any, otherwise :obj:`None`.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for performing the
             training on the batch.
@@ -313,10 +216,10 @@ class TorchNNTrainer(RecSysModel):
         """
         raise NotImplementedError()
 
-    def predict(self, x, *args, **kwargs):
+    def predict(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def save_model(self, filepath, cur_epoch):
+    def save_model(self, filepath, cur_epoch, *args, **kwargs):
         r"""Save the model to file.
 
         Parameters
@@ -333,9 +236,9 @@ class TorchNNTrainer(RecSysModel):
         self._save_checkpoint(filepath, state)
 
     def _save_checkpoint(self, filepath, state):
-        logger.info("Saving model checkpoint to %s...", filepath)
+        env.logger.info("Saving model checkpoint to %s...", filepath)
         torch.save(state, filepath)
-        logger.info("Model checkpoint saved!")
+        env.logger.info("Model checkpoint saved!")
 
     def __str__(self):
         s = self.__class__.__name__ + "(\n"
@@ -367,9 +270,8 @@ class AETrainer(TorchNNTrainer):
 
     other attributes : see the base class :class:`TorchNNTrainer`.
     """
-    def __init__(self, ae_net, learning_rate=1e-3):
-        super(AETrainer, self).__init__(ae_net, learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+    #def __init__(self, ae_net, opt_conf=None):
+    #    super(AETrainer, self).__init__(ae_net, opt_conf)
 
     def loss_function(self, prediction, ground_truth):
         r"""Vanilla Autoencoder loss function.
@@ -415,16 +317,17 @@ class AETrainer(TorchNNTrainer):
             partial_loss += self.train_batch(data, gt)
             if (batch_idx+1) % log_delay == 0:
                 elapsed = time.time() - start_time
-                logger.info('| epoch %d | %d/%d batches | ms/batch %.2f | loss %.2f |',
-                            epoch, (batch_idx+1), len(train_loader),
-                            elapsed * 1000 / log_delay,
-                            partial_loss / log_delay)
+                env.logger.info('| epoch %d | %d/%d batches | ms/batch %.2f | loss %.2f |',
+                                epoch, (batch_idx+1), len(train_loader),
+                                elapsed * 1000 / log_delay,
+                                partial_loss / log_delay)
                 train_loss += partial_loss
                 partial_loss = 0.0
                 start_time = time.time()
         total_loss = (train_loss + partial_loss) / len(train_loader)
         time_diff = time.time() - epoch_start_time
-        logger.info("| epoch %d | loss %.4f | total time: %.2fs |", epoch, total_loss, time_diff)
+        env.logger.info("| epoch %d | loss %.4f | total time: %.2fs |",
+                        epoch, total_loss, time_diff)
 
     def train_batch(self, tr_batch, te_batch=None):
         r"""Training of a single batch.
@@ -435,8 +338,8 @@ class AETrainer(TorchNNTrainer):
             Epoch's number.
         tr_batch : :class:`torch.Tensor`
             Traning part of the current batch.
-        te_batch : :class:`torch.Tensor` or ``None`` [optional]
-            Test part of the current batch, if any, otherwise ``None``, by default ``None``.
+        te_batch : :class:`torch.Tensor` or :obj:`None` [optional]
+            Test part of the current batch, if any, otherwise :obj:`None`, by default :obj:`None`.
 
         Returns
         -------
@@ -492,11 +395,11 @@ class AETrainer(TorchNNTrainer):
             Note: not all the information about the model are stored in the saved 'checkpoint'.
         """
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
-        logger.info("Loading model checkpoint from %s...", filepath)
+        env.logger.info("Loading model checkpoint from %s...", filepath)
         checkpoint = torch.load(filepath)
         self.network.load_state_dict(checkpoint['state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer'])
-        logger.info("Model checkpoint loaded!")
+        env.logger.info("Model checkpoint loaded!")
         return checkpoint
 
 
@@ -636,11 +539,11 @@ class MultiDAE(AETrainer):
     def __init__(self,
                  mdae_net,
                  lam=0.2,
-                 learning_rate=1e-3):
-        super(MultiDAE, self).__init__(mdae_net, learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(),
-                                    lr=self.learning_rate,
-                                    weight_decay=0.001)
+                 opt_conf=None):
+        super(MultiDAE, self).__init__(mdae_net, opt_conf)
+        #self.optimizer = optim.Adam(self.network.parameters(),
+        #                            lr=self.learning_rate,
+        #                            weight_decay=0.001)
         self.lam = lam
 
     def loss_function(self, recon_x, x):
@@ -747,11 +650,11 @@ class MultiVAE(VAE):
                  mvae_net,
                  beta=1.,
                  anneal_steps=0,
-                 learning_rate=1e-3):
-        super(MultiVAE, self).__init__(mvae_net, learning_rate=learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(),
-                                    lr=learning_rate,
-                                    weight_decay=0.0)
+                 opt_conf=None):
+        super(MultiVAE, self).__init__(mvae_net, opt_conf)
+        #self.optimizer = optim.Adam(self.network.parameters(),
+        #                            lr=learning_rate,
+        #                            weight_decay=0.0)
         self.anneal_steps = anneal_steps
         self.annealing = anneal_steps > 0
         self.gradient_updates = 0.
@@ -839,11 +742,11 @@ class MultiVAE(VAE):
         train_data : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
         valid_data : :class:`rectorch.samplers.Sampler` [optional]
-            The sampler object that load the validation set in mini-batches, by default ``None``.
-            If the model does not have any validation procedure set this parameter to ``None``.
+            The sampler object that load the validation set in mini-batches, by default :obj:`None`.
+            If the model does not have any validation procedure set this parameter to :obj:`None`.
         valid_metric : :obj:`str` [optional]
-            The metric used during the validation to select the best model, by default ``None``.
-            If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
+            The metric used during the validation to select the best model, by default :obj:`None`.
+            If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
             To see the valid strings for the metric please see the module :mod:`metrics`.
         valid_func : :class:`evaluation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
@@ -868,15 +771,15 @@ class MultiVAE(VAE):
                     valid_res = valid_func(self, valid_data, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                    logger.info('| epoch %d | %s %.3f (%.4f) |',
-                                epoch, valid_metric, mu_val, std_err_val)
+                    env.logger.info('| epoch %d | %s %.3f (%.4f) |',
+                                    epoch, valid_metric, mu_val, std_err_val)
 
                     if best_perf < mu_val:
                         self.save_model(best_path, epoch)
                         best_perf = mu_val
 
         except KeyboardInterrupt:
-            logger.warning('Handled KeyboardInterrupt: exiting from training early')
+            env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
     def save_model(self, filepath, cur_epoch):
         state = {'epoch': cur_epoch,
@@ -923,11 +826,11 @@ class CMultiVAE(MultiVAE):
                  cmvae_net,
                  beta=1.,
                  anneal_steps=0,
-                 learning_rate=1e-3):
+                 opt_conf=None):
         super(CMultiVAE, self).__init__(cmvae_net,
                                         beta=beta,
                                         anneal_steps=anneal_steps,
-                                        learning_rate=learning_rate)
+                                        opt_conf=opt_conf)
 
     def predict(self, x, remove_train=True):
         self.network.eval()
@@ -975,7 +878,7 @@ class EASE(RecSysModel):
         See ``lam`` parameter.
     model : :class:`numpy.ndarray`
         Represent the model, i.e.m the matrix score **S**. If the model has not been trained yet
-        ``model`` is set to ``None``.
+        ``model`` is set to :obj:`None`.
 
     References
     ----------
@@ -995,10 +898,10 @@ class EASE(RecSysModel):
         train_data : :class:`scipy.sparse.csr_matrix`
             The training data.
         """
-        logger.info("EASE - start tarining (lam=%.4f)", self.lam)
+        env.logger.info("EASE - start tarining (lam=%.4f)", self.lam)
         X = train_data.toarray()
         G = np.dot(X.T, X)
-        logger.info("EASE - linear kernel computed")
+        env.logger.info("EASE - linear kernel computed")
         diag_idx = np.diag_indices(G.shape[0])
         G[diag_idx] += self.lam
         P = np.linalg.inv(G)
@@ -1007,7 +910,7 @@ class EASE(RecSysModel):
         B[diag_idx] = 0
         del P
         self.model = np.dot(X, B)
-        logger.info("EASE - training complete")
+        env.logger.info("EASE - training complete")
 
     def predict(self, ids_te_users, test_tr, remove_train=True):
         r"""Prediction using the EASE model.
@@ -1044,17 +947,17 @@ class EASE(RecSysModel):
         state = {'lambda': self.lam,
                  'model': self.model
                 }
-        logger.info("Saving EASE model to %s...", filepath)
+        env.logger.info("Saving EASE model to %s...", filepath)
         np.save(filepath, state)
-        logger.info("Model saved!")
+        env.logger.info("Model saved!")
 
     def load_model(self, filepath):
         assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
-        logger.info("Loading EASE model from %s...", filepath)
+        env.logger.info("Loading EASE model from %s...", filepath)
         state = np.load(filepath, allow_pickle=True)[()]
         self.lam = state["lambda"]
         self.model = state["model"]
-        logger.info("Model loaded!")
+        env.logger.info("Model loaded!")
         return state
 
     def __str__(self):
@@ -1144,7 +1047,8 @@ class CFGAN(RecSysModel):
                  alpha=.1,
                  s_pm=.7,
                  s_zr=.5,
-                 learning_rate=0.001):
+                 opt_conf=None):
+                 #learning_rate=0.001):
         self.device = env.device
         self.generator = generator.to(self.device)
         self.discriminator = discriminator.to(self.device)
@@ -1153,12 +1057,11 @@ class CFGAN(RecSysModel):
         self.s_zr = s_zr
         self.loss = torch.nn.BCELoss()
         self.regularization_loss = torch.nn.MSELoss(reduction="sum")
-        self.learning_rate = learning_rate
         self.alpha = alpha
         self.n_items = self.generator.input_dim
 
-        self.opt_g = optim.Adam(self.generator.parameters(), lr=self.learning_rate)
-        self.opt_d = optim.Adam(self.discriminator.parameters(), lr=self.learning_rate)
+        self.opt_g = init_optimizer(self.generator.parameters(), opt_conf)
+        self.opt_d = init_optimizer(self.generator.parameters(), opt_conf)
 
 
     def train(self,
@@ -1180,11 +1083,11 @@ class CFGAN(RecSysModel):
         train_data : :class:`samplers.CFGAN_TrainingSampler`
             The sampler object that load the training set in mini-batches.
         valid_data : :class:`samplers.DataSampler` [optional]
-            The sampler object that load the validation set in mini-batches, by default ``None``.
-            If the model does not have any validation procedure set this parameter to ``None``.
+            The sampler object that load the validation set in mini-batches, by default :obj:`None`.
+            If the model does not have any validation procedure set this parameter to :obj:`None`.
         valid_metric : :obj:`str` [optional]
-            The metric used during the validation to select the best model, by default ``None``.
-            If ``valid_data`` is not ``None`` then ``valid_metric`` must be not ``None``.
+            The metric used during the validation to select the best model, by default :obj:`None`.
+            If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
             To see the valid strings for the metric please see the module :mod:`metrics`.
         valid_func : :class:`evaluation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
@@ -1218,8 +1121,8 @@ class CFGAN(RecSysModel):
                     loss_g /= (g_steps * log_delay)
                     loss_d /= (d_steps * log_delay)
                     elapsed = time.time() - start_time
-                    logger.info('| epoch {} | ms/batch {:.2f} | loss G {:.6f} | loss D {:.6f} |'
-                                .format(epoch, elapsed * 1000 / log_delay, loss_g, loss_d))
+                    env.logger.info('| epoch {} | ms/batch {:.2f} | loss G {:.6f} | loss D {:.6f} |'
+                                    .format(epoch, elapsed * 1000 / log_delay, loss_g, loss_d))
                     start_time = time.time()
                     loss_g, loss_d = 0, 0
 
@@ -1229,11 +1132,11 @@ class CFGAN(RecSysModel):
                         valid_res = valid_func(self, valid_data, valid_metric)
                         mu_val = np.mean(valid_res)
                         std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
-                        logger.info('| epoch %d | %s %.3f (%.4f) |',
-                                    epoch, valid_metric, mu_val, std_err_val)
+                        env.logger.info('| epoch %d | %s %.3f (%.4f) |',
+                                        epoch, valid_metric, mu_val, std_err_val)
 
         except KeyboardInterrupt:
-            logger.warning('Handled KeyboardInterrupt: exiting from training early')
+            env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
 
     def train_gen_batch(self, batch):
@@ -1349,19 +1252,19 @@ class CFGAN(RecSysModel):
                  'optimizer_g': self.opt_g.state_dict(),
                  'optimizer_d': self.opt_g.state_dict()
                 }
-        logger.info("Saving CFGAN model to %s...", filepath)
+        env.logger.info("Saving CFGAN model to %s...", filepath)
         torch.save(state, filepath)
-        logger.info("Model saved!")
+        env.logger.info("Model saved!")
 
     def load_model(self, filepath):
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
-        logger.info("Loading model checkpoint from %s...", filepath)
+        env.logger.info("Loading model checkpoint from %s...", filepath)
         checkpoint = torch.load(filepath)
         self.generator.load_state_dict(checkpoint['state_dict_g'])
         self.discriminator.load_state_dict(checkpoint['state_dict_d'])
         self.opt_g.load_state_dict(checkpoint['optimizer_g'])
         self.opt_d.load_state_dict(checkpoint['optimizer_d'])
-        logger.info("Model checkpoint loaded!")
+        env.logger.info("Model checkpoint loaded!")
         return checkpoint
 
 
@@ -1475,11 +1378,11 @@ class ADMM_Slim(RecSysModel):
             X = X - np.outer(np.ones(X.shape[0]), b)
 
         XtX = X.T.dot(X)
-        logger.info("ADMM_Slim - linear kernel computed")
+        env.logger.info("ADMM_Slim - linear kernel computed")
         diag_indices = np.diag_indices(XtX.shape[0])
         XtX[diag_indices] += self.lambda2 + self.rho
         P = np.linalg.inv(XtX)
-        logger.info("ADMM_Slim - inverse of XtX computed")
+        env.logger.info("ADMM_Slim - inverse of XtX computed")
 
         if not self.nn_constr and not self.l1_penalty:
             C = np.eye(P.shape[0]) - P * np.diag(1. / np.diag(P))
@@ -1501,7 +1404,7 @@ class ADMM_Slim(RecSysModel):
                     C = np.maximum(B, 0.)
                 Gamma += self.rho * (B - C)
                 if not (j+1) % log_delay:
-                    logger.info("| iteration %d/%d |", j+1, num_iter)
+                    env.logger.info("| iteration %d/%d |", j+1, num_iter)
 
         self.model = np.dot(X, C)
         if self.item_bias:
@@ -1522,13 +1425,13 @@ class ADMM_Slim(RecSysModel):
                  'l1_penalty' : self.l1_penalty,
                  'item_bias' : self.item_bias
                 }
-        logger.info("Saving ADMM_Slim model to %s...", filepath)
+        env.logger.info("Saving ADMM_Slim model to %s...", filepath)
         np.save(filepath, state)
-        logger.info("Model saved!")
+        env.logger.info("Model saved!")
 
     def load_model(self, filepath):
         assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
-        logger.info("Loading ADMM_Slim model from %s...", filepath)
+        env.logger.info("Loading ADMM_Slim model from %s...", filepath)
         state = np.load(filepath, allow_pickle=True)[()]
         self.lambda1 = state["lambda1"]
         self.lambda2 = state["lambda2"]
@@ -1537,7 +1440,7 @@ class ADMM_Slim(RecSysModel):
         self.l1_penalty = state["l1_penalty"]
         self.item_bias = state["item_bias"]
         self.model = state["model"]
-        logger.info("Model loaded!")
+        env.logger.info("Model loaded!")
         return state
 
     def __str__(self):
@@ -1589,14 +1492,14 @@ class SVAE(MultiVAE):
                  svae_net,
                  beta=1.,
                  anneal_steps=0,
-                 learning_rate=1e-3):
+                 opt_conf=None):
         super(SVAE, self).__init__(svae_net,
                                    beta=beta,
                                    anneal_steps=anneal_steps,
-                                   learning_rate=learning_rate)
-        self.optimizer = optim.Adam(self.network.parameters(),
-                                    lr=learning_rate,
-                                    weight_decay=5e-3)
+                                   opt_conf=opt_conf)
+        #self.optimizer = optim.Adam(self.network.parameters(),
+        #                            lr=learning_rate,
+        #                            weight_decay=5e-3)
 
     def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
         likelihood_n = -torch.sum(torch.sum(F.log_softmax(recon_x, -1) * x.view(recon_x.shape), -1))

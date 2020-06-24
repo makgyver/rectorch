@@ -13,7 +13,7 @@ import torch
 from torch.autograd import Variable
 
 __all__ = ['Sampler', 'DataSampler', 'ConditionedDataSampler', 'EmptyConditionedDataSampler',\
-    'BalancedConditionedDataSampler', 'CFGAN_TrainingSampler', 'SVAE_Sampler']
+    'CFGAN_TrainingSampler', 'SVAE_Sampler']
 
 class Sampler():
     r"""Sampler base class.
@@ -232,110 +232,6 @@ class ConditionedDataSampler(Sampler):
             data_tr = torch.FloatTensor(data_tr.toarray())
 
             yield data_tr, data_te
-
-
-class BalancedConditionedDataSampler(ConditionedDataSampler):
-    r"""Sub-sampled version of the :class:`ConditionedDataSampler`.
-
-    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described
-    in [CVAE]_. During the training, each user must be conditioned over all the possible conditions
-    (actually the ones that the user knows) so the training set must be modified accordingly.
-    This sampler avoids to create all possible user-condition pairs via sub-samplig. The extent
-    of this sub-sampling is defined by the parameter ``subsample``. The prefix 'Balanced' is
-    due to the way the subsampling is performed. Given a user *u*, for each condition *c* only a
-    ``subsample`` fraction of training sample is created for *u* conditioned by *c*.
-
-    Parameters
-    ----------
-    iid2cids : :obj:`dict` (key :obj:`int` - value :obj:`list` of :obj:`int`)
-        Dictionary that maps each item to the list of all valid conditions for that item. Items
-        are referred to with the inner id, and conditions with an integer in the range 0,
-        ``n_cond`` -1.
-    n_cond : :obj:`int`
-        Number of possible conditions.
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        The training sparse user-item rating matrix.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
-        The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default :obj:`None`.
-    batch_size : :obj:`int` [optional]
-        The size of the batches, by default 1.
-    shuffle : :obj:`bool` [optional]
-        Whether the data set must bu randomly shuffled before creating the batches, by default
-        ``True``.
-    subsample : :obj:`float` [optional]
-        The size of the dimension. It must be a float between (0, 1], by default 0.2.
-
-    Attributes
-    ----------
-    iid2cids : :obj:`dict` (key :obj:`int` - value :obj:`list` of :obj:`int`)
-        See ``iid2cids`` parameter.
-    n_cond : :obj:`int`
-        See ``n_cond`` parameter.
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_tr`` parameter.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_te`` parameter.
-    batch_size : :obj:`int`
-        See ``batch_size`` parameter.
-    shuffle : :obj:`bool`
-        See ``shuffle`` parameter.
-    subsample : :obj:`float`
-        See ``subsample`` parameter.
-
-    References
-    ----------
-    .. [CVAE] Tommaso Carraro, Mirko Polato and Fabio Aiolli. Conditioned Variational
-       Autoencoder for top-N item recommendation, 2020. arXiv pre-print:
-       https://arxiv.org/abs/2004.11141
-    """
-    def __init__(self,
-                 iid2cids,
-                 n_cond,
-                 sparse_data_tr,
-                 sparse_data_te=None,
-                 batch_size=1,
-                 subsample=.2):
-        super(BalancedConditionedDataSampler, self).__init__(iid2cids,
-                                                             n_cond,
-                                                             sparse_data_tr,
-                                                             sparse_data_te,
-                                                             batch_size)
-        self.subsample = subsample
-        self._compute_sampled_conditions()
-
-    def _compute_conditions(self):
-        r2cond = {}
-        for i, row in enumerate(self.sparse_data_tr):
-            _, cols = row.nonzero()
-            r2cond[i] = set.union(*[set(self.iid2cids[c]) for c in cols])
-
-        self.examples = {-1 : list(r2cond.keys())}
-        for c in range(self.n_cond):
-            self.examples[c] = []
-            for r in r2cond:
-                if c in r2cond[r]:
-                    self.examples[c].append(r)
-        del r2cond
-        self.num_cond_examples = sum([len(self.examples[c]) for c in range(self.n_cond)])
-
-        rows = [m for m in self.iid2cids for _ in range(len(self.iid2cids[m]))]
-        cols = [g for m in self.iid2cids for g in self.iid2cids[m]]
-        values = np.ones(len(rows))
-        self.M = csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
-
-    def _compute_sampled_conditions(self):
-        data = [(r, -1) for r in self.examples[-1]]
-        m = int(self.num_cond_examples * self.subsample / self.n_cond)
-
-        for c in range(self.n_cond):
-            data += [(r, c) for r in np.random.choice(self.examples[c], m)]
-
-        self.examples = np.array(data)
-
-    def __len__(self):
-        m = int(self.num_cond_examples * self.subsample) + self.sparse_data_tr.shape[0]
-        return int(np.ceil(m / self.batch_size))
 
 
 class EmptyConditionedDataSampler(Sampler):
@@ -564,8 +460,7 @@ class SVAE_Sampler(Sampler):
 
             x_batch = [self.dict_data_tr[user][:-1]]
 
-            #TODO check this
-            x = Variable(torch.LongTensor(x_batch))#.cuda()
-            y = Variable(y_batch_s, requires_grad=False)#.cuda()
+            x = Variable(torch.LongTensor(x_batch))
+            y = Variable(y_batch_s, requires_grad=False)
 
             yield x, y

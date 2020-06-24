@@ -14,13 +14,11 @@ Modules:
 :mod:`evaluation <rectorch.evaluation>`
 """
 
-import logging
 import bottleneck as bn
 import numpy as np
+from rectorch import env
 
 __all__ = ['Metrics']
-
-logger = logging.getLogger(__name__)
 
 class Metrics:
     r"""The class Metrics contains metric functions.
@@ -81,7 +79,7 @@ class Metrics:
                 else:
                     results[metric] = getattr(Metrics, metric)(pred_scores, ground_truth)
             except AttributeError:
-                logger.warning("Skipped unknown metric '%s'.", metric)
+                env.logger.warning("Skipped unknown metric '%s'.", metric)
         return results
 
     @staticmethod

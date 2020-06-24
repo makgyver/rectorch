@@ -11,11 +11,10 @@ Class list
    rectorch.samplers.Sampler
    rectorch.samplers.DataSampler
    rectorch.samplers.ConditionedDataSampler
-   rectorch.samplers.BalancedConditionedDataSampler
    rectorch.samplers.EmptyConditionedDataSampler
    rectorch.samplers.CFGAN_TrainingSampler
    rectorch.samplers.SVAE_Sampler
 
 .. automodule:: rectorch.samplers
-   :members: Sampler, DataSampler, ConditionedDataSampler, BalancedConditionedDataSampler, EmptyConditionedDataSampler, CFGAN_TrainingSampler, SVAE_Sampler
+   :members: Sampler, DataSampler, ConditionedDataSampler, EmptyConditionedDataSampler, CFGAN_TrainingSampler, SVAE_Sampler
    :show-inheritance:

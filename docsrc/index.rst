@@ -24,6 +24,7 @@ rectorch modules
    nets
    metrics
    models
+   models.nn
    samplers
 
 configuration

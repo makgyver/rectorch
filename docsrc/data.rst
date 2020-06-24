@@ -9,8 +9,7 @@ Class list
 
 .. autosummary::
    rectorch.data.DataProcessing
-   rectorch.data.DataReader
-   rectorch.data.DatasetManager
+   rectorch.data.Dataset
 
 .. automodule:: rectorch.data
-   :members: DataProcessing, DataReader, DatasetManager
+   :members: DataProcessing, Dataset

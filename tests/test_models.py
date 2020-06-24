@@ -9,7 +9,8 @@ import numpy as np
 from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
-from rectorch.models import RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
+from rectorch.models import RecSysModel
+from rectorch.models.nn import TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
     CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE
 from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
     CFGAN_G_net, SVAE_net
@@ -23,8 +24,11 @@ def test_RecSysModel():
 
     with pytest.raises(NotImplementedError):
         model.train(None)
+    with pytest.raises(NotImplementedError):
         model.predict(None)
+    with pytest.raises(NotImplementedError):
         model.save_model(None)
+    with pytest.raises(NotImplementedError):
         model.load_model(None)
 
 def test_TorchNNTrainer():
@@ -35,12 +39,11 @@ def test_TorchNNTrainer():
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
     assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
     assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
-    assert model.optimizer is None, "optimizer should be None"
+    assert isinstance(model.optimizer, torch.optim.Adam),\
+        "optimizer should be of type torch.optim.Adam"
     assert str(model) == repr(model)
 
     x = torch.FloatTensor([[1, 1], [2, 2]])
@@ -60,9 +63,7 @@ def test_AETrainer():
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
     assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
     assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
     assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
@@ -111,9 +112,7 @@ def test_VAE():
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
     assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
     assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
     assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
@@ -164,10 +163,8 @@ def test_MultiDAE():
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
     assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
     assert hasattr(model, "lam"), "model should have the attribute lam"
-    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
     assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
     assert model.lam == .2, "lambda should be .2"
@@ -218,9 +215,7 @@ def test_MultiVAE():
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
     assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
     assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
     assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
@@ -299,9 +294,7 @@ def test_CMultiVAE():
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
     assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
     assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
     assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
@@ -385,7 +378,7 @@ def test_CFGAN():
     n_items = 3
     gen = CFGAN_G_net([n_items, 5, n_items])
     disc = CFGAN_D_net([n_items*2, 5, 1])
-    cfgan = CFGAN(gen, disc, alpha=.03, s_pm=.5, s_zr=.7, learning_rate=0.001)
+    cfgan = CFGAN(gen, disc, alpha=.03, s_pm=.5, s_zr=.7)
 
     assert hasattr(cfgan, "generator")
     assert hasattr(cfgan, "discriminator")
@@ -393,7 +386,6 @@ def test_CFGAN():
     assert hasattr(cfgan, "s_zr")
     assert hasattr(cfgan, "loss")
     assert hasattr(cfgan, "alpha")
-    assert hasattr(cfgan, "learning_rate")
     assert hasattr(cfgan, "n_items")
     assert hasattr(cfgan, "opt_g")
     assert hasattr(cfgan, "opt_d")
@@ -401,7 +393,6 @@ def test_CFGAN():
     assert cfgan.discriminator == disc
     assert cfgan.s_pm == .5
     assert cfgan.s_zr == .7
-    assert cfgan.learning_rate == 1e-3
     assert cfgan.alpha == .03
     assert cfgan.n_items == 3
     assert isinstance(cfgan.loss, torch.nn.BCELoss)
@@ -433,7 +424,7 @@ def test_CFGAN():
 
     gen2 = CFGAN_G_net([n_items, 5, n_items])
     disc2 = CFGAN_D_net([n_items*2, 5, 1])
-    cfgan2 = CFGAN(gen2, disc2, alpha=.03, s_pm=.5, s_zr=.7, learning_rate=0.001)
+    cfgan2 = CFGAN(gen2, disc2, alpha=.03, s_pm=.5, s_zr=.7)
     chkpt = cfgan2.load_model(tmp.name)
     assert chkpt["epoch"] == 10
     assert cfgan2.generator != gen
@@ -501,9 +492,7 @@ def test_SVAE():
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "learning_rate"), "model should have the attribute learning_rate"
     assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.learning_rate == 1e-3, "the learning rate should be 1e-3"
     assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
     assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"

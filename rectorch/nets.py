@@ -6,7 +6,6 @@ See Also
 Modules:
 :mod:`models <models>`
 """
-import logging
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -15,8 +14,6 @@ from torch.nn.init import xavier_uniform_ as xavier_init
 
 __all__ = ['AE_net', 'MultiDAE_net', 'VAE_net', 'MultiVAE_net', 'CMultiVAE_net', 'CFGAN_G_net',\
     'CFGAN_D_net', 'SVAE_net']
-
-logger = logging.getLogger(__name__)
 
 
 class AE_net(nn.Module):
