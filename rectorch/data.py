@@ -303,6 +303,61 @@ class Dataset():
         else:
             return {idx : zip(list(gr["iid"]), list(gr["rating"])) for idx, gr in grouped}
 
+    def to_array(self, binarize=True):
+        r"""Return the dataset as a numpy array.
+
+        The dataset is returned as a tuple according to the way it is splitted.
+
+        Parameters
+        ----------
+        binarize : :obj:`bool` [optional]
+            Whether the ratings have to be binarize or not, by default :obj:`True`.
+
+        Returns
+        -------
+        :obj:`tuple` of :class:`numpy.ndarray`
+            In case of horizonal splitting it returns (training set, validation set,
+            test set). In case of vertical splitting it returns (training set,
+            (training part of the validation set, test part of the validation set),
+            (training part of the test set, test part of the test set))..
+        """
+        data_tr = self._df_to_array(self.train_set, binarize)
+        if isinstance(self.valid_set, DataFrame):
+            data_val = self._df_to_array(self.valid_set, binarize)
+            data_te = self._df_to_array(self.test_set, binarize)
+        else:
+            if self.valid_set is not None:
+                data_val = self._seq_to_sparse(self.valid_set, binarize)
+            else:
+                data_val = None
+            data_te = self._seq_to_sparse(self.test_set, binarize)
+        return data_tr, data_val, data_te
+
+    def _df_to_array(self, data, binarize):
+        rows, cols = data['uid'], data['iid']
+        n_tr_users = data['uid'].max() + 1
+        array = np.zeros((n_tr_users, self.n_items))
+        array[rows, cols] = 1. if binarize else data[data.columns.values[2]]
+        return array
+
+    def _seq_to_array(self, data, binarize):
+        data_tr, data_te = data[0], data[1]
+
+        start_idx = min(data_tr['uid'].min(), data_te['uid'].min())
+        end_idx = max(data_tr['uid'].max(), data_te['uid'].max())
+
+        rows_tr, cols_tr = data_tr['uid'] - start_idx, data_tr['iid']
+        rows_te, cols_te = data_te['uid'] - start_idx, data_te['iid']
+
+        array_tr = np.zeros((end_idx - start_idx + 1, self.n_items))
+        array_tr[rows_tr, cols_tr] = 1. if binarize else data_tr[data_tr.columns.values[2]]
+
+        array_te = np.zeros((end_idx - start_idx + 1, self.n_items))
+        array_te[rows_te, cols_te] = 1. if binarize else data_te[data_te.columns.values[2]]
+
+        tr_idx = array_tr.any(axis=1)
+        return array_tr[tr_idx], array_te[tr_idx]
+
     def to_sparse(self, binarize=True):
         r"""Return the dataset as a scipy sparse csr_matrix.
 

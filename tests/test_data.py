@@ -4,8 +4,11 @@ import os
 import sys
 import json
 import tempfile
+import numpy as np
 import pandas as pd
 import pytest
+import torch
+import scipy
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.data import DataProcessing, Dataset
@@ -221,6 +224,7 @@ def test_Dataset():
         assert str(dataset) == str(dataset2)
 
         sp = dataset.to_sparse()
+        assert isinstance(sp[0], scipy.sparse.csr_matrix)
         assert len(sp) == 3
         assert len(sp[0].nonzero()[0]) == 5
         assert len(sp[1][0].nonzero()[0]) == 2
@@ -228,7 +232,17 @@ def test_Dataset():
         assert len(sp[2][0].nonzero()[0]) == 1
         assert len(sp[2][1].nonzero()[0]) == 1
 
+        ar = dataset.to_array()
+        assert isinstance(ar[0], np.ndarray)
+        assert len(ar) == 3
+        assert np.sum(ar[0] > 0) == 5
+        assert np.sum(ar[1][0] > 0) == 2
+        assert np.sum(ar[1][1] > 0) == 1
+        assert np.sum(ar[2][0] > 0) == 1
+        assert np.sum(ar[2][1] > 0) == 1
+
         dd = dataset.to_dict()
+        assert isinstance(dd[0], dict)
         assert len(dd) == 3
         assert dd[0][0] == [0, 1, 2]
         assert dd[0][1] == [1, 2]
@@ -237,10 +251,11 @@ def test_Dataset():
         assert dd[2][0][3] == [0]
         assert dd[2][1][3] == [2]
 
-        tn = dataset.to_tensor()
+        tn = dataset.to_tensor(sparse=False)
+        assert isinstance(tn[0], torch.FloatTensor)
         assert len(tn) == 3
-        assert tn[0]._nnz() == 5
-        assert tn[1][0]._nnz() == 2
-        assert tn[1][1]._nnz() == 1
-        assert tn[2][0]._nnz() == 1
-        assert tn[2][1]._nnz() == 1
+        assert torch.nonzero(tn[0], as_tuple=True)[0].shape[0] == 5
+        assert torch.nonzero(tn[1][0], as_tuple=True)[0].shape[0] == 2
+        assert torch.nonzero(tn[1][1], as_tuple=True)[0].shape[0] == 1
+        assert torch.nonzero(tn[2][0], as_tuple=True)[0].shape[0] == 1
+        assert torch.nonzero(tn[2][1], as_tuple=True)[0].shape[0] == 1
