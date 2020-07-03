@@ -18,7 +18,7 @@ def test_random():
     assert rnd.seed == 1
     assert not rnd.fixed
     rnd.train()
-    p = rnd.predict([1, 2, 3], [[0], [1], [2]])
+    p = rnd.predict([1, 2, 3], [[0], [1], [2]])[0]
     assert isinstance(p, torch.torch.FloatTensor)
     assert p.shape == torch.Size([3, 4])
     assert p[0, 0] == -np.inf
@@ -28,7 +28,7 @@ def test_random():
 
     rnd = Random(4, 1, True)
     rnd.train()
-    p = rnd.predict([1, 2, 3], [[0], [1], [2]])
+    p = rnd.predict([1, 2, 3], [[0], [1], [2]])[0]
     assert isinstance(p, torch.torch.FloatTensor)
     assert p.shape == torch.Size([3, 4])
     assert p[0, 0] == -np.inf
@@ -83,7 +83,7 @@ def test_popularity():
     assert isinstance(pop.model, torch.FloatTensor)
     assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
 
-    p = pop.predict([0, 1, 2], [[1], [2], [3]])
+    p = pop.predict([0, 1, 2], [[1], [2], [3]])[0]
     assert isinstance(p, torch.FloatTensor)
     assert p.shape == torch.Size([3, 4])
     assert p[0, 1] == -np.inf
