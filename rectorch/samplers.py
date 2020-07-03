@@ -44,7 +44,7 @@ class DataSampler(Sampler):
     r"""This is a standard sampler that returns batches without any particular constraint.
 
     Bathes are randomly returned with the defined dimension (i.e., ``batch_size``). If ``shuffle``
-    is set to ``False`` then the sampler returns batches with the same order as in the original
+    is set to :obj:`False` then the sampler returns batches with the same order as in the original
     dataset. When ``sparse_data_te`` is defined then each returned batch is a :obj:`tuple` with
     the training part of the batch and its test/validation counterpart. Otherwise, if
     ``sparse_data_te`` is :obj:`None` then the second element of the yielded tuple will be
@@ -61,7 +61,7 @@ class DataSampler(Sampler):
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
         Whether the data set must by randomly shuffled before creating the batches, by default
-        ``True``.
+        :obj:`True`.
 
     Attributes
     ----------
@@ -102,9 +102,9 @@ class DataSampler(Sampler):
 
 class ConditionedDataSampler(Sampler):
     r"""Data sampler with conditioned filtering used by the
-    :class:`rectorch.models.CMultiVAE` model.
+    :class:`rectorch.models.nn.CMultiVAE` model.
 
-    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described
+    This data sampler is useful when training the :class:`rectorch.models.nn.CMultiVAE` model described
     in [CVAE]_. During the training, each user must be conditioned over all the possible conditions
     (actually the ones that the user knows) so the training set must be modified accordingly.
 
@@ -125,7 +125,7 @@ class ConditionedDataSampler(Sampler):
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
         Whether the data set must bu randomly shuffled before creating the batches, by default
-        ``True``.
+        :obj:`True`.
 
     Attributes
     ----------
@@ -218,9 +218,9 @@ class ConditionedDataSampler(Sampler):
 
 class EmptyConditionedDataSampler(Sampler):
     r"""Data sampler that returns unconditioned batches used by the
-    :class:`rectorch.models.CMultiVAE` model.
+    :class:`rectorch.models.nn.CMultiVAE` model.
 
-    This data sampler is useful when training the :class:`rectorch.models.CMultiVAE` model described
+    This data sampler is useful when training the :class:`rectorch.models.nn.CMultiVAE` model described
     in [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection that the
     yielded batches have appended a zero matrix of the size ``batch_size`` :math:`\times`
     ``n_cond``.
@@ -238,7 +238,7 @@ class EmptyConditionedDataSampler(Sampler):
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
         Whether the data set must bu randomly shuffled before creating the batches, by default
-        ``True``.
+        :obj:`True`.
 
     Attributes
     ----------
@@ -364,7 +364,7 @@ class SVAE_Sampler(Sampler):
         are the lists of items rated by the users in a specific (often cronological) odrer,
         by default :obj:`None`. If :obj:`None` it is not considered in the batch creation, otherwise
         is used in the construction of the ground truth. Not that ``dict_data_te`` must be valued
-        only in the case of validation/test, i.e., when ``is_training`` is ``False``.
+        only in the case of validation/test, i.e., when ``is_training`` is :obj:`False`.
     pred_type : :obj:`str` in the set {``'next_k'``, ``'next'``, ``'postfix'``} [optional]
         The variant of loss used by the model, by default ``'next_k'``. If ``'next'`` then
         only the next item must be predicted, if ``'next_k'`` the next *k* items are considered in
@@ -375,9 +375,9 @@ class SVAE_Sampler(Sampler):
         is not considered when ``pred_type`` is not ``'next_k'``.
     shuffle : :obj:`bool` [optional]
         Whether the data set must by randomly shuffled before creating the batches, by default
-        ``True``.
+        :obj:`True`.
     is_training : :obj:`bool` [optional]
-        Whether the sampler is used during training, by default ``True``.
+        Whether the sampler is used during training, by default :obj:`True`.
 
     Attributes
     ----------

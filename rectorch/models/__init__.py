@@ -1,6 +1,4 @@
 """This module includes the implementation of many recommender systems.
-
-TODO
 """
 
 __all__ = ['baseline', 'nn', 'RecSysModel']

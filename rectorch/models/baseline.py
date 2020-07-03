@@ -1,4 +1,4 @@
-r"""This module conntains some baseline recommender systems.
+r"""This module contains some baseline recommender systems.
 """
 import os
 from collections import Counter

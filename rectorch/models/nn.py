@@ -625,8 +625,8 @@ class MultiVAE(VAE):
     anneal_steps : :obj:`int`
         See ``anneal_steps`` parameter.
     self.annealing : :obj:`bool`
-        Whether the annealing is active or not. It is implicitely set to ``True`` if
-        ``anneal_steps > 0``, otherwise is set to ``False``.
+        Whether the annealing is active or not. It is implicitely set to :obj:`True` if
+        ``anneal_steps > 0``, otherwise is set to :obj:`False`.
     gradient_updates : :obj:`int`
         Number of gradient updates since the beginning of the training. Once
         ``gradient_updates >= anneal_steps``, then the annealing is complete and the used
@@ -1299,12 +1299,12 @@ class ADMM_Slim(RecSysModel):
         The penalty hyper-parameter :math:`\rho>0` that applies to :math:`\|B-C\|^2_F`,
         by default 1e5.
     nn_constr : :obj:`bool` [optional]
-        Whether to keep the non-negativity constraint, by default ``True``.
+        Whether to keep the non-negativity constraint, by default :obj:`True`.
     l1_penalty : :obj:`bool` [optional]
-        Whether to keep the L1 penalty, by default ``True``. When ``l1_penalty = False`` then
+        Whether to keep the L1 penalty, by default :obj:`True`. When ``l1_penalty = False`` then
         is like to set :math:`\lambda_1 = 0`.
     item_bias : :obj:`bool` [optional]
-        Whether to model the item biases, by default ``False``. When ``item_bias = True`` then
+        Whether to model the item biases, by default :obj:`False`. When ``item_bias = True`` then
         the scoring function for the user-item pair *(u,i)* becomes:
         :math:`S_{ui}=(\mathbf{X}_{u,:} - \mathbf{b})\cdot \mathbf{B}_{:, i} + \mathbf{b}_i`.
 
@@ -1349,19 +1349,19 @@ class ADMM_Slim(RecSysModel):
         variants of the algorithm. That are:
 
         1. (Vanilla) ADMM SLIM - :math:`\lambda_1, \lambda_2, \rho>0`, :attr:`item_bias` =
-        ``False``, and both :attr:`nn_constr` and :attr:`l1_penalty` set to ``True``;
+        :obj:`False`, and both :attr:`nn_constr` and :attr:`l1_penalty` set to :obj:`True`;
 
-        2. ADMM SLIM w/o non-negativity constraint over C - :attr:`nn_constr` = ``False`` and
-        :attr:`l1_penalty` set to ``True``;
+        2. ADMM SLIM w/o non-negativity constraint over C - :attr:`nn_constr` = :obj:`False` and
+        :attr:`l1_penalty` set to :obj:`True`;
 
-        3. ADMM SLIM w/o the L1 penalty - :attr:`l1_penalty` = ``False`` and
-        :attr:`nn_constr` set to ``True``;
+        3. ADMM SLIM w/o the L1 penalty - :attr:`l1_penalty` = :obj:`False` and
+        :attr:`nn_constr` set to :obj:`True`;
 
         4. ADMM SLIM w/o L1 penalty and non-negativity constraint: :attr:`nn_constr` =
-        :attr:`l1_penalty` = ``False``.
+        :attr:`l1_penalty` = :obj:`False`.
 
         All these variants can also be combined with the inclusion of the item biases by setting
-        :attr:`item_bias` to ``True``.
+        :attr:`item_bias` to :obj:`True`.
 
         Parameters
         ----------
@@ -1369,7 +1369,7 @@ class ADMM_Slim(RecSysModel):
             The training data.
         num_iter : :obj:`int` [optional]
             Maximum number of training iterations, by default 50. This argument has no effect
-            if both :attr:`nn_constr` and :attr:`l1_penalty` are set to ``False``.
+            if both :attr:`nn_constr` and :attr:`l1_penalty` are set to :obj:`False`.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
             value greater than 0. However, after reaching a maximum (that depends on the size of

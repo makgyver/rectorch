@@ -560,7 +560,7 @@ class DataProcessing:
                            engine='python')
 
         cnt = len(data)
-        if self.cfg.processing.threshold:
+        if self.cfg.processing.threshold and len(data.columns.values) > 2:
             data = data[data[data.columns.values[2]] > float(self.cfg.processing.threshold)]
             if cnt - len(data) > 0:
                 env.logger.warning("Thresholded %d ratings.", cnt - len(data))

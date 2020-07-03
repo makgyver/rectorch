@@ -75,10 +75,10 @@ Model configuration file
 The model configuration file defines the model and training hyper-parameters.
 The `.json <https://www.json.org/json-en.html>`_ model configuration file must have the following key-value pairs:
 
-* ``model``: dictionary (:obj:`str`: :obj:`dict`) with the values of model hyper-parameters. The name of the hyper-parameter must match the signature of the model as in :mod:`models`;
-* ``train``: dictionary (:obj:`str`: :obj:`dict`) with the training parameters such as, number of epochs or the validation metrics. The name of the parameters must match the signature of the model's training method (see :mod:`models`);
-* ``test``: dictionary (:obj:`str`: :obj:`dict`) with the test parameters. Up to now "metrics" is the only parameters to which a list of strings has to be associated. Metric names must follow the convention as defined in :mod:`metrics`;
-* ``sampler``: dictionary (:obj:`str`: :obj:`dict`) with sampler parameters. The name of the parameters must match the signature of the sampler (see :mod:`sampler`);
+* ``model``: dictionary with the values of model hyper-parameters. The name of the hyper-parameter must match the signature of the model as in :mod:`models`;
+* ``train``: dictionary with the training parameters such as, number of epochs or the validation metrics. The name of the parameters must match the signature of the model's training method (see :mod:`models`);
+* ``test``: dictionary with the test parameters. Up to now "metrics" is the only parameters to which a list of strings has to be associated. Metric names must follow the convention as defined in :mod:`metrics`;
+* ``sampler``: dictionary with sampler parameters. The name of the parameters must match the signature of the sampler (see :mod:`sampler`);
 
 .. code-block:: json
 

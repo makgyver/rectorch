@@ -17,10 +17,9 @@ For example:
     u2,i1
     u2,i3
 
-The example shows a data set CSV with 4 ratings, 2 users (u1, u2) and 3 items (i1,i2,i3). The CSV
+The example shows a data set CSV with 4 ratings, 2 users (u1, u2) and 3 items (i1, i2, i3). The CSV
 uses colon as delimiter and it has a header which must be configured correctly in the data
-configuration file (see :ref:`config-format`). Since the data set has implicit feedback, in the
-configuration file it must be set ``topn`` to 1.
+configuration file (see :ref:`config-format`).
 
 In the case of data sets for rating predition, a third column must be provided containing the
 rating value. For example:
