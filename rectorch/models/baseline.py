@@ -53,7 +53,7 @@ class Random(RecSysModel):
         if remove_train:
             for u in range(len(train_items)):
                 pred[u, train_items[u]] = -np.inf
-        return pred
+        return (pred, )
 
     def save_model(self, filepath):
         env.logger.info("Saving model checkpoint to %s...", filepath)
@@ -127,7 +127,7 @@ class Popularity(RecSysModel):
         if remove_train:
             for u in range(len(train_items)):
                 pred[u, train_items[u]] = -np.inf
-        return pred
+        return (pred, )
 
     def save_model(self, filepath):
         env.logger.info("Saving model checkpoint to %s...", filepath)

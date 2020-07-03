@@ -74,10 +74,10 @@ class Dataset():
         List of user ids. It is the list version of :attr:`u2id`.
     unique_iid: :obj:`list` of :obj:`int`
         List of item ids. It is the list version of :attr:`i2id`.
-    u2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
+    u2id : :obj:`dict` { :obj:`str` \: :obj:`int` }
         Dictionary which maps the raw user id, i.e., as in the raw `csv` file, to an internal id
         which is an integer between 0 and the total number of users minus one.
-    i2id : :obj:`dict` (key - :obj:`str`, value - :obj:`int`)
+    i2id : :obj:`dict` { :obj:`str` \: :obj:`int` }
         Dictionary which maps the raw item id, i.e., as in the raw `csv` file, to an internal id
         which is an integer between 0 and the total number of items minus one.
     train_set : :class:`pandas.DataFrame`
@@ -272,14 +272,14 @@ class Dataset():
 
         Returns
         -------
-        data_tr : :obj:`dict` (key: :obj:`int` - value: :obj:`int`)
+        data_tr : :obj:`dict` { :obj:`int` \: :obj:`int` }
             Dictionary containing the training ratings.
-        data_val : [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`) or :obj:`None`
+        data_val : [sequence of] :obj:`dict` { :obj:`int` \: :obj:`int` } or :obj:`None`
             If the dataset is horizontally splitted it is a dictionary containing
             the validation ratings. Otherwise, it is a pair of dictionaries containing
             the training and test part of the validation ratings. In case of no validation
             set it is a :obj:`None` object.
-        data_te : [sequence of] :obj:`dict` (key: :obj:`int` - value: :obj:`int`)
+        data_te : [sequence of] :obj:`dict` { :obj:`int` \: :obj:`int` }
             If the dataset is horizontally splitted it is a dictionary containing
             the test ratings. Otherwise, it is a pair of dictionaries containing
             the training and test part of the test ratings.

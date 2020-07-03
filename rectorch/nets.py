@@ -639,7 +639,7 @@ class SVAE_net(VAE_net):
 
     Attributes
     ----------
-    See *Parameres* section.
+    all attributes : see **Parameters** section.
 
     References
     ----------

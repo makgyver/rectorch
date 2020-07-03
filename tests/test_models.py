@@ -361,15 +361,16 @@ def test_EASE():
 
     X = csr_matrix(np.random.randint(2, size=(10, 5)), dtype="float64")
     ease.train(X)
-    assert isinstance(ease.model, np.ndarray), "after training the model should be a numpy matrix"
+    assert isinstance(ease.model, torch.FloatTensor),\
+        "after training the model should be a pytorch tensor"
     pr = ease.predict([2, 4, 5], X[[2, 4, 5]])[0]
     assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
     tmp = tempfile.NamedTemporaryFile()
     ease.save_model(tmp.name)
     ease2 = EASE(200.)
-    ease2.load_model(tmp.name + ".npy")
-    assert np.all(ease2.model == ease.model), "the two model should be the same"
-    os.remove(tmp.name + ".npy")
+    ease2.load_model(tmp.name)
+    assert torch.all(ease2.model == ease.model), "the two model should be the same"
+    os.remove(tmp.name)
     assert repr(ease) == str(ease)
 
 def test_CFGAN():
@@ -458,15 +459,16 @@ def test_ADMM_Slim():
 
     X = csr_matrix(np.random.randint(2, size=(10, 5)), dtype="float64")
     slim.train(X)
-    assert isinstance(slim.model, np.ndarray), "after training the model should be a numpy matrix"
+    assert isinstance(slim.model, torch.FloatTensor),\
+        "after training the model should be a numpy matrix"
     pr = slim.predict([2, 4, 5], X[[2, 4, 5]])[0]
     assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
     tmp = tempfile.NamedTemporaryFile()
     slim.save_model(tmp.name)
     slim2 = ADMM_Slim()
-    slim2.load_model(tmp.name + ".npy")
-    assert np.all(slim2.model == slim.model), "the two model should be the same"
-    os.remove(tmp.name + ".npy")
+    slim2.load_model(tmp.name)
+    assert torch.all(slim2.model == slim.model), "the two model should be the same"
+    os.remove(tmp.name)
     assert repr(slim) == str(slim)
 
     slim2 = ADMM_Slim(nn_constr=False, l1_penalty=True, item_bias=False)

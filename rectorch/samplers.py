@@ -65,14 +65,7 @@ class DataSampler(Sampler):
 
     Attributes
     ----------
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_tr`` parameter.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_te`` parameter.
-    batch_size : :obj:`int`
-        See ``batch_size`` parameter.
-    shuffle : :obj:`bool`
-        See ``shuffle`` parameter.
+    all attributes : see **Parameters** section.
     """
     def __init__(self,
                  sparse_data_tr,
@@ -117,7 +110,7 @@ class ConditionedDataSampler(Sampler):
 
     Parameters
     ----------
-    iid2cids : :obj:`dict` (key :obj:`int` - value :obj:`list` of :obj:`int`)
+    iid2cids : :obj:`dict` { :obj:`int` \: :obj:`list` of :obj:`int` }
         Dictionary that maps each item to the list of all valid conditions for that item. Items
         are referred to with the inner id, and conditions with an integer in the range 0,
         ``n_cond`` -1.
@@ -136,18 +129,7 @@ class ConditionedDataSampler(Sampler):
 
     Attributes
     ----------
-    iid2cids : :obj:`dict` (key :obj:`int` - value :obj:`list` of :obj:`int`)
-        See ``iid2cids`` parameter.
-    n_cond : :obj:`int`
-        See ``n_cond`` parameter.
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_tr`` parameter.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_te`` parameter.
-    batch_size : :obj:`int`
-        See ``batch_size`` parameter.
-    shuffle : :obj:`bool`
-        See ``shuffle`` parameter.
+    all attributes : see **Parameters** section.
 
     References
     ----------
@@ -260,16 +242,7 @@ class EmptyConditionedDataSampler(Sampler):
 
     Attributes
     ----------
-    n_cond : :obj:`int`
-        See ``n_cond`` parameter.
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_tr`` parameter.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix`
-        See ``sparse_data_te`` parameter.
-    batch_size : :obj:`int`
-        See ``batch_size`` parameter.
-    shuffle : :obj:`bool`
-        See ``shuffle`` parameter.
+    all attributes : see **Parameters** section.
 
     References
     ----------
@@ -370,7 +343,7 @@ class CFGAN_TrainingSampler(Sampler):
 class SVAE_Sampler(Sampler):
     r"""Sampler used for training SVAE.
 
-    This sampler yields pairs (``x``,``y``) where ``x`` is the tensor of indexes of the
+    This sampler yields pairs (``x``, ``y``) where ``x`` is the tensor of indexes of the
     positive items, and ``y`` the target tensor with the (multi-hot) ground truth items.
     This sampler is characterized by batches of size one (a single user at a time).
     Given a user (batch) *u* the returned ground truth tensor is a 3D tensor of dimension
@@ -383,10 +356,10 @@ class SVAE_Sampler(Sampler):
     ----------
     num_items : :obj:`int`
         Number of items.
-    dict_data_tr : :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`)
+    dict_data_tr : :obj:`dict` { :obj:`int` \: :obj:`list` of :obj:`int` }
         Dictionary containing the training set. Keys are the users, while the values are the lists
         of items rated by the users in a specific (often cronological) odrer.
-    dict_data_te : :obj:`dict` (key - :obj:`int`, value - :obj:`list` of :obj:`int`) or :obj:`None` [optional]
+    dict_data_te : :obj:`dict` { :obj:`int` \: :obj:`list` of :obj:`int` } or :obj:`None` [optional]
         Dictionary containing the test part of the data set. Keys are the users, while the values
         are the lists of items rated by the users in a specific (often cronological) odrer,
         by default :obj:`None`. If :obj:`None` it is not considered in the batch creation, otherwise
@@ -408,7 +381,7 @@ class SVAE_Sampler(Sampler):
 
     Attributes
     ----------
-    See *Parameters* section.
+    all attributes : see **Parameters** section.
     """
     def __init__(self,
                  num_items,

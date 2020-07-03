@@ -877,7 +877,7 @@ class EASE(RecSysModel):
     ----------
     lam : :obj:`float`
         See ``lam`` parameter.
-    model : :class:`numpy.ndarray`
+    model : :class:`torch.FloatTensor`
         Represent the model, i.e.m the matrix score **S**. If the model has not been trained yet
         ``model`` is set to :obj:`None`.
 
@@ -911,6 +911,7 @@ class EASE(RecSysModel):
         B[diag_idx] = 0
         del P
         self.model = np.dot(X, B)
+        self.model = torch.from_numpy(self.model).float()
         env.logger.info("EASE - training complete")
 
     def predict(self, ids_te_users, test_tr, remove_train=True):
@@ -949,13 +950,14 @@ class EASE(RecSysModel):
                  'model': self.model
                 }
         env.logger.info("Saving EASE model to %s...", filepath)
-        np.save(filepath, state)
+        torch.save(state, filepath)
         env.logger.info("Model saved!")
 
     def load_model(self, filepath):
         assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
         env.logger.info("Loading EASE model from %s...", filepath)
-        state = np.load(filepath, allow_pickle=True)[()]
+        #state = np.load(filepath, allow_pickle=True)[()]
+        state = torch.load(filepath)
         self.lam = state["lambda"]
         self.model = state["model"]
         env.logger.info("Model loaded!")
@@ -1308,7 +1310,10 @@ class ADMM_Slim(RecSysModel):
 
     Attributes
     ----------
-    See the parameters' section.
+    model : :class:`torch.FloatTensor`
+        The ADSMM model. If the model has not been trained yet ``model`` is set to :obj:`None`.
+    other attributes : see the **Parameters** section.
+
 
     References
     ----------
@@ -1411,6 +1416,8 @@ class ADMM_Slim(RecSysModel):
         if self.item_bias:
             self.model += b
 
+        self.model = torch.from_numpy(self.model).float()
+
     def predict(self, ids_te_users, test_tr, remove_train=True):
         pred = self.model[ids_te_users, :]
         if remove_train:
@@ -1427,13 +1434,14 @@ class ADMM_Slim(RecSysModel):
                  'item_bias' : self.item_bias
                 }
         env.logger.info("Saving ADMM_Slim model to %s...", filepath)
-        np.save(filepath, state)
+        torch.save(state, filepath)
         env.logger.info("Model saved!")
 
     def load_model(self, filepath):
         assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
         env.logger.info("Loading ADMM_Slim model from %s...", filepath)
-        state = np.load(filepath, allow_pickle=True)[()]
+        #state = np.load(filepath, allow_pickle=True)[()]
+        state = torch.load(filepath)
         self.lambda1 = state["lambda1"]
         self.lambda2 = state["lambda2"]
         self.rho = state["rho"]
