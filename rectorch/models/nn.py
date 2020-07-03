@@ -9,8 +9,10 @@ we plan to improve the structure of the library creating sub-modules.
 
 Currently the implemented training algorithms are:
 
-* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-DAE*) [VAE]_;
-* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior (in the paper *Mult-VAE*) [VAE]_;
+* :class:`MultiDAE`: Denoising Autoencoder for Collaborative filtering with Multinomial prior
+  (in the paper *Mult-DAE*) [VAE]_;
+* :class:`MultiVAE`: Variational Autoencoder for Collaborative filtering with Multinomial prior
+  (in the paper *Mult-VAE*) [VAE]_;
 * :class:`CMultiVAE`: Conditioned Variational Autoencoder (in the paper *C-VAE*) [CVAE]_;
 * :class:`CFGAN`: Collaborative Filtering with Generative Adversarial Networks [CFGAN]_;
 * :class:`EASE`: Embarrassingly shallow autoencoder for sparse data [EASE]_.
@@ -139,9 +141,9 @@ class TorchNNTrainer(RecSysModel):
             The metric used during the validation to select the best model, by default :obj:`None`.
             If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
             To see the valid strings for the metric please see the module :mod:`metrics`.
-        valid_func : :class:`evaluation.ValidFunc` [optional]
+        valid_func : :class:`rectorch.evaluation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
-            :func:`evaluation.evaluate`.
+            :func:`rectorch.evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
         verbose : :obj:`int` [optional]
@@ -260,16 +262,12 @@ class AETrainer(TorchNNTrainer):
     ----------
     ae_net : :class:`torch.nn.Module`
         The autoencoder neural network.
-    learning_rate : :obj:`float` [optional]
-        The learning rate for the optimizer, by default 1e-3.
+    opt_conf : :obj:`dict` [optional]
+        The optimizer configuration dictionary, by default :obj:`None`.
 
     Attributes
     ----------
-    optimizer : :class:`torch.optim.Adam`
-        The optimizer is an Adam optimizer with default parameters and learning rate equals to
-        ``learning_rate``.
-
-    other attributes : see the base class :class:`TorchNNTrainer`.
+    all attributes : see the base class :class:`TorchNNTrainer`.
     """
     #def __init__(self, ae_net, opt_conf=None):
     #    super(AETrainer, self).__init__(ae_net, opt_conf)
@@ -526,8 +524,8 @@ class MultiDAE(AETrainer):
         The autoencoder neural network.
     lam : :obj:`float` [optional]
         The regularization hyper-parameter :math:`\lambda` as defined in [VAE]_, by default 0.2.
-    learning_rate : :obj:`float` [optional]
-        The learning rate for the optimizer, by default 1e-3.
+    opt_conf : :obj:`dict` [optional]
+        The optimizer configuration dictionary, by default :obj:`None`.
 
     References
     ----------
@@ -617,8 +615,8 @@ class MultiVAE(VAE):
         Number of annealing step for reaching the target value ``beta``, by default 0.
         0 means that no annealing will be performed and the regularization parameter will be
         fixed to ``beta``.
-    learning_rate : :obj:`float` [optional]
-        The learning rate for the optimizer, by default 1e-3.
+    opt_conf : :obj:`dict` [optional]
+        The optimizer configuration dictionary, by default :obj:`None`.
 
     Attributes
     ----------
@@ -633,10 +631,8 @@ class MultiVAE(VAE):
         :math:`\beta` in the loss function is ``beta``.
     beta : :obj:`float`
         See ``beta`` parameter.
-    optimizer : :class:`torch.optim.Adam`
-        The optimizer is an Adam optimizer with default parameters and learning rate equals to
-        ``learning_rate``.
-
+    optimizer : :class:`torch.optim.Optimizer`
+        The optimizer is initialized according to the given configurations in ``opt_conf``.
     other attributes : see the base class :class:`VAE`.
 
     References
@@ -1014,8 +1010,8 @@ class CFGAN(RecSysModel):
         The sampling parameter for the partial-masking approach, by default .7.
     s_zr : :obj:`float` [optional]
         The sampling parameter for the zero-reconstruction regularization, by default .5.
-    learning_rate : :obj:`float` [optional]
-        The optimization learning rate, by default 0.001.
+    opt_conf : :obj:`dict` [optional]
+        The optimizer configuration dictionary, by default :obj:`None`.
 
     Attributes
     ----------
@@ -1029,11 +1025,9 @@ class CFGAN(RecSysModel):
         See ``s_pm`` paramater.
     s_zr : :obj:`float`
         See ``s_zr`` paramater.
-    learning_rate : :obj:`float`
-        See ``learning_rate`` paramater.
-    opt_g : :class:`torch.optim.Adam`
+    opt_g : :class:`torch.optim.Optimizer`
         Optimizer used for performing the training of the generator.
-    opt_d : :class:`torch.optim.Adam`
+    opt_d : :class:`torch.optim.Optimizer`
         Optimizer used for performing the training of the discriminator.
 
     References
@@ -1486,8 +1480,14 @@ class SVAE(MultiVAE):
         Number of annealing step for reaching the target value ``beta``, by default 0.
         0 means that no annealing will be performed and the regularization parameter will be
         fixed to ``beta``.
-    learning_rate : :obj:`float` [optional]
-        The learning rate for the optimizer, by default 1e-3.
+    opt_conf : :obj:`dict` [optional]
+        The optimizer configuration dictionary, by default :obj:`None`.
+
+    Attributes
+    ----------
+    optimizer : :class:`torch.optim.Optimizer`
+        The optimizer is initialized according to the given configurations in ``opt_conf``.
+    other attributes : see the **Parameters** section.
 
     References
     ----------
