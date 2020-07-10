@@ -11,6 +11,8 @@ from rectorch.evaluation import evaluate, one_plus_random, ValidFunc
 from rectorch.models import RecSysModel
 from rectorch.samplers import Sampler
 
+# pylint: disable=W0223
+
 class FakeModel(RecSysModel):
     """Fake model
     """
@@ -22,14 +24,14 @@ class FakeModelArray(RecSysModel):
     """Fake model
     """
     def predict(self, ids, x):
-        return (torch.from_numpy(x).float() + torch.FloatTensor([[1]*4]), )
+        return (torch.from_numpy(x).float() + torch.FloatTensor([[1]*4]), ids)
 
 
 class FakeModelDict(RecSysModel):
     """Fake model
     """
     def predict(self, ids, x):
-        return (torch.from_numpy(np.array(x)).float() + torch.FloatTensor([[1]*4]), )
+        return (torch.from_numpy(np.array(x)).float() + torch.FloatTensor([[1]*4]), ids)
 
 
 
