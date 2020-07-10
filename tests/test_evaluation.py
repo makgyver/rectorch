@@ -181,7 +181,7 @@ def test_ValidFunc():
     with pytest.raises(AssertionError):
         def addfun(a=1, b=2, c=3, d=4):
             return a + b + c + d
-        #ValidFunc(addfun, b=3)
+        ValidFunc(addfun, b=3)
 
     ValidFunc(evaluate)
     assert repr(vfun) == str(vfun)
