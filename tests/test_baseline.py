@@ -5,10 +5,13 @@ import sys
 import tempfile
 import torch
 import numpy as np
-from scipy.sparse import csr_matrix
+import pandas as pd
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.models.baseline import Random, Popularity
+from rectorch.data import Dataset
+from rectorch.samplers import DictDummySampler, ArrayDummySampler, SparseDummySampler,\
+    TensorDummySampler
 
 def test_random():
     """Test the Random class
@@ -51,35 +54,52 @@ def test_random():
 def test_popularity():
     """Test the Popularity class
     """
+    values = [1.] * 7
+    rows = [0, 0, 1, 1, 1, 2, 2]
+    cols = [0, 1, 0, 1, 2, 1, 3]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1, 2:2}
+    iids = {0:0, 1:1, 2:2, 3:3}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+
     pop = Popularity(4)
     assert pop.n_items == 4
     assert pop.model is None
 
-    R = [[1, 1, 0, 0], [1, 1, 1, 0], [0, 1, 0, 1]]
-    t = torch.FloatTensor(R)
+    #R = [[1, 1, 0, 0], [1, 1, 1, 0], [0, 1, 0, 1]]
+    #t = torch.FloatTensor(R)
+    dds = DictDummySampler(data)
     pop = Popularity(4)
-    pop.train(t)
-    assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
-
-    t = torch.sparse.torch.FloatTensor(R)
-    pop = Popularity(4)
-    pop.train(t)
-    assert isinstance(pop.model, torch.FloatTensor)
-    assert torch.all(pop.model == torch.torch.FloatTensor([2, 3, 1, 1]))
-    old_model = pop.model
-    t[0, 2] = 1.0
-    pop.train(t)
-    assert torch.all(pop.model == old_model)
-
-    t = csr_matrix(R)
-    pop = Popularity(4)
-    pop.train(t)
+    pop.train(dds)
     assert isinstance(pop.model, torch.FloatTensor)
     assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
 
-    t = {0:[0, 1], 1:[0, 1, 2], 2:[1, 3]}
+    dds = SparseDummySampler(data)
     pop = Popularity(4)
-    pop.train(t)
+    pop.train(dds)
+    assert isinstance(pop.model, torch.FloatTensor)
+    assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
+
+    pop.train(dds)
+    assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
+
+    dds = TensorDummySampler(data)
+    pop = Popularity(4)
+    pop.train(dds)
+    assert isinstance(pop.model, torch.FloatTensor)
+    assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
+
+    dds = TensorDummySampler(data)
+    pop = Popularity(4)
+    pop.train(dds)
+    assert isinstance(pop.model, torch.FloatTensor)
+    assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
+
+    dds = ArrayDummySampler(data)
+    pop = Popularity(4)
+    pop.train(dds)
     assert isinstance(pop.model, torch.FloatTensor)
     assert torch.all(pop.model == torch.FloatTensor([2, 3, 1, 1]))
 

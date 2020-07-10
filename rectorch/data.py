@@ -290,10 +290,10 @@ class Dataset():
             data_te = self._to_dict(self.test_set, binarize)
         else:
             if self.valid_set is not None:
-                data_val = [self._to_dict(v, binarize) for v in self.valid_set]
+                data_val = tuple([self._to_dict(v, binarize) for v in self.valid_set])
             else:
                 data_val = None
-            data_te = [self._to_dict(t, binarize) for t in self.test_set]
+            data_te = tuple([self._to_dict(t, binarize) for t in self.test_set])
         return data_tr, data_val, data_te
 
     def _to_dict(self, data, binarize):
@@ -327,10 +327,10 @@ class Dataset():
             data_te = self._df_to_array(self.test_set, binarize)
         else:
             if self.valid_set is not None:
-                data_val = self._seq_to_sparse(self.valid_set, binarize)
+                data_val = self._seq_to_array(self.valid_set, binarize)
             else:
                 data_val = None
-            data_te = self._seq_to_sparse(self.test_set, binarize)
+            data_te = self._seq_to_array(self.test_set, binarize)
         return data_tr, data_val, data_te
 
     def _df_to_array(self, data, binarize):
@@ -422,7 +422,7 @@ class Dataset():
         tr_idx = np.diff(data_tr.indptr) != 0
         return data_tr[tr_idx], data_te[tr_idx]
 
-    def to_tensor(self, binarize=True, sparse=True):
+    def to_tensor(self, binarize=True):
         r"""Return the dataset as a pytorch tensor.
 
         The dataset is returned as a tuple according to the way it is splitted.
@@ -431,38 +431,36 @@ class Dataset():
         ----------
         binarize : :obj:`bool` [optional]
             Whether the ratings have to be binarize or not, by default :obj:`True`.
-        sparse : :obj:`bool` [optional]
-            Whether the returned tensors have to be sparse or not, by default :obj:`True`.
 
         Returns
         -------
-        :obj:`tuple` of :class:`torch.sparse.FloatTensor` / :class:`torch.FloatTensor`
+        :obj:`tuple` of :class:`torch.FloatTensor`
             In case of horizonal splitting it returns (training set, validation set,
             test set). In case of vertical splitting it returns (training set,
             (training part of the validation set, test part of the validation set),
             (training part of the test set, test part of the test set)).
         """
-        data_tr = self._df_to_tensor(self.train_set, binarize, sparse)
+        data_tr = self._df_to_tensor(self.train_set, binarize)
         if isinstance(self.valid_set, DataFrame):
-            data_val = self._df_to_tensor(self.valid_set, binarize, sparse)
-            data_te = self._df_to_tensor(self.test_set, binarize, sparse)
+            data_val = self._df_to_tensor(self.valid_set, binarize)
+            data_te = self._df_to_tensor(self.test_set, binarize)
         else:
             if self.valid_set is not None:
-                data_val = self._seq_to_tensor(self.valid_set, binarize, sparse)
+                data_val = self._seq_to_tensor(self.valid_set, binarize)
             else:
                 data_val = None
-            data_te = self._seq_to_tensor(self.test_set, binarize, sparse)
+            data_te = self._seq_to_tensor(self.test_set, binarize)
         return data_tr, data_val, data_te
 
-    def _df_to_tensor(self, data, binarize=True, sparse=True):
+    def _df_to_tensor(self, data, binarize=True):
         idx = torch.LongTensor([list(data['uid']), list(data['iid'])])
         n_tr_users = data['uid'].max() + 1
         values = np.ones(len(data)) if binarize else data[data.columns.values[2]]
         v = torch.FloatTensor(values)
         tensor = torch.sparse.FloatTensor(idx, v, torch.Size([n_tr_users, self.n_items]))
-        return tensor if sparse else tensor.to_dense()
+        return tensor.to_dense()
 
-    def _seq_to_tensor(self, data, binarize=True, sparse=True):
+    def _seq_to_tensor(self, data, binarize=True):
         data_tr, data_te = data[0], data[1]
 
         start_idx = min(data_tr['uid'].min(), data_te['uid'].min())
@@ -488,7 +486,7 @@ class Dataset():
                                              v_te,
                                              torch.Size([end_idx - start_idx + 1, self.n_items]))
 
-        return (tensor_tr, tensor_te) if sparse else (tensor_tr.to_dense(), tensor_te.to_dense())
+        return (tensor_tr.to_dense(), tensor_te.to_dense())
 
     def __str__(self):
         return "Dataset(n_users=%d, n_items=%d, n_ratings=%d)" %(self.n_users,

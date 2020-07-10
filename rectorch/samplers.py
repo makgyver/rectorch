@@ -4,21 +4,39 @@ network-based models.
 The ``samplers`` module is inspired by the :class:`torch.utils.data.DataLoader` class which,
 however, is not really efficient because it outputs a single example at a time. The idea behind the
 samplers defined in this module is to treat the data set at batches highly improving the efficiency.
-Each new sampler must extend the base class :class:`Sampler` implementing all the abstract special
-methods, in particular :meth:`samplers.Sampler.__len__` and :meth:`samplers.Sampler.__iter__`.
+Each new sampler must extend the base class :class:`Sampler` implementing all the abstract
+methods, in particular :meth:`samplers.Sampler._set_mode`, :meth:`samplers.Sampler.__len__` and
+:meth:`samplers.Sampler.__iter__`.
 """
 import numpy as np
 from scipy.sparse import csr_matrix, hstack
 import torch
 from torch.autograd import Variable
 
-__all__ = ['Sampler', 'DataSampler', 'ConditionedDataSampler', 'EmptyConditionedDataSampler',\
-    'CFGAN_TrainingSampler', 'SVAE_Sampler']
+__all__ = ['Sampler', 'DataSampler', 'DummySampler', 'DictDummySampler', 'ArrayDummySampler',\
+    'SparseDummySampler', 'TensorDummySampler', 'ConditionedDataSampler',\
+    'EmptyConditionedDataSampler', 'CFGAN_TrainingSampler', 'SVAE_Sampler']
+
+#TODO document the way sampler works
+
 
 class Sampler():
     r"""Sampler base class.
 
     A sampler is meant to be used as a generator of batches useful in training neural networks.
+
+    Parameters
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
+    batch_size : :obj:`int` [optional]
+        The size of the batches, by default 1.
+
+    Attributes
+    ----------
+    All attributes : see the **Parameters section.
 
     Notes
     -----
@@ -26,8 +44,53 @@ class Sampler():
     special methods, in particular :meth:`rectorch.samplers.Sampler.__len__` and
     :meth:`rectorch.samplers.Sampler.__iter__`.
     """
-    def __init__(self, *args, **kargs):
-        pass
+    def __init__(self, data, mode="train", batch_size=1):
+        self.data = data
+        self.mode = mode
+        self.batch_size = batch_size
+
+    def _set_mode(self, mode, batch_size=None):
+        """Change the sampler's mode according to the given parameter.
+
+        Parameters
+        ----------
+        mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+            Indicates the mode in which the sampler operates.
+        """
+        raise NotImplementedError
+
+    def train(self, batch_size=None):
+        """Set the sampler to training mode.
+
+        Parameters
+        ----------
+        batch_size : :obj:`int` or :obj:`None` [optional]
+            The size of the batches, by default :obj:`None`. If ``None`` no modification will be
+            applied to the batch size.
+        """
+        self._set_mode("train", batch_size)
+
+    def valid(self, batch_size=None):
+        """Set the sampler to validation mode.
+
+        Parameters
+        ----------
+        batch_size : :obj:`int` or :obj:`None` [optional]
+            The size of the batches, by default :obj:`None`. If ``None`` no modification will be
+            applied to the batch size.
+        """
+        self._set_mode("valid", batch_size)
+
+    def test(self, batch_size=None):
+        """Set the sampler to test mode.
+
+        Parameters
+        ----------
+        batch_size : :obj:`int` or :obj:`None` [optional]
+            The size of the batches, by default :obj:`None`. If ``None`` no modification will be
+            applied to the batch size.
+        """
+        self._set_mode("test", batch_size)
 
     def __len__(self):
         """Return the number of batches.
@@ -38,6 +101,260 @@ class Sampler():
         """Iterate through the batches yielding a batch at a time.
         """
         raise NotImplementedError
+
+class DummySampler(Sampler):
+    """Abstract sampler that simply returns the dataset.
+
+    Notes
+    -----
+    The value of the attribute ``batch_size`` is always set to 1.
+
+    Parameters
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
+    batch_size : :obj:`int` or :obj:`None` [optional]
+        The size of the batches, by default :obj:`None`. If :obj:`None` the batch size will be set
+        to the number of users of the active data set.
+    shuffle : :obj:`bool` [optional]
+        Whether the data set must be shuffled, by default :obj:`False`.
+    """
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+        super(DummySampler, self).__init__(data, mode, batch_size)
+        self.data_tr = None
+        self.data_val = None
+        self.data_te = None
+        self._data = None
+        self.shuffle = shuffle
+
+    def _set_mode(self, mode, batch_size=None):
+        assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
+        self.mode = mode
+        if self.mode == "train":
+            self._data = self.data_tr
+        elif self.mode == "valid":
+            self._data = self.data_val
+        else:
+            self._data = self.data_te
+
+    def __len__(self):
+        if isinstance(self._data, tuple):
+            return int(np.ceil(len(self._data[0]) / self.batch_size))
+        else:
+            return int(np.ceil(len(self._data) / self.batch_size))
+
+    def __iter__(self):
+        raise NotImplementedError()
+
+
+class DictDummySampler(DummySampler):
+    """Dummy sampler that returns the dataset as a dictionary.
+
+    Parameters
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
+    batch_size : :obj:`int` or :obj:`None` [optional]
+        The size of the batches, by default :obj:`None`. If :obj:`None` the batch size will be set
+        to the number of users of the active data set.
+    shuffle : :obj:`bool` [optional]
+        Whether the data set must be shuffled, by default :obj:`False`.
+
+    Attributes
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+        Indicates the mode in which the sampler operates.
+    batch_size : :obj:`int`
+        The size of the batches.
+    data_tr : :obj:`dict`
+        The training set.
+    data_val : :obj:`dict`
+        The validation set.
+    data_te : :obj:`dict`
+        The test set.
+    shuffle : :obj:`bool`
+        Whether the data set must be shuffled.
+    """
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+        super(DictDummySampler, self).__init__(data, mode, batch_size, shuffle)
+        self.data_tr, self.data_val, self.data_te = data.to_dict()
+        self._set_mode(mode)
+        if batch_size is None:
+            self.batch_size = len(self._data[0] if isinstance(self._data, tuple) else self._data)
+
+    def __iter__(self):
+        n = len(self._data[0] if isinstance(self._data, tuple) else self._data)
+        idxlist = list(range(n))
+        if self.shuffle and self.mode == "train":
+            np.random.shuffle(idxlist)
+
+        for _, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            users = idxlist[start_idx:end_idx]
+            if isinstance(self._data, tuple):
+                tr_sets = [self._data[0][u] for u in users]
+                te_sets = [self._data[1][u] for u in users]
+            else:
+                tr_sets = [self.data_tr[u] for u in users]
+                te_sets = [self._data[u] for u in users]
+
+            yield (users, tr_sets), None if self.mode == "train" else te_sets
+
+
+class ArrayDummySampler(DummySampler):
+    """Dummy sampler that returns the dataset as a numpy array.
+
+    Parameters
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
+    batch_size : :obj:`int` or :obj:`None` [optional]
+        The size of the batches, by default :obj:`None`. If :obj:`None` the batch size will be set
+        to the number of users of the active data set.
+    shuffle : :obj:`bool` [optional]
+        Whether the data set must be shuffled, by default :obj:`False`.
+
+    Attributes
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+        Indicates the mode in which the sampler operates.
+    data_tr : :class:`numpy.ndarray`
+        The training set.
+    data_val : :class:`numpy.ndarray`
+        The validation set.
+    data_te : :class:`numpy.ndarray`
+        The test set.
+    shuffle : :obj:`bool`
+        Whether the data set must be shuffled, by default :obj:`False`.
+    """
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+        super(ArrayDummySampler, self).__init__(data, mode, batch_size, shuffle)
+        self.data_tr, self.data_val, self.data_te = data.to_array()
+        self._set_mode(mode)
+        if batch_size is None:
+            self.batch_size = len(self._data[0] if isinstance(self._data, tuple) else self._data)
+
+    def __iter__(self):
+        n = self._data[0].shape[0] if isinstance(self._data, tuple) else self._data.shape[0]
+        idxlist = list(range(n))
+        if self.shuffle and self.mode == "train":
+            np.random.shuffle(idxlist)
+
+        for _, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            users = idxlist[start_idx:end_idx]
+            if isinstance(self._data, tuple):
+                tr_sets = self._data[0][users]
+                te_sets = self._data[1][users]
+            else:
+                tr_sets = self.data_tr[users]
+                te_sets = self._data[users]
+
+            yield (users, tr_sets), None if self.mode == "train" else te_sets
+
+
+class SparseDummySampler(ArrayDummySampler):
+    """Dummy sampler that returns the dataset as a sparse scipy array.
+
+    Parameters
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+        Indicates the mode in which the sampler operates.
+    batch_size : :obj:`int` or :obj:`None` [optional]
+        The size of the batches, by default :obj:`None`. If :obj:`None` the batch size will be set
+        to the number of users of the active data set.
+    shuffle : :obj:`bool` [optional]
+        Whether the data set must be shuffled, by default :obj:`False`.
+
+    Attributes
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+        Indicates the mode in which the sampler operates.
+    data_tr : :class:`scipy.sparse.csr_matrix`
+        The training set.
+    data_val : :class:`scipy.sparse.csr_matrix`
+        The validation set.
+    data_te : :class:`scipy.sparse.csr_matrix`
+        The test set.
+    shuffle : :obj:`bool`
+        Whether the data set must be shuffled.
+    """
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+        super(SparseDummySampler, self).__init__(data, mode, batch_size, shuffle)
+        self.data_tr, self.data_val, self.data_te = data.to_sparse()
+        self._set_mode(mode)
+        if batch_size is None:
+            if isinstance(self._data, tuple):
+                self.batch_size = self._data[0].shape[0]
+            else:
+                self.batch_size = self._data.shape[0]
+
+    def __len__(self):
+        if isinstance(self._data, tuple):
+            return int(np.ceil(self._data[0].shape[0] / self.batch_size))
+        else:
+            return int(np.ceil(self._data.shape[0] / self.batch_size))
+
+
+class TensorDummySampler(ArrayDummySampler):
+    """Dummy sampler that returns the dataset as a pytorch tensor.
+
+    Parameters
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
+    batch_size : :obj:`int` or :obj:`None` [optional]
+        The size of the batches, by default :obj:`None`. If :obj:`None` the batch size will be set
+        to the number of users of the active data set.
+    shuffle : :obj:`bool` [optional]
+        Whether the data set must be shuffled, by default :obj:`False`.
+
+    Attributes
+    ----------
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+        Indicates the mode in which the sampler operates.
+    data_tr : :class:`torch.Tensor`
+        The training set.
+    data_val : :class:`torch.Tensor`
+        The validation set.
+    data_te : :class:`torch.Tensor`
+        The test set.
+    shuffle : :obj:`bool`
+        Whether the data set must be shuffled.
+    """
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+        super(TensorDummySampler, self).__init__(data, mode, batch_size, shuffle)
+        self.data_tr, self.data_val, self.data_te = data.to_tensor()
+        self._set_mode(mode)
+        if batch_size is None:
+            if isinstance(self._data, tuple):
+                self.batch_size = self._data[0].shape[0]
+            else:
+                self.batch_size = self._data.shape[0]
+
+    def __len__(self):
+        if isinstance(self._data, tuple):
+            return int(np.ceil(self._data[0].shape[0] / self.batch_size))
+        else:
+            return int(np.ceil(self._data.shape[0] / self.batch_size))
 
 
 class DataSampler(Sampler):
@@ -52,11 +369,10 @@ class DataSampler(Sampler):
 
     Parameters
     ----------
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        The training sparse user-item rating matrix.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
-        The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default :obj:`None`.
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
@@ -68,15 +384,33 @@ class DataSampler(Sampler):
     all attributes : see **Parameters** section.
     """
     def __init__(self,
-                 sparse_data_tr,
-                 sparse_data_te=None,
+                 data,
+                 mode="train",
                  batch_size=1,
                  shuffle=True):
-        super(DataSampler, self).__init__()
-        self.sparse_data_tr = sparse_data_tr
-        self.sparse_data_te = sparse_data_te
+        super(DataSampler, self).__init__(data, mode, batch_size)
+        self._sptr, self._spval, self._spte = self.data.to_sparse()
+        self.sparse_data_tr, self.sparse_data_te = None, None
         self.batch_size = batch_size
         self.shuffle = shuffle
+        self._set_mode(mode)
+
+    def _set_mode(self, mode, batch_size=None):
+        assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
+        self.mode = mode
+
+        if self.mode == "train":
+            self.sparse_data_tr = self._sptr
+            self.sparse_data_te = None
+        elif self.mode == "valid":
+            self.sparse_data_tr = self._spval[0]
+            self.sparse_data_te = self._spval[1]
+        else:
+            self.sparse_data_tr = self._spte[0]
+            self.sparse_data_te = self._spte[1]
+
+        if batch_size is not None:
+            self.batch_size = batch_size
 
     def __len__(self):
         return int(np.ceil(self.sparse_data_tr.shape[0] / self.batch_size))
@@ -84,7 +418,7 @@ class DataSampler(Sampler):
     def __iter__(self):
         n = self.sparse_data_tr.shape[0]
         idxlist = list(range(n))
-        if self.shuffle:
+        if self.shuffle and self.mode == "train":
             np.random.shuffle(idxlist)
 
         for _, start_idx in enumerate(range(0, n, self.batch_size)):
@@ -100,13 +434,14 @@ class DataSampler(Sampler):
             yield data_tr, data_te
 
 
-class ConditionedDataSampler(Sampler):
+class ConditionedDataSampler(DataSampler):
     r"""Data sampler with conditioned filtering used by the
     :class:`rectorch.models.nn.CMultiVAE` model.
 
-    This data sampler is useful when training the :class:`rectorch.models.nn.CMultiVAE` model described
-    in [CVAE]_. During the training, each user must be conditioned over all the possible conditions
-    (actually the ones that the user knows) so the training set must be modified accordingly.
+    This data sampler is useful when training the :class:`rectorch.models.nn.CMultiVAE` model
+    described in [CVAE]_. During the training, each user must be conditioned over all the possible
+    conditions (actually the ones that the user knows) so the training set must be modified
+    accordingly.
 
     Parameters
     ----------
@@ -116,11 +451,10 @@ class ConditionedDataSampler(Sampler):
         ``n_cond`` -1.
     n_cond : :obj:`int`
         Number of possible conditions.
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        The training sparse user-item rating matrix.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
-        The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default :obj:`None`.
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
@@ -140,17 +474,13 @@ class ConditionedDataSampler(Sampler):
     def __init__(self,
                  iid2cids,
                  n_cond,
-                 sparse_data_tr,
-                 sparse_data_te=None,
+                 data,
+                 mode="train",
                  batch_size=1,
                  shuffle=True):
-        super(ConditionedDataSampler, self).__init__()
-        self.sparse_data_tr = sparse_data_tr
-        self.sparse_data_te = sparse_data_te
+        super(ConditionedDataSampler, self).__init__(data, mode, batch_size, shuffle)
         self.iid2cids = iid2cids
-        self.batch_size = batch_size
         self.n_cond = n_cond
-        self.shuffle = shuffle
         self._compute_conditions()
 
     def _compute_conditions(self):
@@ -169,13 +499,20 @@ class ConditionedDataSampler(Sampler):
         values = np.ones(len(rows))
         self.M = csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
 
+    def _set_mode(self, mode, batch_size=None):
+        if self.sparse_data_tr is not None:
+            super()._set_mode(mode, batch_size)
+            self._compute_conditions()
+        else:
+            super()._set_mode(mode, batch_size)
+
     def __len__(self):
         return int(np.ceil(len(self.examples) / self.batch_size))
 
     def __iter__(self):
         n = len(self.examples)
         idxlist = list(range(n))
-        if self.shuffle:
+        if self.shuffle and self.mode == "train":
             np.random.shuffle(idxlist)
 
         for _, start_idx in enumerate(range(0, n, self.batch_size)):
@@ -216,24 +553,23 @@ class ConditionedDataSampler(Sampler):
             yield data_tr, data_te
 
 
-class EmptyConditionedDataSampler(Sampler):
+class EmptyConditionedDataSampler(DataSampler):
     r"""Data sampler that returns unconditioned batches used by the
     :class:`rectorch.models.nn.CMultiVAE` model.
 
-    This data sampler is useful when training the :class:`rectorch.models.nn.CMultiVAE` model described
-    in [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection that the
-    yielded batches have appended a zero matrix of the size ``batch_size`` :math:`\times`
+    This data sampler is useful when training the :class:`rectorch.models.nn.CMultiVAE` model
+    described in [CVAE]_. This sampler is very similar to :class:`DataSampler` with the expection
+    that the yielded batches have appended a zero matrix of the size ``batch_size`` :math:`\times`
     ``n_cond``.
 
     Parameters
     ----------
     n_cond : :obj:`int`
         Number of possible conditions.
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        The training sparse user-item rating matrix.
-    sparse_data_te : :obj:`scipy.sparse.csr_matrix` [optional]
-        The test sparse user-item rating matrix. The shape of this matrix must be the same as
-        ``sparse_data_tr``. By default :obj:`None`.
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 1.
     shuffle : :obj:`bool` [optional]
@@ -252,16 +588,12 @@ class EmptyConditionedDataSampler(Sampler):
     """
     def __init__(self,
                  cond_size,
-                 sparse_data_tr,
-                 sparse_data_te=None,
+                 data,
+                 mode="train",
                  batch_size=1,
                  shuffle=True):
-        super(EmptyConditionedDataSampler, self).__init__()
-        self.sparse_data_tr = sparse_data_tr
-        self.sparse_data_te = sparse_data_te
-        self.batch_size = batch_size
+        super(EmptyConditionedDataSampler, self).__init__(data, mode, batch_size, shuffle)
         self.cond_size = cond_size
-        self.shuffle = shuffle
 
     def __len__(self):
         return int(np.ceil(self.sparse_data_tr.shape[0] / self.batch_size))
@@ -269,7 +601,7 @@ class EmptyConditionedDataSampler(Sampler):
     def __iter__(self):
         n = self.sparse_data_tr.shape[0]
         idxlist = list(range(n))
-        if self.shuffle:
+        if self.shuffle and self.mode == "train":
             np.random.shuffle(idxlist)
 
         for _, start_idx in enumerate(range(0, n, self.batch_size)):
@@ -288,7 +620,7 @@ class EmptyConditionedDataSampler(Sampler):
             yield data_tr, data_te
 
 
-class CFGAN_TrainingSampler(Sampler):
+class CFGAN_TrainingSampler(DataSampler):
     r"""Sampler used for training the generator and discriminator of the CFGAN model.
 
     The peculiarity of this sampler (see for [CFGAN]_ more details) is that batches are
@@ -296,13 +628,17 @@ class CFGAN_TrainingSampler(Sampler):
 
     Parameters
     ----------
-    sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
-        The training sparse user-item rating matrix.
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``} [optional]
+        Indicates the mode in which the sampler operates, by default ``'train'``.
     batch_size : :obj:`int` [optional]
         The size of the batches, by default 64
 
     Attributes
     ----------
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+        Indicates the mode in which the sampler operates.
     sparse_data_tr : :obj:`scipy.sparse.csr_matrix`
         See ``sparse_data_tr`` parameter.
     batch_size : :obj:`int`
@@ -321,24 +657,28 @@ class CFGAN_TrainingSampler(Sampler):
        DOI: https://doi.org/10.1145/3269206.3271743
     """
     def __init__(self,
-                 sparse_data_tr,
+                 data,
+                 mode="train",
                  batch_size=64):
-        super(CFGAN_TrainingSampler, self).__init__()
-        self.sparse_data_tr = sparse_data_tr
-        self.batch_size = batch_size
-        n = self.sparse_data_tr.shape[0]
-        self.idxlist = list(range(n))
+        super(CFGAN_TrainingSampler, self).__init__(data, mode, batch_size, False)
+        self.idxlist = list(range(self.sparse_data_tr.shape[0]))
 
     def __len__(self):
         return int(np.ceil(self.sparse_data_tr.shape[0] / self.batch_size))
 
-    def __iter__(self):
-        return self
+    def _set_mode(self, mode, batch_size=None):
+        super()._set_mode(mode, batch_size)
+        self.idxlist = list(range(self.sparse_data_tr.shape[0]))
 
-    def __next__(self):
-        np.random.shuffle(self.idxlist)
-        data_tr = self.sparse_data_tr[self.idxlist[:self.batch_size]]
-        return torch.FloatTensor(data_tr.toarray())
+    def __iter__(self):
+        if self.mode == "train":
+            while True:
+                np.random.shuffle(self.idxlist)
+                data_tr = self.sparse_data_tr[self.idxlist[:self.batch_size]]
+                yield torch.FloatTensor(data_tr.toarray())
+        else:
+            yield from super().__iter__()
+
 
 class SVAE_Sampler(Sampler):
     r"""Sampler used for training SVAE.
@@ -354,17 +694,10 @@ class SVAE_Sampler(Sampler):
 
     Parameters
     ----------
-    num_items : :obj:`int`
-        Number of items.
-    dict_data_tr : :obj:`dict` { :obj:`int` \: :obj:`list` of :obj:`int` }
-        Dictionary containing the training set. Keys are the users, while the values are the lists
-        of items rated by the users in a specific (often cronological) odrer.
-    dict_data_te : :obj:`dict` { :obj:`int` \: :obj:`list` of :obj:`int` } or :obj:`None` [optional]
-        Dictionary containing the test part of the data set. Keys are the users, while the values
-        are the lists of items rated by the users in a specific (often cronological) odrer,
-        by default :obj:`None`. If :obj:`None` it is not considered in the batch creation, otherwise
-        is used in the construction of the ground truth. Not that ``dict_data_te`` must be valued
-        only in the case of validation/test, i.e., when ``is_training`` is :obj:`False`.
+    data : :class:`rectorch.data.Dataset`
+        The dataset from which the sampler samples the ratings.
+    mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
+        Indicates the mode in which the sampler operates.
     pred_type : :obj:`str` in the set {``'next_k'``, ``'next'``, ``'postfix'``} [optional]
         The variant of loss used by the model, by default ``'next_k'``. If ``'next'`` then
         only the next item must be predicted, if ``'next_k'`` the next *k* items are considered in
@@ -384,37 +717,50 @@ class SVAE_Sampler(Sampler):
     all attributes : see **Parameters** section.
     """
     def __init__(self,
-                 num_items,
-                 dict_data_tr,
-                 dict_data_te=None,
+                 data,
+                 mode="train",
                  pred_type="next_k",
                  k=1,
-                 shuffle=True,
-                 is_training=True):
-        super(SVAE_Sampler, self).__init__()
+                 shuffle=True):
+        super(SVAE_Sampler, self).__init__(data, mode)
         if pred_type == "next_k":
             assert k >= 1, "If pred_type == 'next_k' then 'k' must be a positive integer."
         self.pred_type = pred_type
-        self.dict_data_tr = dict_data_tr
-        self.dict_data_te = dict_data_te
         self.shuffle = shuffle
-        self.num_items = num_items
+        self.num_items = data.n_items
         self.k = k
-        self.is_training = is_training
+
+        self._dictr, self._dicval, self._dicte = self.data.to_dict()
+        self.dict_data_tr, self.dict_data_te = None, None
+        self._set_mode(mode)
+
+    def _set_mode(self, mode, batch_size=1):
+        assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
+        self.mode = mode
+
+        if self.mode == "train":
+            self.dict_data_tr = self._dictr
+            self.dict_data_te = None
+        elif self.mode == "valid":
+            self.dict_data_tr = self._dicval[0]
+            self.dict_data_te = self._dicval[1]
+        else:
+            self.dict_data_tr = self._dicte[0]
+            self.dict_data_te = self._dicte[1]
 
     def __len__(self):
         return len(self.dict_data_tr)
 
     def __iter__(self):
         idxlist = list(range(len(self.dict_data_tr)))
-        if self.shuffle:
+        if self.shuffle and self.mode == "train":
             np.random.shuffle(idxlist)
 
         for _, user in enumerate(idxlist):
             ulen = len(self.dict_data_tr[user])
             y_batch_s = torch.zeros(1, ulen - 1, self.num_items)
 
-            if self.is_training:
+            if self.mode == "train":
                 if self.pred_type == 'next':
                     for timestep in range(ulen - 1):
                         idx = self.dict_data_tr[user][timestep + 1]

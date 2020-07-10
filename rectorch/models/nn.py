@@ -64,6 +64,7 @@ from rectorch import env
 from rectorch.models import RecSysModel
 from rectorch.utils import init_optimizer
 from rectorch.evaluation import ValidFunc, evaluate
+from rectorch.samplers import ArrayDummySampler, TensorDummySampler, SparseDummySampler
 
 __all__ = ['TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
     'CMultiVAE', 'EASE', 'CFGAN', 'SVAE']
@@ -121,8 +122,7 @@ class TorchNNTrainer(RecSysModel):
         raise NotImplementedError()
 
     def train(self,
-              train_data,
-              valid_data=None,
+              data_sampler,
               valid_metric=None,
               valid_func=ValidFunc(evaluate),
               num_epochs=100,
@@ -132,17 +132,14 @@ class TorchNNTrainer(RecSysModel):
 
         Parameters
         ----------
-        train_data : :class:`rectorch.samplers.Sampler`
-            The sampler object that load the training set in mini-batches.
-        valid_data : :class:`rectorch.samplers.Sampler` [optional]
-            The sampler object that load the validation set in mini-batches, by default :obj:`None`.
-            If the model does not have any validation procedure set this parameter to :obj:`None`.
+        data_sampler : :class:`rectorch.samplers.Sampler`
+            The sampler object that load the training/validation set in mini-batches.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default :obj:`None`.
-            If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
+            If ``valid_metric`` is set to :obj:`None` the validation step is skipped.
             To see the valid strings for the metric please see the module :mod:`metrics`.
         valid_func : :class:`rectorch.evaluation.ValidFunc` [optional]
-            The validation function, by default a standard validation procedure, i.e.,
+            The validation function, by default it set to the standard validation procedure, i.e.,
             :func:`rectorch.evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
@@ -159,11 +156,11 @@ class TorchNNTrainer(RecSysModel):
         """
         try:
             for epoch in range(1, num_epochs + 1):
-                self.train_epoch(epoch, train_data, verbose)
-                if valid_data is not None:
-                    assert valid_metric is not None, \
-                                "In case of validation 'valid_metric' must be provided"
-                    valid_res = valid_func(self, valid_data, valid_metric)
+                data_sampler.train()
+                self.train_epoch(epoch, data_sampler, verbose)
+                if valid_metric is not None:
+                    data_sampler.valid()
+                    valid_res = valid_func(self, data_sampler, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                     env.logger.info('| epoch %d | %s %.3f (%.4f) |',
@@ -171,14 +168,14 @@ class TorchNNTrainer(RecSysModel):
         except KeyboardInterrupt:
             env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
-    def train_epoch(self, epoch, train_data, *args, **kwargs):
+    def train_epoch(self, epoch, data_sampler, *args, **kwargs):
         r"""Training of a single epoch.
 
         Parameters
         ----------
         epoch : :obj:`int`
             Epoch's number.
-        train_data : :class:`rectorch.samplers.Sampler`
+        data_sampler : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
         *args : :obj:`list` [optional]
             These are the potential additional parameters useful to the model for performing the
@@ -304,26 +301,26 @@ class AETrainer(TorchNNTrainer):
         """
         return torch.nn.MSELoss()(ground_truth, prediction)
 
-    def train_epoch(self, epoch, train_loader, verbose=1):
+    def train_epoch(self, epoch, data_sampler, verbose=1):
         self.network.train()
         train_loss = 0
         partial_loss = 0
         epoch_start_time = time.time()
         start_time = time.time()
-        log_delay = max(10, len(train_loader) // 10**verbose)
+        log_delay = max(10, len(data_sampler) // 10**verbose)
 
-        for batch_idx, (data, gt) in enumerate(train_loader):
+        for batch_idx, (data, gt) in enumerate(data_sampler):
             partial_loss += self.train_batch(data, gt)
             if (batch_idx+1) % log_delay == 0:
                 elapsed = time.time() - start_time
                 env.logger.info('| epoch %d | %d/%d batches | ms/batch %.2f | loss %.2f |',
-                                epoch, (batch_idx+1), len(train_loader),
+                                epoch, (batch_idx+1), len(data_sampler),
                                 elapsed * 1000 / log_delay,
                                 partial_loss / log_delay)
                 train_loss += partial_loss
                 partial_loss = 0.0
                 start_time = time.time()
-        total_loss = (train_loss + partial_loss) / len(train_loader)
+        total_loss = (train_loss + partial_loss) / len(data_sampler)
         time_diff = time.time() - epoch_start_time
         env.logger.info("| epoch %d | loss %.4f | total time: %.2fs |",
                         epoch, total_loss, time_diff)
@@ -719,8 +716,7 @@ class MultiVAE(VAE):
         return loss.item()
 
     def train(self,
-              train_data,
-              valid_data=None,
+              data_sampler,
               valid_metric=None,
               valid_func=ValidFunc(evaluate),
               num_epochs=200,
@@ -736,11 +732,8 @@ class MultiVAE(VAE):
 
         Parameters
         ----------
-        train_data : :class:`rectorch.samplers.Sampler`
-            The sampler object that load the training set in mini-batches.
-        valid_data : :class:`rectorch.samplers.Sampler` [optional]
-            The sampler object that load the validation set in mini-batches, by default :obj:`None`.
-            If the model does not have any validation procedure set this parameter to :obj:`None`.
+        data_sampler.train() : :class:`rectorch.samplers.Sampler`
+            The sampler object that load the training/validation set in mini-batches.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default :obj:`None`.
             If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
@@ -761,11 +754,11 @@ class MultiVAE(VAE):
         try:
             best_perf = -1. #Assume the higher the better >= 0
             for epoch in range(1, num_epochs + 1):
-                self.train_epoch(epoch, train_data, verbose)
-                if valid_data:
-                    assert valid_metric is not None, \
-                                "In case of validation 'valid_metric' must be provided"
-                    valid_res = valid_func(self, valid_data, valid_metric)
+                data_sampler.train()
+                self.train_epoch(epoch, data_sampler, verbose)
+                if valid_metric is not None:
+                    data_sampler.valid()
+                    valid_res = valid_func(self, data_sampler, valid_metric)
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                     env.logger.info('| epoch %d | %s %.3f (%.4f) |',
@@ -800,9 +793,9 @@ class CMultiVAE(MultiVAE):
     standard VAE in which the condition vector is fed into the encoder.
     The loss function can be seen in two ways:
 
-    - same as in :class:`MultiVAE` but with a different target reconstruction. Infact, the\
-        network has to reconstruct only those items satisfying a specific condition;
-    - a modified loss which performs the filtering by itself.
+    * same as in :class:`MultiVAE` but with a different target reconstruction. Infact, the
+      network has to reconstruct only those items satisfying a specific condition;
+    * a modified loss which performs the filtering by itself.
 
     More details about the loss function are given in the paper [CVAE]_.
 
@@ -887,16 +880,24 @@ class EASE(RecSysModel):
         self.lam = lam
         self.model = None
 
-    def train(self, train_data):
+    def train(self, data_sampler):
         """Training of the EASE model.
 
         Parameters
         ----------
-        train_data : :class:`scipy.sparse.csr_matrix`
-            The training data.
+        data_sampler : :class:`rectorch.samplers.DummySampler`
+            The training sampler.
         """
         env.logger.info("EASE - start tarining (lam=%.4f)", self.lam)
-        X = train_data.toarray()
+        if isinstance(data_sampler, ArrayDummySampler):
+            X = data_sampler.data_tr
+        elif isinstance(data_sampler, TensorDummySampler):
+            X = data_sampler.data_tr.numpy()
+        elif isinstance(data_sampler, SparseDummySampler):
+            X = data_sampler.data_tr.toarray()
+        else:
+            raise ValueError("Wrong sampler type.")
+
         G = np.dot(X.T, X)
         env.logger.info("EASE - linear kernel computed")
         diag_idx = np.diag_indices(G.shape[0])
@@ -917,14 +918,14 @@ class EASE(RecSysModel):
 
         :math:`S_{u}=\mathbf{X}_{u,:} \cdot \mathbf{B}`.
 
-        However, in the **rectorch** implementation the prediction is simply a look up is the score
+        However, in the **rectorch** implementation the prediction is simply a look up in the score
         matrix *S*.
 
         Parameters
         ----------
         ids_te_users : array_like
             List of the test user indexes.
-        test_tr : :class:`scipy.sparse.csr_matrix`
+        test_tr : :class:`scipy.sparse.csr_matrix` or :class:`numpy.ndarray`
             Training portion of the test users.
         remove_train : :obj:`bool` [optional]
             Whether to remove the training set from the prediction, by default True. Removing
@@ -1062,8 +1063,7 @@ class CFGAN(RecSysModel):
 
 
     def train(self,
-              train_data,
-              valid_data=None,
+              data_sampler,
               valid_metric=None,
               valid_func=ValidFunc(evaluate),
               num_epochs=1000,
@@ -1077,11 +1077,8 @@ class CFGAN(RecSysModel):
 
         Parameters
         ----------
-        train_data : :class:`samplers.CFGAN_TrainingSampler`
-            The sampler object that load the training set in mini-batches.
-        valid_data : :class:`samplers.DataSampler` [optional]
-            The sampler object that load the validation set in mini-batches, by default :obj:`None`.
-            If the model does not have any validation procedure set this parameter to :obj:`None`.
+        data_sampler : :class:`samplers.CFGAN_TrainingSampler`
+            The sampler object that load the training/validation set in mini-batches.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default :obj:`None`.
             If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
@@ -1108,11 +1105,13 @@ class CFGAN(RecSysModel):
         loss_d, loss_g = 0, 0
         try:
             for epoch in range(1, num_epochs+1):
+                data_sampler.train()
+                it_sampler = iter(data_sampler)
                 for _ in range(1, g_steps+1):
-                    loss_g += self.train_gen_batch(next(train_data).to(self.device))
+                    loss_g += self.train_gen_batch(next(it_sampler).to(self.device))
 
                 for _ in range(1, d_steps+1):
-                    loss_d += self.train_disc_batch(next(train_data).to(self.device))
+                    loss_d += self.train_disc_batch(next(it_sampler).to(self.device))
 
                 if epoch % log_delay == 0:
                     loss_g /= (g_steps * log_delay)
@@ -1123,10 +1122,9 @@ class CFGAN(RecSysModel):
                     start_time = time.time()
                     loss_g, loss_d = 0, 0
 
-                    if valid_data is not None:
-                        assert valid_metric is not None, \
-                                    "In case of validation 'valid_metric' must be provided"
-                        valid_res = valid_func(self, valid_data, valid_metric)
+                    if valid_metric is not None:
+                        data_sampler.valid()
+                        valid_res = valid_func(self, data_sampler, valid_metric)
                         mu_val = np.mean(valid_res)
                         std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                         env.logger.info('| epoch %d | %s %.3f (%.4f) |',
@@ -1335,7 +1333,7 @@ class ADMM_Slim(RecSysModel):
         self.model = None
 
 
-    def train(self, train_data, num_iter=50, verbose=1):
+    def train(self, data_sampler, num_iter=50, verbose=1):
         r"""Training of ADMM SLIM.
 
         The training procedure of ADMM SLIM highly depends on the setting of the
@@ -1359,8 +1357,8 @@ class ADMM_Slim(RecSysModel):
 
         Parameters
         ----------
-        train_data : :class:`scipy.sparse.csr_matrix`
-            The training data.
+        data_sampler : :class:`rectorch.samplers.DummySampler`
+            The training sampler.
         num_iter : :obj:`int` [optional]
             Maximum number of training iterations, by default 50. This argument has no effect
             if both :attr:`nn_constr` and :attr:`l1_penalty` are set to :obj:`False`.
@@ -1372,7 +1370,15 @@ class ADMM_Slim(RecSysModel):
         def _soft_threshold(a, k):
             return np.maximum(0., a - k) - np.maximum(0., -a - k)
 
-        X = train_data.toarray()
+        if isinstance(data_sampler, ArrayDummySampler):
+            X = data_sampler.data_tr
+        #elif isinstance(data_sampler, TensorDummySampler):
+        #    X = data_sampler.data_tr.numpy()
+        elif isinstance(data_sampler, SparseDummySampler):
+            X = data_sampler.data_tr.toarray()
+        else:
+            raise ValueError("Wrong sampler type.")
+
         if self.item_bias:
             b = X.sum(axis=0)
             X = X - np.outer(np.ones(X.shape[0]), b)

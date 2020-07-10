@@ -5,10 +5,10 @@ import sys
 import tempfile
 import pytest
 import torch
-import numpy as np
-from scipy.sparse import csr_matrix
+import pandas as pd
 sys.path.insert(0, os.path.abspath('..'))
 
+from rectorch.data import Dataset
 from rectorch.models import RecSysModel
 from rectorch.models.nn import TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
     CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE
@@ -16,6 +16,7 @@ from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CF
     CFGAN_G_net, SVAE_net
 from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler,\
     SVAE_Sampler
+from rectorch.samplers import ArrayDummySampler
 
 def test_RecSysModel():
     """Test the RecSysModel class
@@ -54,6 +55,17 @@ def test_TorchNNTrainer():
         model.train_batch(0, None, None)
         model.predict(x)
 
+def create_sampler(rows, cols):
+    """Create a toy DataSampler
+    """
+    values = [1.] * len(cols)
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = df_tr.copy()#pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = df_tr.copy()#pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {i:i for i in range(len(set(rows)))}
+    iids = {i:i for i in range(len(set(cols)))}
+    data = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
+    return DataSampler(data, mode="train", batch_size=1, shuffle=False)
 
 def test_AETrainer():
     """Test the AETrainer class
@@ -73,11 +85,7 @@ def test_AETrainer():
     pred = torch.FloatTensor([[1, 1], [1, 1]])
     assert model.loss_function(pred, gt) == torch.FloatTensor([.25]), "the loss should be .25"
 
-    values = np.array([1., 1., 1.])
-    rows = np.array([0, 0, 1])
-    cols = np.array([0, 1, 1])
-    train = csr_matrix((values, (rows, cols)))
-    sampler = DataSampler(train, batch_size=1, shuffle=False)
+    sampler = create_sampler([0, 0, 1], [0, 1, 1])
 
     x = torch.FloatTensor([[1, 1], [2, 2]])
     model.predict(x, True)
@@ -102,7 +110,6 @@ def test_AETrainer():
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
-    sampler = DataSampler(train, train, batch_size=1, shuffle=False)
 
 def test_VAE():
     """Test the VAE class
@@ -126,11 +133,7 @@ def test_VAE():
     assert model.loss_function(pred, gt, mu, logvar) != torch.FloatTensor([.0]),\
         "the loss should not be 0"
 
-    values = np.array([1., 1., 1.])
-    rows = np.array([0, 0, 1])
-    cols = np.array([0, 1, 1])
-    train = csr_matrix((values, (rows, cols)))
-    sampler = DataSampler(train, batch_size=1, shuffle=False)
+    sampler = create_sampler([0, 0, 1], [0, 1, 1])
 
     x = torch.FloatTensor([[1, 1], [2, 2]])
     model.predict(x, True)
@@ -177,11 +180,7 @@ def test_MultiDAE():
     assert model.loss_function(pred, gt) != torch.FloatTensor([.0]),\
         "the loss should not be 0"
 
-    values = np.array([1., 1., 1.])
-    rows = np.array([0, 0, 1])
-    cols = np.array([0, 1, 1])
-    train = csr_matrix((values, (rows, cols)))
-    sampler = DataSampler(train, batch_size=1, shuffle=False)
+    sampler = create_sampler([0, 0, 1], [0, 1, 1])
 
     x = torch.FloatTensor([[1, 1], [2, 2]])
     model.predict(x, True)
@@ -229,11 +228,7 @@ def test_MultiVAE():
     assert model.loss_function(pred, gt, mu, logvar) != torch.FloatTensor([.0]),\
         "the loss should not be 0"
 
-    values = np.array([1., 1., 1.])
-    rows = np.array([0, 0, 1])
-    cols = np.array([0, 1, 1])
-    train = csr_matrix((values, (rows, cols)))
-    sampler = DataSampler(train, batch_size=1, shuffle=False)
+    sampler = create_sampler([0, 0, 1], [0, 1, 1])
 
     x = torch.FloatTensor([[1, 1], [2, 2]])
     model.predict(x, True)
@@ -258,13 +253,10 @@ def test_MultiVAE():
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
-    sampler = DataSampler(train, train, batch_size=1, shuffle=False)
-
     tmp2 = tempfile.NamedTemporaryFile()
     net = MultiVAE_net([1, 2], [2, 1], .1)
     model = MultiVAE(net, 1., 5)
     model.train(sampler,
-                valid_data=sampler,
                 valid_metric="ndcg@1",
                 num_epochs=10,
                 best_path=tmp2.name)
@@ -281,13 +273,18 @@ def test_MultiVAE():
 def test_CMultiVAE():
     """Test the CMultiVAE class
     """
-    values = np.array([1., 1., 1., 1.])
-    rows = np.array([0, 0, 1, 1])
-    cols = np.array([0, 1, 1, 2])
-    train = csr_matrix((values, (rows, cols)))
-
     iid2cids = {0:[1], 1:[0, 1], 2:[0]}
-    sampler = ConditionedDataSampler(iid2cids, 2, train, batch_size=2, shuffle=False)
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    values = [1.] * len(cols)
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = df_tr.copy()#pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = df_tr.copy()#pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {i:i for i in range(len(set(rows)))}
+    iids = {i:i for i in range(len(set(cols)))}
+    data = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
+
+    sampler = ConditionedDataSampler(iid2cids, 2, data, mode="train", batch_size=1, shuffle=False)
 
     net = CMultiVAE_net(2, [1, 3], dropout=.1)
     model = CMultiVAE(net)
@@ -335,7 +332,6 @@ def test_CMultiVAE():
     net = CMultiVAE_net(2, [1, 3], [3, 1], .1)
     model = CMultiVAE(net, 1., 5)
     model.train(sampler,
-                valid_data=sampler,
                 valid_metric="ndcg@1",
                 num_epochs=10,
                 best_path=tmp2.name)
@@ -359,11 +355,22 @@ def test_EASE():
     assert ease.model is None, "before the training the inner model should be None"
     assert repr(ease) == str(ease)
 
-    X = csr_matrix(np.random.randint(2, size=(10, 5)), dtype="float64")
-    ease.train(X)
+    rows = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]
+    cols = [0, 1, 1, 2, 2, 3, 3, 4, 4, 1]
+    values = [1.] * len(cols)
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    uids = {i:i for i in range(len(set(rows)))}
+    iids = {i:i for i in range(len(set(cols)))}
+    data = Dataset(df_tr, None, (df_tr.copy(), df_tr.copy()), uids, iids)
+    sampler = ArrayDummySampler(data)
+    #X = csr_matrix(np.random.randint(2, size=(10, 5)), dtype="float64")
+
+    ease.train(sampler)
     assert isinstance(ease.model, torch.FloatTensor),\
         "after training the model should be a pytorch tensor"
-    pr = ease.predict([2, 4, 5], X[[2, 4, 5]])[0]
+
+    X = sampler.data_tr
+    pr = ease.predict([1, 3, 4], X[[1, 3, 4]])[0]
     assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
     tmp = tempfile.NamedTemporaryFile()
     ease.save_model(tmp.name)
@@ -401,22 +408,18 @@ def test_CFGAN():
     assert isinstance(cfgan.opt_d, torch.optim.Adam)
     assert isinstance(cfgan.opt_g, torch.optim.Adam)
 
-    values = np.array([1., 1., 1., 1.])
-    rows = np.array([0, 0, 1, 1])
-    cols = np.array([0, 1, 1, 2])
-    train = csr_matrix((values, (rows, cols)))
-    sampler = CFGAN_TrainingSampler(train, 1)
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    values = [1.] * len(cols)
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {i:i for i in range(len(set(rows)))}
+    iids = {i:i for i in range(len(set(cols)))}
+    data = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
+    sampler = CFGAN_TrainingSampler(data, batch_size=1)
 
-    values = np.array([1.])
-    rows = np.array([0])
-    cols = np.array([0])
-    val_tr = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
-    cols = np.array([1])
-    val_te = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
-    vsampler = DataSampler(val_tr, val_te, batch_size=1, shuffle=False)
-    cfgan.train(sampler, vsampler, "ndcg@1", num_epochs=10, g_steps=1, d_steps=1, verbose=4)
+    cfgan.train(sampler, valid_metric="ndcg@1", num_epochs=10, g_steps=1, d_steps=1, verbose=4)
     pred = cfgan.predict(torch.FloatTensor([[0, 1, 1], [1, 1, 0]]))[0]
     assert pred.shape == (2, 3)
 
@@ -457,11 +460,20 @@ def test_ADMM_Slim():
     assert slim.model is None, "before the training the inner model should be None"
     assert repr(slim) == str(slim)
 
-    X = csr_matrix(np.random.randint(2, size=(10, 5)), dtype="float64")
-    slim.train(X)
+    rows = [0, 0, 1, 1, 2, 2, 3, 3, 4, 4]
+    cols = [0, 1, 1, 2, 2, 3, 3, 4, 4, 1]
+    values = [1.] * len(cols)
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    uids = {i:i for i in range(len(set(rows)))}
+    iids = {i:i for i in range(len(set(cols)))}
+    data = Dataset(df_tr, None, (df_tr.copy(), df_tr.copy()), uids, iids)
+    sampler = ArrayDummySampler(data)
+    X = sampler.data_tr
+
+    slim.train(sampler)
     assert isinstance(slim.model, torch.FloatTensor),\
         "after training the model should be a numpy matrix"
-    pr = slim.predict([2, 4, 5], X[[2, 4, 5]])[0]
+    pr = slim.predict([1, 3, 4], X[[1, 3, 4]])[0]
     assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
     tmp = tempfile.NamedTemporaryFile()
     slim.save_model(tmp.name)
@@ -472,13 +484,13 @@ def test_ADMM_Slim():
     assert repr(slim) == str(slim)
 
     slim2 = ADMM_Slim(nn_constr=False, l1_penalty=True, item_bias=False)
-    slim2.train(X)
+    slim2.train(sampler)
     slim2 = ADMM_Slim(nn_constr=True, l1_penalty=False, item_bias=False)
-    slim2.train(X)
+    slim2.train(sampler)
     slim2 = ADMM_Slim(nn_constr=False, l1_penalty=False, item_bias=False)
-    slim2.train(X)
+    slim2.train(sampler)
     slim2 = ADMM_Slim(nn_constr=False, l1_penalty=False, item_bias=True)
-    slim2.train(X)
+    slim2.train(sampler)
 
 
 def test_SVAE():
@@ -500,14 +512,35 @@ def test_SVAE():
     assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
     assert str(model) == repr(model), "repr and str should have the same effect"
 
-    tr = {0:[0, 1, 2, 3, 4, 5, 6], 1:[6, 5, 4, 3, 2, 1, 0], 2:[2, 1, 6, 0, 3]}
-    sampler = SVAE_Sampler(num_items=total_items,
-                           dict_data_tr=tr,
-                           dict_data_te=None,
-                           pred_type="next",
+    values = [1.] * 19
+    rows = [0] * 7 + [1] * 7 + [2] * 5
+    cols = list(range(7)) + list(range(6, -1, -1)) + [2, 1, 6, 0, 3]
+    tt = list(range(7)) + list(range(7)) + list(range(5))
+    df_tr = pd.DataFrame(list(zip(rows, cols, values, tt)),
+                         columns=['uid', 'iid', 'rating', 'time'])
+
+    values = [1.] * 10
+    rows = [0] * 4 + [1] * 4 + [2] * 2
+    cols = [0, 1, 2, 3, 6, 5, 4, 3, 1, 6]
+    tt = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1]
+    df_te_tr = pd.DataFrame(list(zip(rows, cols, values, tt)),
+                            columns=['uid', 'iid', 'rating', 'time'])
+
+    values = [1.] * 8
+    rows = [0, 0, 0, 1, 1, 1, 2, 2]
+    cols = [4, 5, 6, 2, 1, 0, 0, 3]
+    tt = [0, 1, 2, 0, 1, 2, 0, 1]
+    df_te_te = pd.DataFrame(list(zip(rows, cols, values, tt)),
+                            columns=['uid', 'iid', 'rating', 'time'])
+
+    uids = {0:0, 1:1, 2:2}
+    iids = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+
+    sampler = SVAE_Sampler(data, mode="train",
+                           pred_type="next_k",
                            k=2,
-                           shuffle=False,
-                           is_training=True)
+                           shuffle=False)
 
     x = torch.LongTensor([[1, 2, 5]])
     model.predict(x, True)

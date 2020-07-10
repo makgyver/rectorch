@@ -4,16 +4,18 @@ from functools import partial
 import inspect
 import random
 import numpy as np
+from scipy.sparse import csr_matrix
 from .metrics import Metrics
+from .utils import prepare_for_prediction
 
 __all__ = ['ValidFunc', 'evaluate', 'one_plus_random']
 
 class ValidFunc():
-    """Wrapper class for validation functions.
+    r"""Wrapper class for validation functions.
 
     When a validation function is passed to the method ``train`` of a
     :class:`rectorch.models.RecSysModel` must have e specific signature, that is three parameters:
-    ``model``, ``test_loader`` and ``metric_list``. This class has to be used to adapt any
+    ``model``, ``test_sampler`` and ``metric_list``. This class has to be used to adapt any
     evaluation function to this signature by partially initializing potential additional
     arguments.
 
@@ -21,7 +23,7 @@ class ValidFunc():
     ----------
     func : :obj:`function`
         Evaluation function that has to be wrapped. The evaluation function must match the signature
-        ``func(model, test_loader, metric_list, **kwargs)``.
+        ``func(model, test_sampler, metric_list, **kwargs)``.
 
     Attributes
     ----------
@@ -49,12 +51,12 @@ class ValidFunc():
         self.function = partial(func, **kwargs)
 
         args = inspect.getfullargspec(self.function).args
-        assert args == ["model", "test_loader", "metric_list"],\
-            "A (partial) validation function must have the following kwargs: model, test_loader and\
-            metric_list"
+        assert args == ["model", "test_sampler", "metric_list"],\
+            "A (partial) validation function must have the following kwargs: model, test_sampler\
+            and metric_list"
 
-    def __call__(self, model, test_loader, metric):
-        return self.function(model, test_loader, [metric])[metric]
+    def __call__(self, model, test_sampler, metric):
+        return self.function(model, test_sampler, [metric])[metric]
 
     def __str__(self):
         kwdefargs = inspect.getfullargspec(self.function).kwonlydefaults
@@ -64,18 +66,18 @@ class ValidFunc():
         return str(self)
 
 
-def evaluate(model, test_loader, metric_list):
+def evaluate(model, test_sampler, metric_list):
     r"""Evaluate the given method.
 
     The ``model`` evaluation is performed with all the provided metrics in ``metric_list``.
     The test set is loaded through the provided :class:`rectorch.samplers.Sampler`
-    (i.e.,  ``test_loader``).
+    (i.e., ``test_sampler``).
 
     Parameters
     ----------
     model : :class:`rectorch.models.RecSysModel`
         The model to evaluate.
-    test_loader : :class:`rectorch.samplers.Sampler`
+    test_sampler : :class:`rectorch.samplers.Sampler`
         The test set loader.
     metric_list : :obj:`list` of :obj:`str`
         The list of metrics to compute. Metrics are indicated by strings formed in the
@@ -97,11 +99,10 @@ def evaluate(model, test_loader, metric_list):
         computed on the users.
     """
     results = {m:[] for m in metric_list}
-    for _, (data_tr, heldout) in enumerate(test_loader):
-        data_tensor = data_tr.view(data_tr.shape[0], -1)
-        recon_batch = model.predict(data_tensor)[0].cpu().numpy()
-        heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
-        res = Metrics.compute(recon_batch, heldout, metric_list)
+    for _, (data_input, ground_truth) in enumerate(test_sampler):
+        data_input, ground_truth = prepare_for_prediction(data_input, ground_truth)
+        prediction = model.predict(*data_input)[0].cpu().numpy()
+        res = Metrics.compute(prediction, ground_truth, metric_list)
         for m in res:
             results[m].append(res[m])
 
@@ -110,12 +111,12 @@ def evaluate(model, test_loader, metric_list):
     return results
 
 
-def one_plus_random(model, test_loader, metric_list, r=1000):
+def one_plus_random(model, test_sampler, metric_list, r=1000):
     r"""One plus random evaluation.
 
     The ``model`` evaluation is performed with all the provided metrics in ``metric_list``.
     The test set is loaded through the provided :class:`rectorch.samplers.Sampler`
-    (i.e.,  ``test_loader``). The evaluation methodology is one-plus-random [OPR]_ that can be
+    (i.e.,  ``test_sampler``). The evaluation methodology is one-plus-random [OPR]_ that can be
     summarized as follows. For each user, and for each test items, ``r`` random negative items are
     chosen and the metrics are computed w.r.t. to this subset of items (``r`` + 1 items in total).
 
@@ -123,7 +124,7 @@ def one_plus_random(model, test_loader, metric_list, r=1000):
     ----------
     model : :class:`rectorch.models.RecSysModel`
         The model to evaluate.
-    test_loader : :class:`rectorch.samplers.Sampler`
+    test_sampler : :class:`rectorch.samplers.Sampler`
         The test set loader.
     metric_list : :obj:`list` of :obj:`str`
         The list of metrics to compute. Metrics are indicated by strings formed in the
@@ -154,22 +155,34 @@ def one_plus_random(model, test_loader, metric_list, r=1000):
        DOI: https://doi.org/10.1145/2043932.2043996
     """
     results = {m:[] for m in metric_list}
-    for _, (data_tr, heldout) in enumerate(test_loader):
-        tot = set(range(heldout.shape[1]))
-        data_tensor = data_tr.view(data_tr.shape[0], -1)
-        recon_batch = model.predict(data_tensor)[0].cpu().numpy()
-        heldout = heldout.view(heldout.shape[0], -1).cpu().numpy()
+    for _, (data_input, ground_truth) in enumerate(test_sampler):
+        data_input, ground_truth = prepare_for_prediction(data_input, ground_truth)
+        prediction = model.predict(*data_input)[0].cpu().numpy()
 
-        users, items = heldout.nonzero()
+        if isinstance(ground_truth, list):
+            users = [u for u, iu in enumerate(ground_truth) for _ in range(len(iu))]
+            items = [i for iu in ground_truth for i in iu]
+            pos = {u: set(ground_truth[u]) for u in users}
+        elif isinstance(ground_truth, (np.ndarray, csr_matrix)):
+            users, items = ground_truth.nonzero()
+            pos = {u : set(list(ground_truth[u].nonzero()[0])) for u in users}
+        else:
+            raise TypeError("Unrecognized 'ground_truth' type.")
+        #elif isinstance(ground_truth, torch.FloatTensor):
+        #    users, items = ground_truth.nonzero().t()
+        #    pos = {u : set(list(ground_truth[u].nonzero().t()[0])) for u in users}
+
         rows = []
+        tot = set(range(prediction.shape[1]))
         for u, i in zip(users, items):
-            rnd = random.sample(tot - set(list(heldout[u].nonzero()[0])), r)
-            rows.append(list(recon_batch[u][[i] + list(rnd)]))
+            #rnd = random.sample(tot - set(list(ground_truth[u].nonzero()[0])), r)
+            rnd = random.sample(tot - pos[u], r)
+            rows.append(list(prediction[u][[i] + list(rnd)]))
 
         pred = np.array(rows)
-        ground_truth = np.zeros_like(pred)
-        ground_truth[:, 0] = 1
-        res = Metrics.compute(pred, ground_truth, metric_list)
+        gt = np.zeros_like(pred)
+        gt[:, 0] = 1
+        res = Metrics.compute(pred, gt, metric_list)
         for m in res:
             results[m].append(res[m])
 

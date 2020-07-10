@@ -3,6 +3,7 @@ r"""Module containing utility functions.
 import os
 import json
 from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
+import torch
 import rectorch
 
 __all__ = ['init_optimizer', 'get_data_cfg']
@@ -105,3 +106,32 @@ def get_data_cfg(ds_name=None):
         }
 
     return cfg
+
+def prepare_for_prediction(data_input, ground_truth):
+    r"""Prepare the data for performing prediction.
+
+    Parameters
+    ----------
+    data_input : any type
+        The input data for prediction
+    ground_truth : any type
+        The ground truth data.
+
+    Returns
+    -------
+    :obj:`tuple`
+        The tuple containing input data and the ground truth.
+
+    Raises
+    ------
+    ValueError
+        Raised when the input type is not recognized.
+    """
+    if isinstance(data_input, torch.FloatTensor):
+        data_input = data_input.view(data_input.shape[0], -1)
+        ground_truth = ground_truth.view(ground_truth.shape[0], -1).cpu().numpy()
+        return (data_input,), ground_truth
+    elif isinstance(data_input, tuple):
+        return data_input, ground_truth
+    else:
+        raise ValueError("Unrocognize 'data_input' type.")

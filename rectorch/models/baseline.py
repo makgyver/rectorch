@@ -39,7 +39,7 @@ class Random(RecSysModel):
         self.seed = seed
         self.fixed = fixed
 
-    def train(self):
+    def train(self, data_sampler=None):
         pass
 
     def predict(self, users, train_items, remove_train=True):
@@ -96,13 +96,13 @@ class Popularity(RecSysModel):
         self.n_items = n_items
         self.model = None
 
-    def train(self, train_data, retrain=False):
+    def train(self, data_sampler, retrain=False):
         r"""Compute the items' popularity.
 
         Parameters
         ----------
-        train_data : :obj:`dict` or :class:`torch.Tensor` or :class:`scipy.sparse.csr_matrix`
-            The rating matrix.
+        data_sampler : :class:`rectorch.samplers.DummySampler`
+            The training sampler.
         retrain : :obj:`bool` [optional]
             Whether the popularity must be recomputed or not, by default :obj:`False`.
             If :obj:`False` the computation is avoided iff the model is not empty
@@ -111,21 +111,26 @@ class Popularity(RecSysModel):
         if not retrain and self.model is not None:
             return
 
+        train_data = data_sampler.data_tr
         if isinstance(train_data, csr_matrix):
             nparray = np.array(train_data.sum(axis=0)).flatten()
             self.model = torch.from_numpy(nparray).float()
-        if isinstance(train_data, (torch.FloatTensor, torch.sparse.FloatTensor)):
+        elif isinstance(train_data, torch.FloatTensor):
             self.model = torch.sum(train_data, 0)
+        elif isinstance(train_data, torch.sparse.FloatTensor):
+            self.model = torch.sparse.sum(train_data, 0).to_dense()
         elif isinstance(train_data, dict):
             occs = Counter([i for items in train_data.values() for i in items])
             self.model = torch.zeros(self.n_items, dtype=torch.float)
             for i in occs.keys():
                 self.model[i] = float(occs[i])
+        elif isinstance(train_data, np.ndarray):
+            self.model = torch.from_numpy(train_data.sum(axis=0)).float()
 
     def predict(self, users, train_items, remove_train=True):
         pred = self.model.repeat([len(users), 1])
         if remove_train:
-            for u in range(len(train_items)):
+            for u in range(len(users)):
                 pred[u, train_items[u]] = -np.inf
         return (pred, )
 

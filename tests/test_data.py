@@ -251,7 +251,7 @@ def test_Dataset():
         assert dd[2][0][3] == [0]
         assert dd[2][1][3] == [2]
 
-        tn = dataset.to_tensor(sparse=False)
+        tn = dataset.to_tensor()
         assert isinstance(tn[0], torch.FloatTensor)
         assert len(tn) == 3
         assert torch.nonzero(tn[0], as_tuple=True)[0].shape[0] == 5

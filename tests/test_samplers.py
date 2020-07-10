@@ -4,17 +4,32 @@ import os
 import sys
 import pytest
 import numpy as np
+import pandas as pd
 import torch
-from scipy.sparse import csr_matrix
+import scipy
 sys.path.insert(0, os.path.abspath('..'))
 
+from rectorch.data import Dataset
 from rectorch.samplers import Sampler, DataSampler, EmptyConditionedDataSampler,\
-    ConditionedDataSampler, CFGAN_TrainingSampler, SVAE_Sampler
+    ConditionedDataSampler, CFGAN_TrainingSampler, SVAE_Sampler, DictDummySampler,\
+    ArrayDummySampler, TensorDummySampler, SparseDummySampler
 
 def test_Sampler():
     """Test the Sampler class
     """
-    sampler = Sampler()
+    sampler = Sampler(None, None)
+    with pytest.raises(NotImplementedError):
+        sampler._set_mode("valid")
+
+    with pytest.raises(NotImplementedError):
+        sampler.train()
+
+    with pytest.raises(NotImplementedError):
+        sampler.test()
+
+    with pytest.raises(NotImplementedError):
+        sampler.valid()
+
     with pytest.raises(NotImplementedError):
         len(sampler)
 
@@ -22,23 +37,102 @@ def test_Sampler():
         for _ in sampler:
             pass
 
+def test_DummySampler():
+    """Test the hierarchy of dummy samplers
+    """
+    values = [1., 1., 1., 1.]
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1}
+    iids = {0:0, 1:1, 2:2}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+
+    dds = DictDummySampler(data, shuffle=False)
+    assert isinstance(dds.data_tr, dict)
+    ads = ArrayDummySampler(data, shuffle=False)
+    assert isinstance(ads.data_tr, np.ndarray)
+    tds = TensorDummySampler(data, shuffle=False)
+    assert isinstance(tds.data_tr, (torch.FloatTensor, torch.sparse.FloatTensor))
+    sds = SparseDummySampler(data, shuffle=False)
+    assert isinstance(sds.data_tr, scipy.sparse.csr_matrix)
+
+    assert isinstance(dds.data_te[0], dict)
+    assert isinstance(ads.data_te[0], np.ndarray)
+    assert isinstance(tds.data_te[0], (torch.FloatTensor, torch.sparse.FloatTensor))
+    assert isinstance(sds.data_te[0], scipy.sparse.csr_matrix)
+
+    dds.train()
+    for tr in dds:
+        assert isinstance(tr, tuple)
+        assert tr[0][0] == [0, 1]
+        assert tr[0][1] == [[0, 1], [1, 2]]
+
+    dds.test()
+    for tr, te in dds:
+        assert isinstance(tr, tuple)
+        assert tr[0] == [0]
+        assert te[0] == [1]
+
+    ads.train()
+    for tr, te in ads:
+        assert isinstance(tr, tuple)
+        assert te is None
+        assert tr[0] == [0, 1]
+        assert np.all(tr[1] == [[1, 1, 0], [0, 1, 1]])
+
+    ads.test()
+    for tr, te in ads:
+        assert isinstance(tr, tuple)
+        assert tr[0] == [0]
+        assert np.all(tr[1] == [[1, 0, 0]])
+        assert np.all(te == [[0, 1, 0]])
+
+    tds.train()
+    for tr, te in tds:
+        assert isinstance(tr, tuple)
+        assert te is None
+        assert tr[0] == [0, 1]
+        assert torch.all(tr[1] == torch.FloatTensor([[1, 1, 0], [0, 1, 1]]))
+
+    tds.test()
+    for tr, te in tds:
+        assert isinstance(tr, tuple)
+        assert tr[0] == [0]
+        assert torch.all(te == torch.FloatTensor([[0, 1, 0]]))
+        assert torch.all(tr[1] == torch.FloatTensor([[1, 0, 0]]))
+
+    sds.train()
+    for tr, te in sds:
+        assert isinstance(tr, tuple)
+        assert te is None
+        assert tr[0] == [0, 1]
+        assert np.all(tr[1].toarray() == [[1, 1, 0], [0, 1, 1]])
+
+    sds.test()
+    for tr, te in sds:
+        assert isinstance(tr, tuple)
+        assert tr[0] == [0]
+        assert np.all(tr[1].toarray() == [[1, 0, 0]])
+        assert np.all(te.toarray() == [[0, 1, 0]])
+
+
 def test_DataSampler():
     """Test the DataSampler class
     """
-    values = np.array([1., 1., 1., 1.])
-    rows = np.array([0, 0, 1, 1])
-    cols = np.array([0, 1, 1, 2])
-    train = csr_matrix((values, (rows, cols)))
+    values = [1., 1., 1., 1.]
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1}
+    iids = {0:0, 1:1, 2:2}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+    sampler = DataSampler(data, mode="train", batch_size=1, shuffle=False)
 
-    values = np.array([1.])
-    rows = np.array([0])
-    cols = np.array([0])
-    val_tr = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
-    cols = np.array([1])
-    val_te = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
-    sampler = DataSampler(train, batch_size=1, shuffle=False)
     assert len(sampler) == 2, "the number of batches should be 2"
     for i, (t, none) in enumerate(sampler):
         assert none is None, "the test part of the training should be None"
@@ -48,7 +142,7 @@ def test_DataSampler():
         else:
             assert np.all(t.numpy() == np.array([0, 1, 1])), "the tensor t should be [0, 1, 1]"
 
-    sampler = DataSampler(val_tr, val_te, batch_size=1, shuffle=True)
+    sampler.test()
     assert len(sampler) == 1, "the number of batches should be 1"
 
     for tr, te in sampler:
@@ -58,21 +152,18 @@ def test_DataSampler():
 def test_ConditionedDataSampler():
     """Test the ConditionedDataSampler class
     """
-    values = np.array([1., 1., 1., 1.])
-    rows = np.array([0, 0, 1, 1])
-    cols = np.array([0, 1, 1, 2])
-    train = csr_matrix((values, (rows, cols)))
-
-    values = np.array([1.])
-    rows = np.array([0])
-    cols = np.array([0])
-    val_tr = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
-    cols = np.array([1])
-    val_te = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
+    values = [1., 1., 1., 1.]
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1}
+    iids = {0:0, 1:1, 2:2}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
     iid2cids = {0:[1], 1:[0, 1], 2:[0]}
-    sampler = ConditionedDataSampler(iid2cids, 2, train, batch_size=2, shuffle=False)
+    sampler = ConditionedDataSampler(iid2cids, 2, data, mode="train", batch_size=2, shuffle=False)
+
     assert len(sampler) == 3, "the number of batches should be 2"
     for i, (tr, te) in enumerate(sampler):
         assert isinstance(tr, torch.FloatTensor), "tr should be of type torch.Tensor"
@@ -94,7 +185,11 @@ def test_ConditionedDataSampler():
                 "the tensor te should be [[0, 1, 1], [0, 1, 0]]"
 
     np.random.seed(1)
-    sampler = ConditionedDataSampler(iid2cids, 2, val_tr, val_te, batch_size=1, shuffle=True)
+    sampler.test(1)
+    print(sampler.batch_size)
+    print(sampler.mode)
+    print(sampler.sparse_data_tr)
+    print(sampler.sparse_data_te)
     assert len(sampler) == 2, "the number of batches should be 2"
     for i, (tr, te) in enumerate(sampler):
         assert isinstance(tr, torch.FloatTensor), "tr should be of type torch.Tensor"
@@ -113,20 +208,17 @@ def test_ConditionedDataSampler():
 def test_EmptyConditionedDataSampler():
     """Test the EmptyConditionedDataSampler class
     """
-    values = np.array([1., 1., 1., 1.])
-    rows = np.array([0, 0, 1, 1])
-    cols = np.array([0, 1, 1, 2])
-    train = csr_matrix((values, (rows, cols)))
+    values = [1., 1., 1., 1.]
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1}
+    iids = {0:0, 1:1, 2:2}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+    sampler = EmptyConditionedDataSampler(2, data, mode="train", batch_size=2, shuffle=False)
 
-    values = np.array([1.])
-    rows = np.array([0])
-    cols = np.array([0])
-    val_tr = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
-    cols = np.array([1])
-    val_te = csr_matrix((values, (rows, cols)), shape=(1, 3))
-
-    sampler = EmptyConditionedDataSampler(2, train, batch_size=2, shuffle=False)
     assert len(sampler) == 1, "the number of batches should be 1"
     for tr, te in sampler:
         assert isinstance(tr, torch.FloatTensor), "tr should be of type torch.Tensor"
@@ -137,7 +229,7 @@ def test_EmptyConditionedDataSampler():
             "the tensor te should be [[1, 1, 0], [0, 1, 1]]"
 
     np.random.seed(1)
-    sampler = EmptyConditionedDataSampler(2, val_tr, val_te, batch_size=1, shuffle=True)
+    sampler.test(1)
     assert len(sampler) == 1, "the number of batches should be 1"
     for tr, te in sampler:
         assert isinstance(tr, torch.FloatTensor), "tr should be of type torch.Tensor"
@@ -150,15 +242,20 @@ def test_EmptyConditionedDataSampler():
 def test_CFGAN_TrainingSampler():
     """Test the CFGAN_TrainingSampler class
     """
-    values = np.array([1., 1., 1., 1.])
-    rows = np.array([0, 0, 1, 1])
-    cols = np.array([0, 1, 1, 2])
-    train = csr_matrix((values, (rows, cols)))
+    values = [1., 1., 1., 1.]
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1}
+    iids = {0:0, 1:1, 2:2}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+    sampler = CFGAN_TrainingSampler(data, mode="train", batch_size=1)
 
-    sampler = CFGAN_TrainingSampler(train, batch_size=1)
     assert len(sampler) == 2, "the number of batches should be 2"
     assert hasattr(sampler, "idxlist"), "the sampler should have the attribute idxlist"
-    assert sampler.idxlist == [0, 1], "the idxlist should be only [0, 1]"
+    #assert sampler.idxlist == [0, 1], "the idxlist should be only [0, 1]"
 
     t = None
     for x in sampler:
@@ -169,7 +266,7 @@ def test_CFGAN_TrainingSampler():
     assert np.all(t.numpy() == np.array([1, 1, 0])) or np.all(t.numpy() == np.array([0, 1, 1])),\
         "the next batch should be [1, 1, 0] or [0, 1, 1]"
 
-    t = next(sampler)
+    t = next(iter(sampler))
     assert np.all(t.numpy() == np.array([1, 1, 0])) or np.all(t.numpy() == np.array([0, 1, 1])),\
         "the next batch should be [1, 1, 0] or [0, 1, 1]"
 
@@ -177,13 +274,33 @@ def test_SVAE_Sampler():
     """Test the SVAE_Sampler class
     """
     tr = {0:[0, 1, 2, 3, 4, 5, 6], 1:[6, 5, 4, 3, 2, 1, 0], 2:[2, 1, 6, 0, 3]}
-    sampler = SVAE_Sampler(num_items=7,
-                           dict_data_tr=tr,
-                           dict_data_te=None,
+
+    values = [1.] * 19
+    rows = [0] * 7 + [1] * 7 + [2] * 5
+    cols = list(range(7)) + list(range(6, -1, -1)) + [2, 1, 6, 0, 3]
+    tt = list(range(7)) + list(range(7)) + list(range(5))
+    df_tr = pd.DataFrame(list(zip(rows, cols, values, tt)), columns=['uid', 'iid', 'rating', 'time'])
+
+    values = [1.] * 10
+    rows = [0] * 4 + [1] * 4 + [2] * 2
+    cols = [0, 1, 2, 3, 6, 5, 4, 3, 1, 6]
+    tt = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1]
+    df_te_tr = pd.DataFrame(list(zip(rows, cols, values, tt)), columns=['uid', 'iid', 'rating', 'time'])
+
+    values = [1.] * 8
+    rows = [0, 0, 0, 1, 1, 1, 2, 2]
+    cols = [4, 5, 6, 2, 1, 0, 0, 3]
+    tt = [0, 1, 2, 0, 1, 2, 0, 1]
+    df_te_te = pd.DataFrame(list(zip(rows, cols, values, tt)), columns=['uid', 'iid', 'rating', 'time'])
+
+    uids = {0:0, 1:1, 2:2}
+    iids = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+
+    sampler = SVAE_Sampler(data, mode="train",
                            pred_type="next_k",
                            k=2,
-                           shuffle=False,
-                           is_training=True)
+                           shuffle=False)
 
     assert len(sampler) == 3
     assert hasattr(sampler, "num_items")
@@ -192,12 +309,10 @@ def test_SVAE_Sampler():
     assert hasattr(sampler, "pred_type")
     assert hasattr(sampler, "dict_data_tr")
     assert hasattr(sampler, "dict_data_te")
-    assert hasattr(sampler, "is_training")
     assert sampler.k == 2
     assert sampler.num_items == 7
     assert sampler.pred_type == "next_k"
     assert not sampler.shuffle
-    assert sampler.is_training
 
     i = 0
     res = [np.array([[[0, 1, 1, 0, 0, 0, 0],
@@ -227,13 +342,10 @@ def test_SVAE_Sampler():
         assert np.all(y.numpy() == res[i])
         i += 1
 
-    sampler = SVAE_Sampler(num_items=7,
-                           dict_data_tr=tr,
-                           dict_data_te=None,
+    sampler = SVAE_Sampler(data, mode="train",
                            pred_type="next",
                            k=2,
-                           shuffle=False,
-                           is_training=True)
+                           shuffle=False)
 
     i = 0
     res = [np.array([[[0, 1, 0, 0, 0, 0, 0],
@@ -263,13 +375,10 @@ def test_SVAE_Sampler():
         assert np.all(y.numpy() == res[i])
         i += 1
 
-    sampler = SVAE_Sampler(num_items=7,
-                           dict_data_tr=tr,
-                           dict_data_te=None,
+    sampler = SVAE_Sampler(data, mode="train",
                            pred_type="postfix",
                            k=2,
-                           shuffle=False,
-                           is_training=True)
+                           shuffle=False)
 
     i = 0
     res = [np.array([[[0, 1, 1, 1, 1, 1, 1],
@@ -299,15 +408,10 @@ def test_SVAE_Sampler():
         assert np.all(y.numpy() == res[i])
         i += 1
 
-    vtr = {0:[0, 1, 2, 3], 1:[6, 5, 4, 3], 2:[1, 6]}
-    vte = {0:[4, 5, 6], 1:[2, 1, 0], 2:[0, 3]}
-    sampler = SVAE_Sampler(num_items=7,
-                           dict_data_tr=vtr,
-                           dict_data_te=vte,
-                           pred_type="next",
+    sampler = SVAE_Sampler(data, mode="test",
+                           pred_type="next_k",
                            k=2,
-                           shuffle=False,
-                           is_training=False)
+                           shuffle=False)
 
     i = 0
     res = [np.array([[[0, 0, 0, 0, 1, 1, 1]]]),
@@ -316,6 +420,7 @@ def test_SVAE_Sampler():
     for x, y in sampler:
         assert isinstance(x, torch.LongTensor), "x should be of type torch.LongTensor"
         assert isinstance(y, torch.FloatTensor), "y should be of type torch.FloatTensor"
+        vtr = {0:[0, 1, 2, 3], 1:[6, 5, 4, 3], 2:[1, 6]}
         assert np.all(x.numpy() == vtr[i][:-1])
         assert y.shape == (1, 1, 7)
         assert np.all(y.numpy() == res[i])
