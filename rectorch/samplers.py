@@ -183,6 +183,10 @@ class DictDummySampler(DummySampler):
         to the number of users of the active data set.
     shuffle : :obj:`bool` [optional]
         Whether the data set must be shuffled, by default :obj:`False`.
+    cold_users : :obj:`bool` [optional]
+        Whether the validation/test users have to be included in the training set
+        i.e., ``cold_users == False``, by default :obj:`True`.
+        Note: it is used only when the dataset has been vertically splitted.
 
     Attributes
     ----------
@@ -201,9 +205,9 @@ class DictDummySampler(DummySampler):
     shuffle : :obj:`bool`
         Whether the data set must be shuffled.
     """
-    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False, cold_users=True):
         super(DictDummySampler, self).__init__(data, mode, batch_size, shuffle)
-        self.data_tr, self.data_val, self.data_te = data.to_dict()
+        self.data_tr, self.data_val, self.data_te = data.to_dict(cold_users=cold_users)
         self._set_mode(mode)
         if batch_size is None:
             self.batch_size = len(self._data[0] if isinstance(self._data, tuple) else self._data)
@@ -241,6 +245,10 @@ class ArrayDummySampler(DummySampler):
         to the number of users of the active data set.
     shuffle : :obj:`bool` [optional]
         Whether the data set must be shuffled, by default :obj:`False`.
+    cold_users : :obj:`bool` [optional]
+        Whether the validation/test users have to be included in the training set
+        i.e., ``cold_users == False``, by default :obj:`True`.
+        Note: it is used only when the dataset has been vertically splitted.
 
     Attributes
     ----------
@@ -257,9 +265,9 @@ class ArrayDummySampler(DummySampler):
     shuffle : :obj:`bool`
         Whether the data set must be shuffled, by default :obj:`False`.
     """
-    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False, cold_users=True):
         super(ArrayDummySampler, self).__init__(data, mode, batch_size, shuffle)
-        self.data_tr, self.data_val, self.data_te = data.to_array()
+        self.data_tr, self.data_val, self.data_te = data.to_array(cold_users=cold_users)
         self._set_mode(mode)
         if batch_size is None:
             self.batch_size = len(self._data[0] if isinstance(self._data, tuple) else self._data)
@@ -297,6 +305,10 @@ class SparseDummySampler(ArrayDummySampler):
         to the number of users of the active data set.
     shuffle : :obj:`bool` [optional]
         Whether the data set must be shuffled, by default :obj:`False`.
+    cold_users : :obj:`bool` [optional]
+        Whether the validation/test users have to be included in the training set
+        i.e., ``cold_users == False``, by default :obj:`True`.
+        Note: it is used only when the dataset has been vertically splitted.
 
     Attributes
     ----------
@@ -313,9 +325,9 @@ class SparseDummySampler(ArrayDummySampler):
     shuffle : :obj:`bool`
         Whether the data set must be shuffled.
     """
-    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False, cold_users=True):
         super(SparseDummySampler, self).__init__(data, mode, batch_size, shuffle)
-        self.data_tr, self.data_val, self.data_te = data.to_sparse()
+        self.data_tr, self.data_val, self.data_te = data.to_sparse(cold_users=cold_users)
         self._set_mode(mode)
         if batch_size is None:
             if isinstance(self._data, tuple):
@@ -344,6 +356,10 @@ class TensorDummySampler(ArrayDummySampler):
         to the number of users of the active data set.
     shuffle : :obj:`bool` [optional]
         Whether the data set must be shuffled, by default :obj:`False`.
+    cold_users : :obj:`bool` [optional]
+        Whether the validation/test users have to be included in the training set
+        i.e., ``cold_users == False``, by default :obj:`True`.
+        Note: it is used only when the dataset has been vertically splitted.
 
     Attributes
     ----------
@@ -360,9 +376,9 @@ class TensorDummySampler(ArrayDummySampler):
     shuffle : :obj:`bool`
         Whether the data set must be shuffled.
     """
-    def __init__(self, data, mode="train", batch_size=None, shuffle=False):
+    def __init__(self, data, mode="train", batch_size=None, shuffle=False, cold_users=True):
         super(TensorDummySampler, self).__init__(data, mode, batch_size, shuffle)
-        self.data_tr, self.data_val, self.data_te = data.to_tensor()
+        self.data_tr, self.data_val, self.data_te = data.to_tensor(cold_users=cold_users)
         self._set_mode(mode)
         if batch_size is None:
             if isinstance(self._data, tuple):
