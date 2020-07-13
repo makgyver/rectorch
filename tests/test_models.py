@@ -14,7 +14,7 @@ from rectorch.models.nn import TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVA
     CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE
 from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
     CFGAN_G_net, SVAE_net
-from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_TrainingSampler,\
+from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_Sampler,\
     SVAE_Sampler
 from rectorch.samplers import ArrayDummySampler
 
@@ -417,7 +417,7 @@ def test_CFGAN():
     uids = {i:i for i in range(len(set(rows)))}
     iids = {i:i for i in range(len(set(cols)))}
     data = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
-    sampler = CFGAN_TrainingSampler(data, batch_size=1)
+    sampler = CFGAN_Sampler(data, batch_size=1)
 
     cfgan.train(sampler, valid_metric="ndcg@1", num_epochs=10, g_steps=1, d_steps=1, verbose=4)
     pred = cfgan.predict(torch.FloatTensor([[0, 1, 1], [1, 1, 0]]))[0]

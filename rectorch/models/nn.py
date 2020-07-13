@@ -240,17 +240,6 @@ class TorchNNTrainer(RecSysModel):
         torch.save(state, filepath)
         env.logger.info("Model checkpoint saved!")
 
-    def __str__(self):
-        s = self.__class__.__name__ + "(\n"
-        for k, v in self.__dict__.items():
-            sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
-            s += "  %s = %s,\n" % (k, sv)
-        s = s[:-2] + "\n)"
-        return s
-
-    def __repr__(self):
-        return str(self)
-
 
 class AETrainer(TorchNNTrainer):
     r"""Base class for Autoencoder-based models.

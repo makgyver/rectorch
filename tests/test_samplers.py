@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.data import Dataset
 from rectorch.samplers import Sampler, DataSampler, EmptyConditionedDataSampler,\
-    ConditionedDataSampler, CFGAN_TrainingSampler, SVAE_Sampler, DictDummySampler,\
+    ConditionedDataSampler, CFGAN_Sampler, SVAE_Sampler, DictDummySampler,\
     ArrayDummySampler, TensorDummySampler, SparseDummySampler
 
 def test_Sampler():
@@ -36,6 +36,31 @@ def test_Sampler():
     with pytest.raises(NotImplementedError):
         for _ in sampler:
             pass
+
+    values = [1., 1., 1., 1.]
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1}
+    iids = {0:0, 1:1, 2:2}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+
+    ads = Sampler.build(data, **{"name":"ArrayDummySampler", "mode":"train", "batch_size":2})
+    ads.train()
+    for tr, te in ads:
+        assert isinstance(tr, tuple)
+        assert te is None
+        assert tr[0] == [0, 1]
+        assert np.all(tr[1] == [[1, 1, 0], [0, 1, 1]])
+
+    ads.test()
+    for tr, te in ads:
+        assert isinstance(tr, tuple)
+        assert tr[0] == [0]
+        assert np.all(tr[1] == [[1, 0, 0]])
+        assert np.all(te == [[0, 1, 0]])
 
 def test_DummySampler():
     """Test the hierarchy of dummy samplers
@@ -239,8 +264,8 @@ def test_EmptyConditionedDataSampler():
         assert np.all(te.numpy() == np.array([0, 1, 0])),\
             "the tensor te should be [0, 1, 0]"
 
-def test_CFGAN_TrainingSampler():
-    """Test the CFGAN_TrainingSampler class
+def test_CFGAN_Sampler():
+    """Test the CFGAN_Sampler class
     """
     values = [1., 1., 1., 1.]
     rows = [0, 0, 1, 1]
@@ -251,7 +276,7 @@ def test_CFGAN_TrainingSampler():
     uids = {0:0, 1:1}
     iids = {0:0, 1:1, 2:2}
     data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
-    sampler = CFGAN_TrainingSampler(data, mode="train", batch_size=1)
+    sampler = CFGAN_Sampler(data, mode="train", batch_size=1)
 
     assert len(sampler) == 2, "the number of batches should be 2"
     assert hasattr(sampler, "idxlist"), "the sampler should have the attribute idxlist"
@@ -279,19 +304,22 @@ def test_SVAE_Sampler():
     rows = [0] * 7 + [1] * 7 + [2] * 5
     cols = list(range(7)) + list(range(6, -1, -1)) + [2, 1, 6, 0, 3]
     tt = list(range(7)) + list(range(7)) + list(range(5))
-    df_tr = pd.DataFrame(list(zip(rows, cols, values, tt)), columns=['uid', 'iid', 'rating', 'time'])
+    df_tr = pd.DataFrame(list(zip(rows, cols, values, tt)),
+                         columns=['uid', 'iid', 'rating', 'time'])
 
     values = [1.] * 10
     rows = [0] * 4 + [1] * 4 + [2] * 2
     cols = [0, 1, 2, 3, 6, 5, 4, 3, 1, 6]
     tt = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1]
-    df_te_tr = pd.DataFrame(list(zip(rows, cols, values, tt)), columns=['uid', 'iid', 'rating', 'time'])
+    df_te_tr = pd.DataFrame(list(zip(rows, cols, values, tt)),
+                            columns=['uid', 'iid', 'rating', 'time'])
 
     values = [1.] * 8
     rows = [0, 0, 0, 1, 1, 1, 2, 2]
     cols = [4, 5, 6, 2, 1, 0, 0, 3]
     tt = [0, 1, 2, 0, 1, 2, 0, 1]
-    df_te_te = pd.DataFrame(list(zip(rows, cols, values, tt)), columns=['uid', 'iid', 'rating', 'time'])
+    df_te_te = pd.DataFrame(list(zip(rows, cols, values, tt)),
+                            columns=['uid', 'iid', 'rating', 'time'])
 
     uids = {0:0, 1:1, 2:2}
     iids = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6}

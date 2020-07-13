@@ -136,7 +136,7 @@ class Popularity(RecSysModel):
 
     def save_model(self, filepath):
         env.logger.info("Saving model checkpoint to %s...", filepath)
-        torch.save({"model" : self.model}, filepath)
+        torch.save({"model" : self.model, "n_items": self.n_items}, filepath)
         env.logger.info("Model checkpoint saved!")
 
     def load_model(self, filepath):
@@ -144,5 +144,6 @@ class Popularity(RecSysModel):
         env.logger.info("Loading model checkpoint from %s...", filepath)
         checkpoint = torch.load(filepath)
         self.model = checkpoint['model']
+        self.n_items = checkpoint['n_items']
         env.logger.info("Model checkpoint loaded!")
         return checkpoint

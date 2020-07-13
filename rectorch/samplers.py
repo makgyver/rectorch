@@ -8,6 +8,7 @@ Each new sampler must extend the base class :class:`Sampler` implementing all th
 methods, in particular :meth:`samplers.Sampler._set_mode`, :meth:`samplers.Sampler.__len__` and
 :meth:`samplers.Sampler.__iter__`.
 """
+import importlib
 import numpy as np
 from scipy.sparse import csr_matrix, hstack
 import torch
@@ -15,7 +16,7 @@ from torch.autograd import Variable
 
 __all__ = ['Sampler', 'DataSampler', 'DummySampler', 'DictDummySampler', 'ArrayDummySampler',\
     'SparseDummySampler', 'TensorDummySampler', 'ConditionedDataSampler',\
-    'EmptyConditionedDataSampler', 'CFGAN_TrainingSampler', 'SVAE_Sampler']
+    'EmptyConditionedDataSampler', 'CFGAN_Sampler', 'SVAE_Sampler']
 
 #TODO document the way sampler works
 
@@ -49,7 +50,7 @@ class Sampler():
         self.mode = mode
         self.batch_size = batch_size
 
-    def _set_mode(self, mode, batch_size=None):
+    def _set_mode(self, mode="train", batch_size=None):
         """Change the sampler's mode according to the given parameter.
 
         Parameters
@@ -102,6 +103,25 @@ class Sampler():
         """
         raise NotImplementedError
 
+    @classmethod
+    def build(cls, dataset, **kwargs):
+        """Build a sampler according to the given parameters.
+
+        Parameters
+        ----------
+        dataset : :class:`rectorch.data.Dataset`
+            The dataset.
+
+        Returns
+        -------
+        :class:`rectorch.samplers.Sampler`
+            A new data sampler.
+        """
+        sampler_class = getattr(importlib.import_module("rectorch.samplers"), kwargs["name"])
+        del kwargs["name"]
+        return sampler_class(dataset, **kwargs)
+
+
 class DummySampler(Sampler):
     """Abstract sampler that simply returns the dataset.
 
@@ -129,7 +149,7 @@ class DummySampler(Sampler):
         self._data = None
         self.shuffle = shuffle
 
-    def _set_mode(self, mode, batch_size=None):
+    def _set_mode(self, mode="train", batch_size=None):
         assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
         self.mode = mode
         if self.mode == "train":
@@ -395,7 +415,7 @@ class DataSampler(Sampler):
         self.shuffle = shuffle
         self._set_mode(mode)
 
-    def _set_mode(self, mode, batch_size=None):
+    def _set_mode(self, mode="train", batch_size=None):
         assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
         self.mode = mode
 
@@ -499,7 +519,7 @@ class ConditionedDataSampler(DataSampler):
         values = np.ones(len(rows))
         self.M = csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
 
-    def _set_mode(self, mode, batch_size=None):
+    def _set_mode(self, mode="vero", batch_size=None):
         if self.sparse_data_tr is not None:
             super()._set_mode(mode, batch_size)
             self._compute_conditions()
@@ -620,7 +640,7 @@ class EmptyConditionedDataSampler(DataSampler):
             yield data_tr, data_te
 
 
-class CFGAN_TrainingSampler(DataSampler):
+class CFGAN_Sampler(DataSampler):
     r"""Sampler used for training the generator and discriminator of the CFGAN model.
 
     The peculiarity of this sampler (see for [CFGAN]_ more details) is that batches are
@@ -660,13 +680,13 @@ class CFGAN_TrainingSampler(DataSampler):
                  data,
                  mode="train",
                  batch_size=64):
-        super(CFGAN_TrainingSampler, self).__init__(data, mode, batch_size, False)
+        super(CFGAN_Sampler, self).__init__(data, mode, batch_size, False)
         self.idxlist = list(range(self.sparse_data_tr.shape[0]))
 
     def __len__(self):
         return int(np.ceil(self.sparse_data_tr.shape[0] / self.batch_size))
 
-    def _set_mode(self, mode, batch_size=None):
+    def _set_mode(self, mode="train", batch_size=None):
         super()._set_mode(mode, batch_size)
         self.idxlist = list(range(self.sparse_data_tr.shape[0]))
 
@@ -734,7 +754,7 @@ class SVAE_Sampler(Sampler):
         self.dict_data_tr, self.dict_data_te = None, None
         self._set_mode(mode)
 
-    def _set_mode(self, mode, batch_size=1):
+    def _set_mode(self, mode="train", batch_size=1):
         assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
         self.mode = mode
 

@@ -6,7 +6,7 @@ __all__ = ['baseline', 'nn', 'RecSysModel']
 class RecSysModel():
     r"""Abstract base class that any Recommendation model must inherit from.
     """
-    def train(self, train_data, **kwargs):
+    def train(self, data_sampler, **kwargs):
         r"""Training procedure.
 
         This method is meant to execute all the training phase. Once the method ends, the
@@ -14,10 +14,10 @@ class RecSysModel():
 
         Parameters
         ----------
-        train_data : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
+        data_sampler : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
             :class:`torch.Tensor`
             This object represents the training data. If the training procedure is based on
-            mini-batches, then ``train_data`` should be a :class:`rectorch.samplers.Sampler`.
+            mini-batches, then ``data_sampler`` should be a :class:`rectorch.samplers.Sampler`.
         **kargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             training.
@@ -95,3 +95,14 @@ class RecSysModel():
             Raised when not implemeneted in the sub-class.
         """
         raise NotImplementedError()
+
+    def __str__(self):
+        s = self.__class__.__name__ + "(\n"
+        for k, v in self.__dict__.items():
+            sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
+            s += "  %s = %s,\n" % (k, sv)
+        s = s[:-2] + "\n)"
+        return s
+
+    def __repr__(self):
+        return str(self)
