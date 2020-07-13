@@ -313,9 +313,12 @@ class VAE_net(AE_net):
         return torch.sigmoid(h)
 
     def _reparameterize(self, mu, var):
-        std = torch.exp(0.5*var)
-        eps = torch.randn_like(std)
-        return mu + eps*std
+        if self.training:
+            std = torch.exp(0.5*var)
+            eps = torch.randn_like(std)
+            return mu + eps*std
+        else:
+            return mu
 
     def forward(self, x):
         r"""Apply the full Variational Autoencoder network to the input.
