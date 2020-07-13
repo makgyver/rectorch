@@ -777,9 +777,9 @@ class DataProcessing:
             env.logger.info("Shuffling data.")
             idx_perm = np.random.permutation(unique_uid.size)
             unique_uid = unique_uid[idx_perm]
-        elif sort_by:
-            env.logger.info("Sorting data.")
-            unique_uid = unique_uid.apply(lambda x: x.sort_values(sort_by))
+        if sort_by:
+            env.logger.info("Sorting users' ratings.")
+            data = data.apply(lambda x: x.sort_values(sort_by))
 
         n_users = unique_uid.size
         valid_heldout = int(valid_size * n_users) if valid_size < 1 else valid_size
