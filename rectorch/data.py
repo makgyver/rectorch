@@ -779,7 +779,7 @@ class DataProcessing:
             unique_uid = unique_uid[idx_perm]
         if sort_by:
             env.logger.info("Sorting users' ratings.")
-            data = data.apply(lambda x: x.sort_values(sort_by))
+            data = data.sort_values(by=[sort_by])
 
         n_users = unique_uid.size
         valid_heldout = int(valid_size * n_users) if valid_size < 1 else valid_size
