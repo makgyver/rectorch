@@ -772,7 +772,7 @@ class SVAE_Sampler(Sampler):
         return len(self.dict_data_tr)
 
     def __iter__(self):
-        idxlist = list(range(len(self.dict_data_tr)))
+        idxlist = list((self.dict_data_tr.keys()))
         if self.shuffle and self.mode == "train":
             np.random.shuffle(idxlist)
 

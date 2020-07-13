@@ -259,3 +259,37 @@ def test_Dataset():
         assert torch.nonzero(tn[1][1], as_tuple=True)[0].shape[0] == 1
         assert torch.nonzero(tn[2][0], as_tuple=True)[0].shape[0] == 1
         assert torch.nonzero(tn[2][1], as_tuple=True)[0].shape[0] == 1
+
+        tn = dataset.to_tensor(cold_users=False)
+        assert isinstance(tn[0], torch.FloatTensor)
+        assert len(tn) == 3
+        assert tn[0].shape == torch.Size([4, 3])
+        assert tn[1].shape == torch.Size([1, 3])
+        assert tn[2].shape == torch.Size([1, 3])
+        assert torch.nonzero(tn[0], as_tuple=True)[0].shape[0] == 8
+        assert torch.nonzero(tn[1], as_tuple=True)[0].shape[0] == 1
+        assert torch.nonzero(tn[2], as_tuple=True)[0].shape[0] == 1
+
+        dd = dataset.to_dict(cold_users=False)
+        assert isinstance(dd[0], dict)
+        assert len(dd) == 3
+        assert dd[0][0] == [0, 1, 2]
+        assert dd[0][1] == [1, 2]
+        assert dd[0][2] == [0, 1]
+        assert dd[0][3] == [0]
+        assert dd[1][2] == [2]
+        assert dd[2][3] == [2]
+
+        ar = dataset.to_array(cold_users=False)
+        assert isinstance(ar[0], np.ndarray)
+        assert len(ar) == 3
+        assert np.sum(ar[0] > 0) == 8
+        assert np.sum(ar[1] > 0) == 1
+        assert np.sum(ar[2] > 0) == 1
+
+        sp = dataset.to_sparse(cold_users=False)
+        assert isinstance(sp[0], scipy.sparse.csr_matrix)
+        assert len(sp) == 3
+        assert len(sp[0].nonzero()[0]) == 8
+        assert len(sp[1].nonzero()[0]) == 1
+        assert len(sp[2].nonzero()[0]) == 1

@@ -31,7 +31,7 @@ import os
 import numpy as np
 import pandas as pd
 from pandas import DataFrame
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, vstack
 import torch
 from rectorch import env
 from .configuration import DataConfig
@@ -259,7 +259,7 @@ class Dataset():
 
         return Dataset(train_data, val_data, test_data, unique_uid, unique_iid, numerize=False)
 
-    def to_dict(self, binarize=True):
+    def to_dict(self, binarize=True, cold_users=True):
         r"""Convert the dataset to dictionaries
 
         The dataset is converted into a series of dictionaries. Each dictionary
@@ -269,6 +269,10 @@ class Dataset():
         ----------
         binarize : :obj:`bool`
             Whether the ratings have to be binarized.
+        cold_users : :obj:`bool` [optional]
+            Whether the validation/test users have to be included in the training set
+            i.e., ``cold_users == False``, by default :obj:`True`.
+            Note: it is used only when the dataset has been vertically splitted.
 
         Returns
         -------
@@ -290,11 +294,19 @@ class Dataset():
                 data_val = self._to_dict(self.valid_set, binarize)
             data_te = self._to_dict(self.test_set, binarize)
         else:
-            if self.valid_set is not None:
-                data_val = tuple([self._to_dict(v, binarize) for v in self.valid_set])
-            else:
+            if cold_users:
                 data_val = None
-            data_te = tuple([self._to_dict(t, binarize) for t in self.test_set])
+                if self.valid_set is not None:
+                    data_val = tuple([self._to_dict(v, binarize) for v in self.valid_set])
+                data_te = tuple([self._to_dict(t, binarize) for t in self.test_set])
+            else:
+                if self.valid_set is not None:
+                    data_tr.update(self._to_dict(self.valid_set[0], binarize))
+                    data_val = self._to_dict(self.valid_set[1], binarize)
+                else:
+                    data_val = None
+                data_tr.update(self._to_dict(self.test_set[0], binarize))
+                data_te = self._to_dict(self.test_set[1], binarize)
         return data_tr, data_val, data_te
 
     def _to_dict(self, data, binarize):
@@ -304,7 +316,7 @@ class Dataset():
         else:
             return {idx : zip(list(gr["iid"]), list(gr["rating"])) for idx, gr in grouped}
 
-    def to_array(self, binarize=True):
+    def to_array(self, binarize=True, cold_users=True):
         r"""Return the dataset as a numpy array.
 
         The dataset is returned as a tuple according to the way it is splitted.
@@ -313,6 +325,10 @@ class Dataset():
         ----------
         binarize : :obj:`bool` [optional]
             Whether the ratings have to be binarize or not, by default :obj:`True`.
+        cold_users : :obj:`bool` [optional]
+            Whether the validation/test users have to be included in the training set
+            i.e., ``cold_users == False``, by default :obj:`True`.
+            Note: it is used only when the dataset has been vertically splitted.
 
         Returns
         -------
@@ -327,16 +343,25 @@ class Dataset():
             data_val = self._df_to_array(self.valid_set, binarize)
             data_te = self._df_to_array(self.test_set, binarize)
         else:
-            if self.valid_set is not None:
-                data_val = self._seq_to_array(self.valid_set, binarize)
-            else:
+            if cold_users:
                 data_val = None
-            data_te = self._seq_to_array(self.test_set, binarize)
+                if self.valid_set is not None:
+                    data_val = self._seq_to_array(self.valid_set, binarize)
+                data_te = self._seq_to_array(self.test_set, binarize)
+            else:
+                if self.valid_set is not None:
+                    data_val = self._df_to_array(self.valid_set[1], binarize)
+                    dval_tr = self._df_to_array(self.valid_set[0], binarize)
+                    data_tr = np.concatenate((data_tr, dval_tr))
+                data_te = self._df_to_array(self.test_set[1], binarize)
+                dte_tr = self._df_to_array(self.test_set[0], binarize)
+                data_tr = np.concatenate((data_tr, dte_tr))
         return data_tr, data_val, data_te
 
     def _df_to_array(self, data, binarize):
-        rows, cols = data['uid'], data['iid']
-        n_tr_users = data['uid'].max() + 1
+        start_idx = data['uid'].min()
+        rows, cols = data['uid'] - start_idx, data['iid']
+        n_tr_users = data['uid'].max() - start_idx + 1
         array = np.zeros((n_tr_users, self.n_items))
         array[rows, cols] = 1. if binarize else data[data.columns.values[2]]
         return array
@@ -359,7 +384,7 @@ class Dataset():
         tr_idx = array_tr.any(axis=1)
         return array_tr[tr_idx], array_te[tr_idx]
 
-    def to_sparse(self, binarize=True):
+    def to_sparse(self, binarize=True, cold_users=True):
         r"""Return the dataset as a scipy sparse csr_matrix.
 
         The dataset is returned as a tuple according to the way it is splitted.
@@ -368,6 +393,10 @@ class Dataset():
         ----------
         binarize : :obj:`bool` [optional]
             Whether the ratings have to be binarize or not, by default :obj:`True`.
+        cold_users : :obj:`bool` [optional]
+            Whether the validation/test users have to be included in the training set
+            i.e., ``cold_users == False``, by default :obj:`True`.
+            Note: it is used only when the dataset has been vertically splitted.
 
         Returns
         -------
@@ -382,16 +411,25 @@ class Dataset():
             data_val = self._df_to_sparse(self.valid_set, binarize)
             data_te = self._df_to_sparse(self.test_set, binarize)
         else:
-            if self.valid_set is not None:
-                data_val = self._seq_to_sparse(self.valid_set, binarize)
-            else:
+            if cold_users:
                 data_val = None
-            data_te = self._seq_to_sparse(self.test_set, binarize)
+                if self.valid_set is not None:
+                    data_val = self._seq_to_sparse(self.valid_set, binarize)
+                data_te = self._seq_to_sparse(self.test_set, binarize)
+            else:
+                if self.valid_set is not None:
+                    data_val = self._df_to_sparse(self.valid_set[1], binarize)
+                    dval_tr = self._df_to_sparse(self.valid_set[0], binarize)
+                    data_tr = vstack([data_tr, dval_tr])
+                data_te = self._df_to_sparse(self.test_set[1], binarize)
+                dte_tr = self._df_to_sparse(self.test_set[0], binarize)
+                data_tr = vstack([data_tr, dte_tr])
         return data_tr, data_val, data_te
 
     def _df_to_sparse(self, data, binarize):
-        rows, cols = data['uid'], data['iid']
-        n_tr_users = data['uid'].max() + 1
+        start_idx = data['uid'].min()
+        rows, cols = data['uid'] - start_idx, data['iid']
+        n_tr_users = data['uid'].max() - start_idx + 1
         values = np.ones_like(rows) if binarize else data[data.columns.values[2]]
         return csr_matrix((values, (rows, cols)),
                           dtype='float64',
@@ -423,7 +461,7 @@ class Dataset():
         tr_idx = np.diff(data_tr.indptr) != 0
         return data_tr[tr_idx], data_te[tr_idx]
 
-    def to_tensor(self, binarize=True):
+    def to_tensor(self, binarize=True, cold_users=True):
         r"""Return the dataset as a pytorch tensor.
 
         The dataset is returned as a tuple according to the way it is splitted.
@@ -432,6 +470,10 @@ class Dataset():
         ----------
         binarize : :obj:`bool` [optional]
             Whether the ratings have to be binarize or not, by default :obj:`True`.
+        cold_users : :obj:`bool` [optional]
+            Whether the validation/test users have to be included in the training set
+            i.e., ``cold_users == False``, by default :obj:`True`.
+            Note: it is used only when the dataset has been vertically splitted.
 
         Returns
         -------
@@ -446,16 +488,25 @@ class Dataset():
             data_val = self._df_to_tensor(self.valid_set, binarize)
             data_te = self._df_to_tensor(self.test_set, binarize)
         else:
-            if self.valid_set is not None:
-                data_val = self._seq_to_tensor(self.valid_set, binarize)
-            else:
+            if cold_users:
                 data_val = None
-            data_te = self._seq_to_tensor(self.test_set, binarize)
+                if self.valid_set is not None:
+                    data_val = self._seq_to_tensor(self.valid_set, binarize)
+                data_te = self._seq_to_tensor(self.test_set, binarize)
+            else:
+                if self.valid_set is not None:
+                    data_val = self._df_to_tensor(self.valid_set[1], binarize)
+                    dval_tr = self._df_to_tensor(self.valid_set[0], binarize)
+                    data_tr = torch.cat([data_tr, dval_tr], dim=0)
+                data_te = self._df_to_tensor(self.test_set[1], binarize)
+                dte_tr = self._df_to_tensor(self.test_set[0], binarize)
+                data_tr = torch.cat([data_tr, dte_tr], dim=0)
         return data_tr, data_val, data_te
 
     def _df_to_tensor(self, data, binarize=True):
-        idx = torch.LongTensor([list(data['uid']), list(data['iid'])])
-        n_tr_users = data['uid'].max() + 1
+        start_idx = data['uid'].min()
+        idx = torch.LongTensor([list(data['uid']- start_idx), list(data['iid'])])
+        n_tr_users = data['uid'].max() - start_idx + 1
         values = np.ones(len(data)) if binarize else data[data.columns.values[2]]
         v = torch.FloatTensor(values)
         tensor = torch.sparse.FloatTensor(idx, v, torch.Size([n_tr_users, self.n_items]))

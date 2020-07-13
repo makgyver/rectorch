@@ -127,7 +127,7 @@ def prepare_for_prediction(data_input, ground_truth):
     ValueError
         Raised when the input type is not recognized.
     """
-    if isinstance(data_input, torch.FloatTensor):
+    if isinstance(data_input, (torch.FloatTensor, torch.LongTensor)):
         data_input = data_input.view(data_input.shape[0], -1)
         ground_truth = ground_truth.view(ground_truth.shape[0], -1).cpu().numpy()
         return (data_input,), ground_truth
