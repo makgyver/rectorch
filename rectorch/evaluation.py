@@ -10,6 +10,7 @@ from scipy.sparse import csr_matrix
 from rectorch import env
 from .metrics import Metrics
 from .utils import prepare_for_prediction
+from .models import RecSysModel
 
 __all__ = ['ValidFunc', 'evaluate', 'one_plus_random', 'GridSearch']
 
@@ -194,8 +195,12 @@ def one_plus_random(model, test_sampler, metric_list, r=1000):
     return results
 
 
-class GridSearch():
+class GridSearch(RecSysModel):
     r"""Perform a hyper-parameters grid search to select the best setting.
+
+    The GridSearch class is a sub-class of RecSysModel and hence it can be used as a trained model.
+    After training, the GridSearch object is like a wrapper for the model class for which
+    it has performed model selection.
 
     Parameters
     ----------
@@ -328,4 +333,13 @@ class GridSearch():
         else:
             for i, p in enumerate(self.params_dicts):
                 env.logger.info(p, ":", self.valid_scores[i])
-        
+
+    def predict(self, *args, **kwargs):
+        return self.best_model.predict(*args, **kwargs)
+
+    def save_model(self, filepath):
+        return self.best_model.save_model(filepath)
+
+    #TODO review load_model
+    def load_model(self, filepath):
+        return self.best_model.load_model(filepath)
