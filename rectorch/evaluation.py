@@ -274,7 +274,8 @@ class GridSearch():
         self.best_model = None
 
     def _model_generator(self):
-        model_cls = getattr(importlib.import_module("rectorch.models.nn"), self.model_class)
+        #model_cls = getattr(importlib.import_module("rectorch.models.nn"), self.model_class)
+        model_cls = self.model_class
         for params in self.params_dicts:
             for p, v in params.items():
                 if isinstance(v, tuple):
