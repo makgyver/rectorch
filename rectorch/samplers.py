@@ -37,7 +37,7 @@ class Sampler():
 
     Attributes
     ----------
-    All attributes : see the **Parameters section.
+    All attributes : see the **Parameters** section.
 
     Notes
     -----
@@ -72,7 +72,7 @@ class Sampler():
         self._set_mode("train", batch_size)
 
     def valid(self, batch_size=None):
-        """Set the sampler to validation mode.
+        r"""Set the sampler to validation mode.
 
         Parameters
         ----------
@@ -83,7 +83,7 @@ class Sampler():
         self._set_mode("valid", batch_size)
 
     def test(self, batch_size=None):
-        """Set the sampler to test mode.
+        r"""Set the sampler to test mode.
 
         Parameters
         ----------
@@ -94,18 +94,18 @@ class Sampler():
         self._set_mode("test", batch_size)
 
     def __len__(self):
-        """Return the number of batches.
+        r"""Return the number of batches.
         """
         raise NotImplementedError
 
     def __iter__(self):
-        """Iterate through the batches yielding a batch at a time.
+        r"""Iterate through the batches yielding a batch at a time.
         """
         raise NotImplementedError
 
     @classmethod
     def build(cls, dataset, **kwargs):
-        """Build a sampler according to the given parameters.
+        r"""Build a sampler according to the given parameters.
 
         Parameters
         ----------
@@ -123,7 +123,7 @@ class Sampler():
 
 
 class DummySampler(Sampler):
-    """Abstract sampler that simply returns the dataset.
+    r"""Abstract sampler that simply returns the dataset.
 
     Notes
     -----
@@ -170,7 +170,7 @@ class DummySampler(Sampler):
 
 
 class DictDummySampler(DummySampler):
-    """Dummy sampler that returns the dataset as a dictionary.
+    r"""Dummy sampler that returns the dataset as a dictionary.
 
     Parameters
     ----------
@@ -232,7 +232,7 @@ class DictDummySampler(DummySampler):
 
 
 class ArrayDummySampler(DummySampler):
-    """Dummy sampler that returns the dataset as a numpy array.
+    r"""Dummy sampler that returns the dataset as a numpy array.
 
     Parameters
     ----------
@@ -292,7 +292,7 @@ class ArrayDummySampler(DummySampler):
 
 
 class SparseDummySampler(ArrayDummySampler):
-    """Dummy sampler that returns the dataset as a sparse scipy array.
+    r"""Dummy sampler that returns the dataset as a sparse scipy array.
 
     Parameters
     ----------
@@ -343,7 +343,7 @@ class SparseDummySampler(ArrayDummySampler):
 
 
 class TensorDummySampler(ArrayDummySampler):
-    """Dummy sampler that returns the dataset as a pytorch tensor.
+    r"""Dummy sampler that returns the dataset as a pytorch tensor.
 
     Parameters
     ----------

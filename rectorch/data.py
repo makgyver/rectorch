@@ -66,13 +66,13 @@ class Dataset():
 
     Attributes
     ----------
-    n_users: :obj:`int`
+    n_users : :obj:`int`
         The number of users.
-    n_items: :obj:`int`
+    n_items : :obj:`int`
         The number of items.
-    unique_uid: :obj:`list` of :obj:`int`
+    unique_uid : :obj:`list` of :obj:`int`
         List of user ids. It is the list version of :attr:`u2id`.
-    unique_iid: :obj:`list` of :obj:`int`
+    unique_iid : :obj:`list` of :obj:`int`
         List of item ids. It is the list version of :attr:`i2id`.
     u2id : :obj:`dict` { :obj:`str` \: :obj:`int` }
         Dictionary which maps the raw user id, i.e., as in the raw `csv` file, to an internal id

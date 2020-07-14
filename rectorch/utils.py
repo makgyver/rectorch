@@ -6,7 +6,7 @@ from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
 import torch
 import rectorch
 
-__all__ = ['init_optimizer', 'get_data_cfg']
+__all__ = ['init_optimizer', 'get_data_cfg', 'prepare_for_prediction']
 
 def init_optimizer(params, opt_cfg=None):
     r"""Get a new optimizer initialize according to the given configurations.
@@ -124,7 +124,7 @@ def prepare_for_prediction(data_input, ground_truth):
 
     Raises
     ------
-    ValueError
+    :class:`ValueError`
         Raised when the input type is not recognized.
     """
     if isinstance(data_input, (torch.FloatTensor, torch.LongTensor)):

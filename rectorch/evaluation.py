@@ -1,14 +1,17 @@
 r"""Module containing utility functions to evaluate recommendation engines.
 """
 from functools import partial
+import itertools
+import importlib
 import inspect
 import random
 import numpy as np
 from scipy.sparse import csr_matrix
+from rectorch import env
 from .metrics import Metrics
 from .utils import prepare_for_prediction
 
-__all__ = ['ValidFunc', 'evaluate', 'one_plus_random']
+__all__ = ['ValidFunc', 'evaluate', 'one_plus_random', 'GridSearch']
 
 class ValidFunc():
     r"""Wrapper class for validation functions.
@@ -189,3 +192,139 @@ def one_plus_random(model, test_sampler, metric_list, r=1000):
     for m in results:
         results[m] = np.concatenate(results[m])
     return results
+
+
+class GridSearch():
+    r"""Perform a hyper-parameters grid search to select the best setting.
+
+    Parameters
+    ----------
+    model_class : class model from :mod:`rectorch.models.nn` module
+        The class of the model.
+    params_grid : :obj:`dict`
+        Dictionary containing the hyper-parametrs' sets for constructing the grid. A key represents
+        the name of the parameter in the signature of the class model, while the value is the list
+        of values for that hyper-parameters to try. Hyper-parameters
+        of a neural network (i.e., object of the module :mod:`rectorch.nets`) must be specified
+        using a tuple where the first element is the name of the nets class, while the second the
+        list of hyper-parameters for that neural network inside e dictionary.
+    valid_func : :class:`rectorch.evaluation.ValidFunc`
+        The validation function.
+    valid_metric : :obj:`str`
+        The metric used during the validation to select the best model.
+
+    Attributes
+    ----------
+    model_class : class model from :mod:`rectorch.models.nn` module
+        The class of the model.
+    params_grid : :obj:`dict`
+        Dictionary containing the hyper-parametrs' sets for constructing the grid. A key represents
+        the name of the parameter in the signature of the class model, while the value is the list
+        of values for that hyper-parameters to try. Hyper-parameters
+        of a neural network (i.e., object of the module :mod:`rectorch.nets`) must be specified
+        using a tuple where the first element is the name of the nets class, while the second the
+        list of hyper-parameters for that neural network inside e dictionary.
+    valid_func : :class:`rectorch.evaluation.ValidFunc`
+        The validation function.
+    valid_metric : :obj:`str`
+        The metric used during the validation to select the best model.
+    params_dicts : :obj:`list` of :obj:`dict`
+        List of dictionaries representing the different entries of the grid.
+    size : :obj:`int`
+        The size of the grid in terms of how many configurations have to be validated.
+    valid_scores : :obj:`list` of :obj:`float`
+        The scores obtained by the different models. If empty it means that the grid search has
+        not been performed yet.
+    best_model : trained model from :mod:`rectorch.models.nn` module
+        The best performing model on the validation set.
+
+    Examples
+    --------
+    Given a ``dataset`` (of the class :class:`rectorch.data.Dataset`) object:
+
+    >>> from rectorch.evaluate import GridSearch, ValidFunc, evaluate
+    >>> from rectorch.models.nn import MultiVAE
+    >>> from rectorch.nets import MultiVAE_net
+    >>> from rectorch.samplers import DataSampler
+    >>> n_items = dataset.n_items
+    >>> grid = GridSearch("MultiVAE", {
+            "mvae_net" : ("MultiVAE_net",
+                          [{"dec_dims":[50, n_items]}, {"dec_dims":[100, n_items]}]),
+            "beta" : [.2, .5],
+            "anneal_steps" : [0, 100]},
+            ValidFunc(evaluate),
+            "ndcg@10")
+    >>> sampler = DataSampler(dataset, mode="train")
+    >>> best_model, best_ndcg10 = grid.train(sampler, num_epochs=10)
+    """
+    def __init__(self, model_class, params_grid, valid_func, valid_metric):
+        self.model_class = model_class
+        self.params_grid = params_grid
+        self.valid_func = valid_func
+        self.valid_metric = valid_metric
+
+        for k, v in self.params_grid.items():
+            if isinstance(v, tuple):
+                self.params_grid[k] = [(v[0], vv) for vv in v[1]]
+
+        params_list = [[(k, x) for x in v] for k, v in self.params_grid.items()]
+        self.params_dicts = [dict(x) for x in list(itertools.product(*params_list))]
+        self.size = len(self.params_dicts)
+        self.valid_scores = []
+        self.best_model = None
+
+    def _model_generator(self):
+        model_cls = getattr(importlib.import_module("rectorch.models.nn"), self.model_class)
+        for params in self.params_dicts:
+            for p, v in params.items():
+                if isinstance(v, tuple):
+                    net_class = getattr(importlib.import_module("rectorch.nets"), v[0])
+                    params[p] = net_class(**v[1])
+            yield model_cls(**params)
+
+    def train(self, data_sampler, **kwargs):
+        r"""Perform the grid search.
+
+        Parameters
+        ----------
+        data_sampler : :class:`rectorch.samplers.Sampler`
+            The data sampler.
+
+        Returns
+        -------
+        best_model : trained model from :mod:`rectorch.models.nn` module
+            The best performing model on the validation set.
+        best_perf : :obj:`float`
+            The performance of the best model on the validation set.
+        """
+        best_perf = -np.inf
+        best_model = None
+
+        for model in self._model_generator():
+            data_sampler.train()
+            model.train(data_sampler, **kwargs)
+
+            data_sampler.valid()
+            valid_res = self.valid_func(model, data_sampler, self.valid_metric)
+            mu_val = np.mean(valid_res)
+
+            self.valid_scores.append(mu_val)
+            if mu_val > best_perf:
+                best_perf = mu_val
+                best_model = model
+
+        self.best_model = best_model
+        return self.best_model, best_perf
+
+    def report(self):
+        r"""Output a report of the grid search.
+
+        The output consists of pairs of model's hyper-parameters setting with its achieved
+        score on the validation set.
+        """
+        if not self.valid_scores:
+            env.logger.info("Grid search has not been performed, yet! Call the 'train' method.")
+        else:
+            for i, p in enumerate(self.params_dicts):
+                env.logger.info(p, ":", self.valid_scores[i])
+        
