@@ -290,6 +290,7 @@ class Dataset():
         """
         data_tr = self._to_dict(self.train_set, binarize)
         if isinstance(self.test_set, DataFrame):
+            data_val = None
             if self.valid_set is not None:
                 data_val = self._to_dict(self.valid_set, binarize)
             data_te = self._to_dict(self.test_set, binarize)
