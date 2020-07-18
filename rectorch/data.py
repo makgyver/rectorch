@@ -712,11 +712,10 @@ class DataProcessing:
             if seed is not None:
                 np.random.seed(seed)
             data = data.reindex(np.random.permutation(data.index))
+        elif sort_by is not None:
+            data = data.sort_values(by=[sort_by])
 
         data_grouped_by_user = data.groupby(uhead)
-        if sort_by is not None:
-            data_grouped_by_user = data_grouped_by_user.apply(lambda x: x.sort_values(sort_by))
-
         env.logger.info("Creating training, validation and test set.")
         tr_list, val_list, te_list = [], [], []
         for _, group in data_grouped_by_user:
