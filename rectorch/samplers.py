@@ -287,11 +287,15 @@ class ArrayDummySampler(DummySampler):
             else:
                 tr_sets = self.data_tr[users]
                 te_sets = self._data[users]
+                empty_users = set(np.where(te_sets.sum(axis=1) == 0)[0])
+                users = list(set(users) - empty_users)
+                tr_sets = tr_sets[users]
+                te_sets = te_sets[users]
 
             yield (users, tr_sets), None if self.mode == "train" else te_sets
 
 
-class SparseDummySampler(ArrayDummySampler):
+class SparseDummySampler(DummySampler):
     r"""Dummy sampler that returns the dataset as a sparse scipy array.
 
     Parameters
@@ -326,7 +330,7 @@ class SparseDummySampler(ArrayDummySampler):
         Whether the data set must be shuffled.
     """
     def __init__(self, data, mode="train", batch_size=None, shuffle=False, cold_users=True):
-        super(SparseDummySampler, self).__init__(data, mode, batch_size, shuffle, cold_users)
+        super(SparseDummySampler, self).__init__(data, mode, batch_size, shuffle)
         self.data_tr, self.data_val, self.data_te = data.to_sparse(cold_users=cold_users)
         self._set_mode(mode)
         if batch_size is None:
@@ -341,8 +345,30 @@ class SparseDummySampler(ArrayDummySampler):
         else:
             return int(np.ceil(self._data.shape[0] / self.batch_size))
 
+    def __iter__(self):
+        n = self._data[0].shape[0] if isinstance(self._data, tuple) else self._data.shape[0]
+        idxlist = list(range(n))
+        if self.shuffle and self.mode == "train":
+            np.random.shuffle(idxlist)
 
-class TensorDummySampler(ArrayDummySampler):
+        for _, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            users = idxlist[start_idx:end_idx]
+            if isinstance(self._data, tuple):
+                tr_sets = self._data[0][users]
+                te_sets = self._data[1][users]
+            else:
+                tr_sets = self.data_tr[users]
+                te_sets = self._data[users]
+                filter_idx = np.diff(te_sets.indptr) != 0
+                tr_sets = tr_sets[filter_idx]
+                te_sets = te_sets[filter_idx]
+                users = list(np.array(users)[filter_idx])
+
+            yield (users, tr_sets), None if self.mode == "train" else te_sets
+
+
+class TensorDummySampler(DummySampler):
     r"""Dummy sampler that returns the dataset as a pytorch tensor.
 
     Parameters
@@ -391,6 +417,28 @@ class TensorDummySampler(ArrayDummySampler):
             return int(np.ceil(self._data[0].shape[0] / self.batch_size))
         else:
             return int(np.ceil(self._data.shape[0] / self.batch_size))
+
+    def __iter__(self):
+        n = self._data[0].shape[0] if isinstance(self._data, tuple) else self._data.shape[0]
+        idxlist = list(range(n))
+        if self.shuffle and self.mode == "train":
+            np.random.shuffle(idxlist)
+
+        for _, start_idx in enumerate(range(0, n, self.batch_size)):
+            end_idx = min(start_idx + self.batch_size, n)
+            users = idxlist[start_idx:end_idx]
+            if isinstance(self._data, tuple):
+                tr_sets = self._data[0][users]
+                te_sets = self._data[1][users]
+            else:
+                tr_sets = self.data_tr[users]
+                te_sets = self._data[users]
+                filter_idx = (te_sets.sum(axis=1) > 0).nonzero()[:, 0]
+                tr_sets = tr_sets[filter_idx]
+                te_sets = te_sets[filter_idx]
+                users = filter_idx.tolist()
+
+            yield (users, tr_sets), None if self.mode == "train" else te_sets
 
 
 class DataSampler(Sampler):
