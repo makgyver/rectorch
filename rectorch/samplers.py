@@ -326,7 +326,7 @@ class SparseDummySampler(ArrayDummySampler):
         Whether the data set must be shuffled.
     """
     def __init__(self, data, mode="train", batch_size=None, shuffle=False, cold_users=True):
-        super(SparseDummySampler, self).__init__(data, mode, batch_size, shuffle)
+        super(SparseDummySampler, self).__init__(data, mode, batch_size, shuffle, cold_users)
         self.data_tr, self.data_val, self.data_te = data.to_sparse(cold_users=cold_users)
         self._set_mode(mode)
         if batch_size is None:

@@ -340,8 +340,10 @@ class Dataset():
             (training part of the test set, test part of the test set))..
         """
         data_tr = self._df_to_array(self.train_set, binarize)
-        if isinstance(self.valid_set, DataFrame):
-            data_val = self._df_to_array(self.valid_set, binarize)
+        if isinstance(self.test_set, DataFrame):
+            data_val = None
+            if self.valid_set is not None:
+                data_val = self._df_to_array(self.valid_set, binarize)
             data_te = self._df_to_array(self.test_set, binarize)
         else:
             if cold_users:
@@ -408,8 +410,10 @@ class Dataset():
             (training part of the test set, test part of the test set))..
         """
         data_tr = self._df_to_sparse(self.train_set, binarize)
-        if isinstance(self.valid_set, DataFrame):
-            data_val = self._df_to_sparse(self.valid_set, binarize)
+        if isinstance(self.test_set, DataFrame):
+            data_val = None
+            if self.valid_set is not None:
+                data_val = self._df_to_sparse(self.valid_set, binarize)
             data_te = self._df_to_sparse(self.test_set, binarize)
         else:
             if cold_users:
@@ -485,8 +489,10 @@ class Dataset():
             (training part of the test set, test part of the test set)).
         """
         data_tr = self._df_to_tensor(self.train_set, binarize)
-        if isinstance(self.valid_set, DataFrame):
-            data_val = self._df_to_tensor(self.valid_set, binarize)
+        if isinstance(self.test_set, DataFrame):
+            data_val = None
+            if self.valid_set is not None:
+                data_val = self._df_to_tensor(self.valid_set, binarize)
             data_te = self._df_to_tensor(self.test_set, binarize)
         else:
             if cold_users:
