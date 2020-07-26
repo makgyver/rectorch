@@ -289,14 +289,13 @@ class Dataset():
             the training and test part of the test ratings.
         """
         data_tr = self._to_dict(self.train_set, binarize)
+        data_val = None
         if isinstance(self.test_set, DataFrame):
-            data_val = None
             if self.valid_set is not None:
                 data_val = self._to_dict(self.valid_set, binarize)
             data_te = self._to_dict(self.test_set, binarize)
         else:
             if cold_users:
-                data_val = None
                 if self.valid_set is not None:
                     data_val = tuple([self._to_dict(v, binarize) for v in self.valid_set])
                 data_te = tuple([self._to_dict(t, binarize) for t in self.test_set])
@@ -304,8 +303,6 @@ class Dataset():
                 if self.valid_set is not None:
                     data_tr.update(self._to_dict(self.valid_set[0], binarize))
                     data_val = self._to_dict(self.valid_set[1], binarize)
-                else:
-                    data_val = None
                 data_tr.update(self._to_dict(self.test_set[0], binarize))
                 data_te = self._to_dict(self.test_set[1], binarize)
         return data_tr, data_val, data_te
@@ -340,6 +337,7 @@ class Dataset():
             (training part of the test set, test part of the test set))..
         """
         data_tr = self._df_to_array(self.train_set, binarize)
+        data_val = None
         if isinstance(self.test_set, DataFrame):
             data_val = None
             if self.valid_set is not None:
@@ -347,7 +345,6 @@ class Dataset():
             data_te = self._df_to_array(self.test_set, binarize)
         else:
             if cold_users:
-                data_val = None
                 if self.valid_set is not None:
                     data_val = self._seq_to_array(self.valid_set, binarize)
                 data_te = self._seq_to_array(self.test_set, binarize)
@@ -410,14 +407,13 @@ class Dataset():
             (training part of the test set, test part of the test set))..
         """
         data_tr = self._df_to_sparse(self.train_set, binarize)
+        data_val = None
         if isinstance(self.test_set, DataFrame):
-            data_val = None
             if self.valid_set is not None:
                 data_val = self._df_to_sparse(self.valid_set, binarize)
             data_te = self._df_to_sparse(self.test_set, binarize)
         else:
             if cold_users:
-                data_val = None
                 if self.valid_set is not None:
                     data_val = self._seq_to_sparse(self.valid_set, binarize)
                 data_te = self._seq_to_sparse(self.test_set, binarize)
@@ -489,14 +485,13 @@ class Dataset():
             (training part of the test set, test part of the test set)).
         """
         data_tr = self._df_to_tensor(self.train_set, binarize)
+        data_val = None
         if isinstance(self.test_set, DataFrame):
-            data_val = None
             if self.valid_set is not None:
                 data_val = self._df_to_tensor(self.valid_set, binarize)
             data_te = self._df_to_tensor(self.test_set, binarize)
         else:
             if cold_users:
-                data_val = None
                 if self.valid_set is not None:
                     data_val = self._seq_to_tensor(self.valid_set, binarize)
                 data_te = self._seq_to_tensor(self.test_set, binarize)
@@ -726,7 +721,7 @@ class DataProcessing:
         tr_list, val_list, te_list = [], [], []
         for _, group in data_grouped_by_user:
             n_items_u = len(group)
-            if n_items_u > 2 or (n_items_u == 2 and uval_sz == 0):
+            if n_items_u > 2 or (n_items_u == 2 and valid_size == 0):
                 if valid_size > 0:
                     uval_sz = max(1, int(n_items_u * valid_size)) if valid_size < 1 else 1
                 else:
