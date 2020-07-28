@@ -7,6 +7,7 @@ Modules:
 :mod:`models <rectorch.models>`
 :mod:`models.nn <rectorch.models.nn>`
 """
+import importlib
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -16,8 +17,42 @@ from torch.nn.init import xavier_uniform_ as xavier_init
 __all__ = ['AE_net', 'MultiDAE_net', 'VAE_net', 'MultiVAE_net', 'CMultiVAE_net', 'CFGAN_G_net',\
     'CFGAN_D_net', 'SVAE_net']
 
+class NeuralNet(nn.Module):
+    """Abstract class representing a generic neural network.
+    """
 
-class AE_net(nn.Module):
+    def forward(self, *args, **kwargs):
+        raise NotImplementedError()
+
+    def init_weights(self):
+        r"""Initialize the weights of the network.
+        """
+        raise NotImplementedError()
+
+    def get_state(self):
+        r"""Get the state of the network as a dictionary.
+
+        The state contains all useful information to construct a new network from scratch
+        that is identical to the current network.
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def from_state(cls, state):
+        r"""Create a new network from the given state.
+
+        Parameters
+        ----------
+        state : :obj:`dict`
+            The network's state dictionary  useful to replicate the saved network.
+        """
+        net_class = getattr(importlib.import_module("rectorch.nets"), cls.__name__)
+        net = net_class(state["params"])
+        net.load_state_dict(state["state"])
+        return net
+
+
+class AE_net(NeuralNet):
     r"""Abstract Autoencoder network.
 
     This abstract class must be inherited anytime a new autoencoder network is defined.
@@ -46,15 +81,7 @@ class AE_net(nn.Module):
     """
     def __init__(self, dec_dims, enc_dims=None):
         super(AE_net, self).__init__()
-        if enc_dims:
-            #assert enc_dims[0] == dec_dims[-1], \
-            #            "In and Out dimensions must equal to each other"
-            #assert enc_dims[-1] == dec_dims[0], \
-            #            "Latent dimension for encoder and decoder network mismatches."
-            self.enc_dims = enc_dims
-        else:
-            self.enc_dims = dec_dims[::-1]
-
+        self.enc_dims = enc_dims if enc_dims else dec_dims[::-1]
         self.dec_dims = dec_dims
 
     def encode(self, x):
@@ -88,11 +115,6 @@ class AE_net(nn.Module):
         z = self.encode(x)
         return self.decode(z)
 
-    def init_weights(self):
-        r"""Initialize the weights of the network.
-        """
-        raise NotImplementedError()
-
 
 #TODO check this network
 class CDAE_net(AE_net):
@@ -122,10 +144,12 @@ class CDAE_net(AE_net):
        New York, NY, USA, 153–162. DOI: https://doi.org/10.1145/2835776.2835837
     """
     def __init__(self, n_items, n_users, latent_size=50, dropout=0.5):
-        super(CDAE_net, self).__init__([latent_size, n_items], [n_items+n_users, latent_size])
+        super(CDAE_net, self).__init__([latent_size, n_items], [n_items + n_users, latent_size])
         self.dropout = nn.Dropout(dropout)
 
         self.n_items = n_items
+        self.n_users = n_users
+        self.latent_size = latent_size
         self.enc_layer = nn.Linear(self.enc_dims[0], self.enc_dims[1])
         self.dec_layer = nn.Linear(self.dec_dims[0], self.dec_dims[1])
 
@@ -149,7 +173,7 @@ class CDAE_net(AE_net):
             The tensor in the latent space after the application of the encoder.
         """
         if self.training:
-            x[:self.n_items] *= 1. / (1.-self.dropout.p)
+            x[:self.n_items] *= 1. / (1. - self.dropout.p)
             x[:self.n_items] = self.dropout(x[:self.n_items])
 
         x = torch.sigmoid(self.enc_layer(x))
@@ -168,6 +192,20 @@ class CDAE_net(AE_net):
         normal_init(self.enc_layer.bias)
         xavier_init(self.dec_layer.weight)
         normal_init(self.dec_layer.bias)
+
+    def get_state(self):
+        state = {
+            "name" : self.__class__.__name__,
+            "state" : self.state_dict(),
+            "params" : {
+                "enc_dims" : self.enc_dims,
+                "dec_dims" : self.dec_dims,
+                "n_items" : self.n_items,
+                "n_users" : self.n_users,
+                "dropout" : self.dropout.p
+            }
+        }
+        return state
 
 
 class MultiDAE_net(AE_net):
@@ -243,6 +281,18 @@ class MultiDAE_net(AE_net):
         for layer in self.dec_layers:
             xavier_init(layer.weight)
             normal_init(layer.bias)
+
+    def get_state(self):
+        state = {
+            "name" : self.__class__.__name__,
+            "state" : self.state_dict(),
+            "params" : {
+                "enc_dims" : self.enc_dims,
+                "dec_dims" : self.dec_dims,
+                "dropout" : self.dropout.p
+            }
+        }
+        return state
 
 
 class VAE_net(AE_net):
@@ -353,6 +403,16 @@ class VAE_net(AE_net):
             xavier_init(layer.weight)
             normal_init(layer.bias)
 
+    def get_state(self):
+        state = {
+            "name" : self.__class__.__name__,
+            "state" : self.state_dict(),
+            "params" : {
+                "enc_dims" : self.enc_dims,
+                "dec_dims" : self.dec_dims,
+            }
+        }
+        return state
 
 class MultiVAE_net(VAE_net):
     r'''Variational Autoencoder network for collaborative filtering.
@@ -417,6 +477,12 @@ class MultiVAE_net(VAE_net):
             h = torch.tanh(layer(h))
         return self.dec_layers[-1](h)
 
+    def get_state(self):
+        state = super().get_state()
+        state["name"] = self.__class__.__name__
+        state["params"]["dropout"] = self.dropout.p
+        return state
+
 
 class CMultiVAE_net(MultiVAE_net):
     r'''Conditioned Variational Autoencoder network for collaborative filtering.
@@ -480,8 +546,14 @@ class CMultiVAE_net(MultiVAE_net):
                 logvar = h[:, self.enc_dims[-1]:]
         return mu, logvar
 
+    def get_state(self):
+        state = super().get_state()
+        state["name"] = self.__class__.__name__
+        state["params"]["cond_dim"] = self.cond_dim
+        return state
 
-class CFGAN_G_net(nn.Module):
+
+class CFGAN_G_net(NeuralNet):
     r"""Generator network of the CFGAN model.
 
     The generator newtork of CFGAN is a simple Multi Layer perceptron. Each internal layer is
@@ -550,8 +622,18 @@ class CFGAN_G_net(nn.Module):
             xavier_init(layer.weight)
             normal_init(layer.bias)
 
+    def get_state(self):
+        state = {
+            "name" : self.__class__.__name__,
+            "state" : self.state_dict(),
+            "params" : {
+                "layers_dim" : self.layers_dim
+            }
+        }
+        return state
 
-class CFGAN_D_net(nn.Module):
+
+class CFGAN_D_net(NeuralNet):
     r"""Discriminator network of the CFGAN model.
 
     The discriminator newtork of CFGAN is a simple Multi Layer perceptron. Each internal layer is
@@ -620,6 +702,16 @@ class CFGAN_D_net(nn.Module):
         if isinstance(layer, nn.Linear):
             xavier_init(layer.weight)
             normal_init(layer.bias)
+
+    def get_state(self):
+        state = {
+            "name" : self.__class__.__name__,
+            "state" : self.state_dict(),
+            "params" : {
+                "layers_dim" : self.layers_dim
+            }
+        }
+        return state
 
 
 class SVAE_net(VAE_net):
@@ -692,3 +784,17 @@ class SVAE_net(VAE_net):
             nn.init.xavier_normal_(layer.weight)
         for layer in self.dec_layers:
             nn.init.xavier_normal_(layer.weight)
+
+    def get_state(self):
+        state = {
+            "name" : self.__class__.__name__,
+            "state" : self.state_dict(),
+            "params" : {
+                "n_items" : self.n_items,
+                "enc_dims" : self.enc_dims,
+                "dec_dims" : self.dec_dims,
+                "embed_size" : self.embed_size,
+                "rnn_size" : self.rnn_size
+            }
+        }
+        return state

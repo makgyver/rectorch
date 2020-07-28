@@ -63,15 +63,18 @@ class Random(RecSysModel):
             f.write(str(1 if self.fixed else 0))
         env.logger.info("Model checkpoint saved!")
 
-    def load_model(self, filepath):
+    @classmethod
+    def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
         env.logger.info("Loading model checkpoint from %s...", filepath)
+        n_items, seed, fixed = 0, 0, False
         with open(filepath, "r") as f:
-            self.n_items = int(f.readline().strip())
-            self.seed = int(f.readline().strip())
-            self.fixed = bool(f.readline().strip())
+            n_items = int(f.readline().strip())
+            seed = int(f.readline().strip())
+            fixed = bool(f.readline().strip())
+        rnd = Random(n_items, seed, fixed)
         env.logger.info("Model checkpoint loaded!")
-        return self.seed
+        return rnd
 
 
 class Popularity(RecSysModel):
@@ -139,11 +142,12 @@ class Popularity(RecSysModel):
         torch.save({"model" : self.model, "n_items": self.n_items}, filepath)
         env.logger.info("Model checkpoint saved!")
 
-    def load_model(self, filepath):
+    @classmethod
+    def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
         env.logger.info("Loading model checkpoint from %s...", filepath)
         checkpoint = torch.load(filepath)
-        self.model = checkpoint['model']
-        self.n_items = checkpoint['n_items']
+        pop = Popularity(checkpoint['n_items'])
+        pop.model = checkpoint['model']
         env.logger.info("Model checkpoint loaded!")
-        return checkpoint
+        return pop

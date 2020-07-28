@@ -46,7 +46,8 @@ def test_random():
     assert rnd2.n_items == 5
     assert rnd2.seed == 999
     assert not rnd2.fixed
-    rnd2.load_model(tmp.name)
+    rnd2 = Random.load_model(tmp.name)
+    print(rnd2.n_items)
     assert rnd2.n_items == 4
     assert rnd2.seed == 1
     assert rnd2.fixed
@@ -115,5 +116,5 @@ def test_popularity():
     pop.save_model(tmp.name)
 
     pop2 = Popularity(4)
-    pop2.load_model(tmp.name)
+    pop2 = Popularity.load_model(tmp.name)
     assert torch.all(pop2.model == pop.model)

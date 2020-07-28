@@ -75,7 +75,8 @@ class RecSysModel():
         """
         raise NotImplementedError()
 
-    def load_model(self, filepath, *args, **kwargs):
+    @classmethod
+    def load_model(cls, filepath, *args, **kwargs):
         r"""Load the model from file.
 
         Parameters
@@ -88,6 +89,11 @@ class RecSysModel():
         **kwargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             prediction.
+        
+        Returns
+        -------
+        :class:`RecSysModel`
+            A recommendation model.
 
         Raises
         ------

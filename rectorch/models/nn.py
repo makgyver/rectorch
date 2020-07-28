@@ -57,10 +57,12 @@ References
 """
 import os
 import time
+import importlib
 import numpy as np
 import torch
 import torch.nn.functional as F
 from rectorch import env
+from rectorch.nets import CFGAN_D_net, CFGAN_G_net
 from rectorch.models import RecSysModel
 from rectorch.utils import init_optimizer
 from rectorch.evaluation import ValidFunc, evaluate
@@ -101,6 +103,8 @@ class TorchNNTrainer(RecSysModel):
         self.device = env.device
         self.network = net.to(self.device)
         self.optimizer = init_optimizer(self.network.parameters(), opt_conf)
+        self.current_epoch = 0
+        self._opt_conf = opt_conf
 
     def loss_function(self, *args, **kwargs):
         r"""The loss function that the model wants to minimize.
@@ -164,7 +168,8 @@ class TorchNNTrainer(RecSysModel):
                     mu_val = np.mean(valid_res)
                     std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                     env.logger.info('| epoch %d | %s %.3f (%.4f) |',
-                                    epoch, valid_metric, mu_val, std_err_val)
+                                    self.current_epoch, valid_metric, mu_val, std_err_val)
+                self.current_epoch += 1
         except KeyboardInterrupt:
             env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
@@ -219,26 +224,54 @@ class TorchNNTrainer(RecSysModel):
     def predict(self, *args, **kwargs):
         raise NotImplementedError()
 
-    def save_model(self, filepath, cur_epoch, *args, **kwargs):
+    def save_model(self, filepath, *args, **kwargs):
         r"""Save the model to file.
 
         Parameters
         ----------
         filepath : :obj:`str`
             String representing the path to the file to save the model.
-        cur_epoch : :obj:`int`
-            The last training epoch.
         """
-        state = {'epoch': cur_epoch,
-                 'state_dict': self.network.state_dict(),
-                 'optimizer': self.optimizer.state_dict()
-                }
+        state = {
+            'epoch': self.current_epoch,
+            'network': self.network.get_state(),
+            'optimizer': {
+                "state" : self.optimizer.state_dict(),
+                "cfg" : self._opt_conf
+            }
+        }
         self._save_checkpoint(filepath, state)
 
     def _save_checkpoint(self, filepath, state):
         env.logger.info("Saving model checkpoint to %s...", filepath)
         torch.save(state, filepath)
         env.logger.info("Model checkpoint saved!")
+
+    @classmethod
+    def load_model(cls, filepath):
+        r"""Load the model from file.
+
+        Parameters
+        ----------
+        filepath : :obj:`str`
+            String representing the path to the file where the model is saved.
+
+        Returns
+        -------
+        :class:`TorchNNTrainer`
+            An object of type that is a sub-class of :class:`TorchNNTrainer`.
+        """
+        assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
+        env.logger.info("Loading model checkpoint from %s...", filepath)
+        checkpoint = torch.load(filepath)
+        net_class = getattr(importlib.import_module("rectorch.nets"), checkpoint["network"]["name"])
+        trainer_class = getattr(importlib.import_module("rectorch.models.nn"), cls.__name__)
+        net = net_class(**checkpoint['network']['params'])
+        net.load_state_dict(checkpoint['network']['state'])
+        model = trainer_class(net, checkpoint['optimizer']['cfg'])
+        model.optimizer.load_state_dict(checkpoint['optimizer']['state'])
+        env.logger.info("Model checkpoint loaded!")
+        return model
 
 
 class AETrainer(TorchNNTrainer):
@@ -255,8 +288,9 @@ class AETrainer(TorchNNTrainer):
     ----------
     all attributes : see the base class :class:`TorchNNTrainer`.
     """
-    #def __init__(self, ae_net, opt_conf=None):
-    #    super(AETrainer, self).__init__(ae_net, opt_conf)
+    def __init__(self, ae_net, opt_conf=None):
+        super(AETrainer, self).__init__(ae_net, opt_conf)
+        self.loss = torch.nn.MSELoss()
 
     def loss_function(self, prediction, ground_truth):
         r"""Vanilla Autoencoder loss function.
@@ -288,7 +322,7 @@ class AETrainer(TorchNNTrainer):
             Tensor (:math:`1 \times 1`) representing the average loss incurred over the input
             batch.
         """
-        return torch.nn.MSELoss()(ground_truth, prediction)
+        return self.loss(ground_truth, prediction)
 
     def train_epoch(self, epoch, data_sampler, verbose=1):
         self.network.train()
@@ -364,28 +398,6 @@ class AETrainer(TorchNNTrainer):
             if remove_train:
                 recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
             return (recon_x, )
-
-    def load_model(self, filepath):
-        r"""Load the model from file.
-
-        Parameters
-        ----------
-        filepath : :obj:`str`
-            String representing the path to the file where the model is saved.
-
-        Returns
-        -------
-        :obj:`dict`
-            A dictionary that summarizes the state of the model when it has been saved.
-            Note: not all the information about the model are stored in the saved 'checkpoint'.
-        """
-        assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
-        env.logger.info("Loading model checkpoint from %s...", filepath)
-        checkpoint = torch.load(filepath)
-        self.network.load_state_dict(checkpoint['state_dict'])
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
-        env.logger.info("Model checkpoint loaded!")
-        return checkpoint
 
 
 class VAE(AETrainer):
@@ -577,7 +589,6 @@ class MultiDAE(AETrainer):
 
         return BCE + self.lam * l2_reg
 
-
 class MultiVAE(VAE):
     r"""Variational Autoencoder for collaborative Filtering.
 
@@ -754,24 +765,35 @@ class MultiVAE(VAE):
                                     epoch, valid_metric, mu_val, std_err_val)
 
                     if best_perf < mu_val:
-                        self.save_model(best_path, epoch)
+                        self.save_model(best_path)
                         best_perf = mu_val
+                self.current_epoch += 1
 
         except KeyboardInterrupt:
             env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
 
-    def save_model(self, filepath, cur_epoch):
-        state = {'epoch': cur_epoch,
-                 'state_dict': self.network.state_dict(),
-                 'optimizer': self.optimizer.state_dict(),
-                 'gradient_updates': self.gradient_updates
-                }
+    def save_model(self, filepath):
+        state = {
+            'epoch': self.current_epoch,
+            'network': self.network.get_state(),
+            'optimizer': {
+                'state' : self.optimizer.state_dict(),
+                'cfg' : self._opt_conf
+            },
+            'gradient_updates' : self.gradient_updates,
+            'beta' : self.beta,
+            'anneal_steps' : self.anneal_steps
+        }
         self._save_checkpoint(filepath, state)
 
-    def load_model(self, filepath):
-        checkpoint = super().load_model(filepath)
-        self.gradient_updates = checkpoint['gradient_updates']
-        return checkpoint
+    @classmethod
+    def load_model(cls, filepath):
+        model = super().load_model(filepath)
+        checkpoint = torch.load(filepath)
+        model.gradient_updates = checkpoint["gradient_updates"]
+        model.beta = checkpoint["beta"]
+        model.anneal_steps = checkpoint["anneal_steps"]
+        return model
 
 
 class CMultiVAE(MultiVAE):
@@ -939,15 +961,16 @@ class EASE(RecSysModel):
         torch.save(state, filepath)
         env.logger.info("Model saved!")
 
-    def load_model(self, filepath):
+    @classmethod
+    def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
         env.logger.info("Loading EASE model from %s...", filepath)
         #state = np.load(filepath, allow_pickle=True)[()]
         state = torch.load(filepath)
-        self.lam = state["lambda"]
-        self.model = state["model"]
+        ease = EASE(lam=state["lambda"])
+        ease.model = state["model"]
         env.logger.info("Model loaded!")
-        return state
+        return ease
 
     def __str__(self):
         s = "EASE(lambda=%.4f" % self.lam
@@ -1046,9 +1069,11 @@ class CFGAN(RecSysModel):
         self.regularization_loss = torch.nn.MSELoss(reduction="sum")
         self.alpha = alpha
         self.n_items = self.generator.input_dim
+        self._opt_conf = opt_conf
 
         self.opt_g = init_optimizer(self.generator.parameters(), opt_conf)
         self.opt_d = init_optimizer(self.generator.parameters(), opt_conf)
+        self.current_epoch = 0
 
 
     def train(self,
@@ -1118,6 +1143,7 @@ class CFGAN(RecSysModel):
                         std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
                         env.logger.info('| epoch %d | %s %.3f (%.4f) |',
                                         epoch, valid_metric, mu_val, std_err_val)
+                self.current_epoch += 1
 
         except KeyboardInterrupt:
             env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
@@ -1229,27 +1255,45 @@ class CFGAN(RecSysModel):
     def __repr__(self):
         return str(self)
 
-    def save_model(self, filepath, cur_epoch):
-        state = {'epoch': cur_epoch,
-                 'state_dict_g': self.generator.state_dict(),
-                 'state_dict_d': self.discriminator.state_dict(),
-                 'optimizer_g': self.opt_g.state_dict(),
-                 'optimizer_d': self.opt_g.state_dict()
-                }
+    def save_model(self, filepath):
+        state = {
+            'epoch': self.current_epoch,
+            'network_g': self.generator.get_state(),
+            'network_d': self.discriminator.get_state(),
+            'optimizer_g': self.opt_g.state_dict(),
+            'optimizer_d': self.opt_g.state_dict(),
+            'opt_conf' : self._opt_conf,
+            'alpha' : self.alpha,
+            's_pm' : self.s_pm,
+            's_zr' : self.s_zr
+        }
         env.logger.info("Saving CFGAN model to %s...", filepath)
         torch.save(state, filepath)
         env.logger.info("Model saved!")
 
-    def load_model(self, filepath):
+    @classmethod
+    def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
         env.logger.info("Loading model checkpoint from %s...", filepath)
         checkpoint = torch.load(filepath)
-        self.generator.load_state_dict(checkpoint['state_dict_g'])
-        self.discriminator.load_state_dict(checkpoint['state_dict_d'])
-        self.opt_g.load_state_dict(checkpoint['optimizer_g'])
-        self.opt_d.load_state_dict(checkpoint['optimizer_d'])
+        gen_class = getattr(importlib.import_module("rectorch.nets"),
+                            checkpoint["network_g"]["name"])
+        net_g = gen_class(**checkpoint['network_g']['params'])
+        disc_class = getattr(importlib.import_module("rectorch.nets"),
+                             checkpoint["network_d"]["name"])
+        net_d = disc_class(**checkpoint['network_d']['params'])
+        cfgan = CFGAN(net_g,
+                      net_d,
+                      checkpoint['alpha'],
+                      checkpoint['s_pm'],
+                      checkpoint['s_zr'],
+                      checkpoint['opt_conf'])
+        cfgan.generator.load_state_dict(checkpoint["network_g"]['state'])
+        cfgan.discriminator.load_state_dict(checkpoint["network_d"]['state'])
+        cfgan.opt_g.load_state_dict(checkpoint['optimizer_g'])
+        cfgan.opt_d.load_state_dict(checkpoint['optimizer_d'])
         env.logger.info("Model checkpoint loaded!")
-        return checkpoint
+        return cfgan
 
 
 class ADMM_Slim(RecSysModel):
@@ -1426,20 +1470,21 @@ class ADMM_Slim(RecSysModel):
         torch.save(state, filepath)
         env.logger.info("Model saved!")
 
-    def load_model(self, filepath):
+    @classmethod
+    def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
         env.logger.info("Loading ADMM_Slim model from %s...", filepath)
         #state = np.load(filepath, allow_pickle=True)[()]
         state = torch.load(filepath)
-        self.lambda1 = state["lambda1"]
-        self.lambda2 = state["lambda2"]
-        self.rho = state["rho"]
-        self.nn_constr = state["nn_constr"]
-        self.l1_penalty = state["l1_penalty"]
-        self.item_bias = state["item_bias"]
-        self.model = state["model"]
+        admm = ADMM_Slim(lambda1=state["lambda1"],
+                         lambda2=state["lambda2"],
+                         rho=state["rho"],
+                         nn_constr=state["nn_constr"],
+                         l1_penalty=state["l1_penalty"],
+                         item_bias=state["item_bias"])
+        admm.model = state["model"]
         env.logger.info("Model loaded!")
-        return state
+        return admm
 
     def __str__(self):
         s = "ADMM_Slim(lambda1=%.4f, lamdba2=%.4f" %(self.lambda1, self.lambda2)

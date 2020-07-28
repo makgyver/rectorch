@@ -30,7 +30,7 @@ def test_RecSysModel():
     with pytest.raises(NotImplementedError):
         model.save_model(None)
     with pytest.raises(NotImplementedError):
-        model.load_model(None)
+        RecSysModel.load_model(None)
 
 def test_TorchNNTrainer():
     """Test the TorchNNTrainer class
@@ -98,11 +98,9 @@ def test_AETrainer():
     assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
 
     tmp = tempfile.NamedTemporaryFile()
-    model.save_model(tmp.name, 1)
+    model.save_model(tmp.name)
 
-    net = MultiDAE_net([1, 2], [2, 1], .1)
-    model2 = AETrainer(net)
-    model2.load_model(tmp.name)
+    model2 = AETrainer.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -146,11 +144,9 @@ def test_VAE():
     assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
 
     tmp = tempfile.NamedTemporaryFile()
-    model.save_model(tmp.name, 1)
+    model.save_model(tmp.name)
 
-    net = VAE_net([1, 2], [2, 1])
-    model2 = VAE(net)
-    model2.load_model(tmp.name)
+    model2 = VAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -193,11 +189,9 @@ def test_MultiDAE():
     assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
 
     tmp = tempfile.NamedTemporaryFile()
-    model.save_model(tmp.name, 1)
+    model.save_model(tmp.name)
 
-    net = MultiDAE_net([1, 2], [2, 1], dropout=.1)
-    model2 = MultiDAE(net)
-    model2.load_model(tmp.name)
+    model2 = MultiDAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -241,11 +235,9 @@ def test_MultiVAE():
     assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
 
     tmp = tempfile.NamedTemporaryFile()
-    model.save_model(tmp.name, 1)
+    model.save_model(tmp.name)
 
-    net = MultiVAE_net([1, 2], [2, 1], .1)
-    model2 = MultiVAE(net)
-    model2.load_model(tmp.name)
+    model2 = MultiVAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -261,11 +253,7 @@ def test_MultiVAE():
                 num_epochs=10,
                 best_path=tmp2.name)
 
-    net2 = MultiVAE_net([1, 2], [2, 1], .1)
-    model2 = MultiVAE(net2, 1., 5)
-    assert model2.gradient_updates == 0,\
-        "after initialization there should not be any gradient updates"
-    model2.load_model(tmp2.name)
+    model2 = MultiVAE.load_model(tmp2.name)
     assert model2.gradient_updates > 0,\
         "the loaded model should have been saved after some gradient updates"
 
@@ -316,11 +304,9 @@ def test_CMultiVAE():
     assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
 
     tmp = tempfile.NamedTemporaryFile()
-    model.save_model(tmp.name, 1)
+    model.save_model(tmp.name)
 
-    net = CMultiVAE_net(2, [1, 3], dropout=.1)
-    model2 = CMultiVAE(net)
-    model2.load_model(tmp.name)
+    model2 = CMultiVAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -336,11 +322,7 @@ def test_CMultiVAE():
                 num_epochs=10,
                 best_path=tmp2.name)
 
-    net2 = CMultiVAE_net(2, [1, 3], [3, 1], .1)
-    model2 = CMultiVAE(net2, 1., 5)
-    assert model2.gradient_updates == 0,\
-        "after initialization there should not be any gradient updates"
-    model2.load_model(tmp2.name)
+    model2 = CMultiVAE.load_model(tmp2.name)
     assert model2.gradient_updates > 0,\
         "the loaded model should have been saved after some gradient updates"
 
@@ -374,8 +356,7 @@ def test_EASE():
     assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
     tmp = tempfile.NamedTemporaryFile()
     ease.save_model(tmp.name)
-    ease2 = EASE(200.)
-    ease2.load_model(tmp.name)
+    ease2 = EASE.load_model(tmp.name)
     assert torch.all(ease2.model == ease.model), "the two model should be the same"
     os.remove(tmp.name)
     assert repr(ease) == str(ease)
@@ -424,15 +405,13 @@ def test_CFGAN():
     assert pred.shape == (2, 3)
 
     tmp = tempfile.NamedTemporaryFile()
-    cfgan.save_model(tmp.name, 10)
+    cfgan.save_model(tmp.name)
 
     gen2 = CFGAN_G_net([n_items, 5, n_items])
     disc2 = CFGAN_D_net([n_items*2, 5, 1])
-    cfgan2 = CFGAN(gen2, disc2, alpha=.03, s_pm=.5, s_zr=.7)
-    chkpt = cfgan2.load_model(tmp.name)
-    assert chkpt["epoch"] == 10
-    assert cfgan2.generator != gen
-    assert cfgan2.discriminator != disc
+    cfgan2 = CFGAN.load_model(tmp.name)
+    assert cfgan2.generator != gen2
+    assert cfgan2.discriminator != disc2
     assert str(cfgan) == repr(cfgan)
 
 def test_ADMM_Slim():
@@ -477,8 +456,7 @@ def test_ADMM_Slim():
     assert pr.shape == (3, 5), "the shape of the prediction whould be 3 x 5"
     tmp = tempfile.NamedTemporaryFile()
     slim.save_model(tmp.name)
-    slim2 = ADMM_Slim()
-    slim2.load_model(tmp.name)
+    slim2 = ADMM_Slim.load_model(tmp.name)
     assert torch.all(slim2.model == slim.model), "the two model should be the same"
     os.remove(tmp.name)
     assert repr(slim) == str(slim)
@@ -553,15 +531,8 @@ def test_SVAE():
     assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
 
     tmp = tempfile.NamedTemporaryFile()
-    model.save_model(tmp.name, 1)
-
-    net = SVAE_net(n_items=total_items,
-                   embed_size=2,
-                   rnn_size=2,
-                   dec_dims=[2, total_items],
-                   enc_dims=[2, 2])
-    model2 = SVAE(net)
-    model2.load_model(tmp.name)
+    model.save_model(tmp.name)
+    model2 = SVAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
