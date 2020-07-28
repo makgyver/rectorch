@@ -11,11 +11,12 @@ setup(
     include_package_data=True,
     version='0.1.0b0',
     install_requires=[
-        "numpy",
-        "scipy",
-        "torch",
-        "Bottleneck",
-        "munch"
+        "pandas>=1.1.0",
+        "numpy>=1.17.2",
+        "scipy>=1.4.1",
+        "torch>=1.2.0",
+        "Bottleneck>=1.2.1",
+        "munch>=2.5.0"
     ],
     python_requires='>=3.6',
     license="MIT",
@@ -26,7 +27,7 @@ setup(
     author_email='mak1788@gmail.com',
     url='https://github.com/makgyver/rectorch',
     download_url='https://github.com/makgyver/rectorch',
-    keywords=['recommender-system', 'pytorch', 'machine-learning', 'algorithm', 'variational-autoencoder', 'gan'],
+    keywords=['recommender-system', 'pytorch', 'machine-learning', 'algorithm', 'variational-autoencoder', 'gan', 'collaborative-filtering', 'top-n recommendation'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Programming Language :: Python :: 3.7',
