@@ -7,6 +7,7 @@ the following metrics are implemented:
 * :func:`recall@k <Metrics.recall_at_k>`
 * :func:`hit@k <Metrics.hit_at_k>`
 * :func:`mrr@k <Metrics.mrr_at_k>`
+* :func:`AUC <Metrics.auc>`
 
 See Also
 --------
@@ -16,7 +17,9 @@ Modules:
 
 import bottleneck as bn
 import numpy as np
+import torch
 from rectorch import env
+from rectorch.utils import tensor_apply_permutation
 
 __all__ = ['Metrics']
 
@@ -281,3 +284,33 @@ class Metrics:
                 mrr[r] = 1. / (1 + cranks[i])
 
         return np.array(mrr)
+
+    @staticmethod
+    def auc(pred_scores, ground_truth):
+        """Compute the Area Under the ROC Curve (AUC).
+
+        Parameters
+        ----------
+        pred_scores : :obj:`numpy.array`
+            The array with the predicted scores. Users are on the rows and items on the columns.
+        ground_truth : :obj:`numpy.array`
+            Binary array with the ground truth. 1 means the item is relevant for the user
+            and 0 not relevant. Users are on the rows and items on the columns.
+
+        Returns
+        -------
+        :obj:`numpy.array`
+            An array containing the *mrr@k* value for each user.
+        """
+        gt = torch.FloatTensor(ground_truth)
+        pred = torch.FloatTensor(pred_scores)
+        gt = tensor_apply_permutation(gt, torch.argsort(pred))
+        nfalse = 0
+        ret_auc = torch.zeros(pred.shape[0])
+        n = gt.shape[1]
+        for i in range(n):
+            y_i = gt[:, i]
+            nfalse += (1 - y_i)
+            ret_auc += y_i * nfalse
+        ret_auc /= (nfalse * (n - nfalse))
+        return ret_auc.numpy()

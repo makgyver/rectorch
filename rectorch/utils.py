@@ -6,7 +6,7 @@ from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
 import torch
 import rectorch
 
-__all__ = ['init_optimizer', 'get_data_cfg', 'prepare_for_prediction']
+__all__ = ['init_optimizer', 'get_data_cfg', 'prepare_for_prediction', 'tensor_apply_permutation']
 
 def init_optimizer(params, opt_cfg=None):
     r"""Get a new optimizer initialize according to the given configurations.
@@ -135,3 +135,26 @@ def prepare_for_prediction(data_input, ground_truth):
         return data_input, ground_truth
     else:
         raise ValueError("Unrocognize 'data_input' type.")
+
+
+def tensor_apply_permutation(x, permutation):
+    """Apply a indices premutation tensor to a 2D tensor.
+
+    Parameters
+    ----------
+    x : :class:`torch.Tensor`
+        The tensor to permute.
+    permutation : :class:`torch.Tensor`
+        The tensor containing the rows' permutation indices.
+
+    Returns
+    -------
+    :class:`torch.Tensor`
+        The permuted tensor.
+    """
+    d1, d2 = x.size()
+    ret = x[
+        torch.arange(d1).unsqueeze(1).repeat((1, d2)).flatten(),
+        permutation.flatten()
+    ].view(d1, d2)
+    return ret

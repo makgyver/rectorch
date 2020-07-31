@@ -89,7 +89,7 @@ class RecSysModel():
         **kwargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             prediction.
-        
+
         Returns
         -------
         :class:`RecSysModel`

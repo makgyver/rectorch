@@ -62,7 +62,6 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from rectorch import env
-from rectorch.nets import CFGAN_D_net, CFGAN_G_net
 from rectorch.models import RecSysModel
 from rectorch.utils import init_optimizer
 from rectorch.evaluation import ValidFunc, evaluate
@@ -286,11 +285,11 @@ class AETrainer(TorchNNTrainer):
 
     Attributes
     ----------
-    all attributes : see the base class :class:`TorchNNTrainer`.
+    all other attributes : see the base class :class:`TorchNNTrainer`.
     """
     def __init__(self, ae_net, opt_conf=None):
         super(AETrainer, self).__init__(ae_net, opt_conf)
-        self.loss = torch.nn.MSELoss()
+        self._loss = torch.nn.MSELoss()
 
     def loss_function(self, prediction, ground_truth):
         r"""Vanilla Autoencoder loss function.
@@ -322,7 +321,7 @@ class AETrainer(TorchNNTrainer):
             Tensor (:math:`1 \times 1`) representing the average loss incurred over the input
             batch.
         """
-        return self.loss(ground_truth, prediction)
+        return self._loss(ground_truth, prediction)
 
     def train_epoch(self, epoch, data_sampler, verbose=1):
         self.network.train()

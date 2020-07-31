@@ -66,7 +66,7 @@ class Sampler():
         Parameters
         ----------
         batch_size : :obj:`int` or :obj:`None` [optional]
-            The size of the batches, by default :obj:`None`. If ``None`` no modification will be
+            The size of the batches, by default :obj:`None`. If :obj:`None` no modification will be
             applied to the batch size.
         """
         self._set_mode("train", batch_size)
@@ -77,7 +77,7 @@ class Sampler():
         Parameters
         ----------
         batch_size : :obj:`int` or :obj:`None` [optional]
-            The size of the batches, by default :obj:`None`. If ``None`` no modification will be
+            The size of the batches, by default :obj:`None`. If :obj:`None` no modification will be
             applied to the batch size.
         """
         self._set_mode("valid", batch_size)
@@ -88,7 +88,7 @@ class Sampler():
         Parameters
         ----------
         batch_size : :obj:`int` or :obj:`None` [optional]
-            The size of the batches, by default :obj:`None`. If ``None`` no modification will be
+            The size of the batches, by default :obj:`None`. If :obj:`None` no modification will be
             applied to the batch size.
         """
         self._set_mode("test", batch_size)
