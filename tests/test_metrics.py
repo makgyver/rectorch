@@ -60,6 +60,7 @@ def test_mrr_at_k():
     assert np.all(t1 == np.array([.5, 1.]))
     assert np.all(t2 == np.array([0., 1.]))
 
+
 def test_auc():
     """Test Metric.auc
     """
@@ -67,6 +68,15 @@ def test_auc():
     ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.], [1., 0, 0, 1.]])
     t1 = Metrics.auc(scores, ground_truth)
     assert np.all(t1 == np.array([0., 1., .5]))
+
+def test_ap():
+    """Test Metric.ap_at_k
+    """
+    scores = np.array([[4., 3., 2., 1.], [1., 2., 3., 4.], [1., 2., 3., 4.]])
+    ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.], [1., 0, 0, 1.]])
+    t1 = Metrics.ap_at_k(scores, ground_truth, 2)
+    assert np.all(t1 == np.array([0., 1., .5]))
+
 
 def test_compute():
     """Test Metric.compute

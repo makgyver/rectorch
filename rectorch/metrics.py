@@ -7,6 +7,7 @@ the following metrics are implemented:
 * :func:`recall@k <Metrics.recall_at_k>`
 * :func:`hit@k <Metrics.hit_at_k>`
 * :func:`mrr@k <Metrics.mrr_at_k>`
+* :func:`mrr@k <Metrics.ap_at_k>`
 * :func:`AUC <Metrics.auc>`
 
 See Also
@@ -197,6 +198,47 @@ class Metrics:
         return recall
 
     @staticmethod
+    def ap_at_k(pred_scores, ground_truth, k=100):
+        r"""Compute the Average Precision.
+
+        TODO
+
+        Parameters
+        ----------
+        pred_scores : :obj:`numpy.array`
+            The array with the predicted scores. Users are on the rows and items on the columns.
+        ground_truth : :obj:`numpy.array`
+            Binary array with the ground truth. 1 means the item is relevant for the user
+            and 0 not relevant. Users are on the rows and items on the columns.
+        k : :obj:`int` [optional]
+            The number of top items to considers, by default 100
+
+        Returns
+        -------
+        :obj:`numpy.array`
+            An array containing the *ap@k* value for each user.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from rectorch.metrics import Metrics
+        >>> scores = np.array([[4., 3., 2., 1.], [1., 2., 3., 4.], [1., 2., 3., 4.]])
+        >>> ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.], [0, 1., 0., 1.]])
+        >>> ap_at_k(scores, ground_truth, 2)
+        array([0. , 1. , 0.5])
+        """
+        assert pred_scores.shape == ground_truth.shape,\
+            "'pred_scores' and 'ground_truth' must have the same shape."
+        k = min(pred_scores.shape[1], k)
+        pred_idx = np.argsort(-pred_scores, axis=1)[:, :k]
+        num = pred_scores * ground_truth
+        num = num[np.arange(pred_scores.shape[0])[:, np.newaxis], pred_idx] > 0
+        den = 1. / np.arange(1, k + 1)
+        num = np.cumsum(num, axis=1) * num
+        ap = np.sum((num * den), axis=1)
+        return ap / np.minimum(k, ground_truth.sum(axis=1))
+
+    @staticmethod
     def hit_at_k(pred_scores, ground_truth, k=100):
         r"""Compute the hit at k.
 
@@ -287,7 +329,7 @@ class Metrics:
 
     @staticmethod
     def auc(pred_scores, ground_truth):
-        """Compute the Area Under the ROC Curve (AUC).
+        r"""Compute the Area Under the ROC Curve (AUC).
 
         Parameters
         ----------
@@ -300,8 +342,20 @@ class Metrics:
         Returns
         -------
         :obj:`numpy.array`
-            An array containing the *mrr@k* value for each user.
+            An array containing the *AUC* value for each user.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from rectorch.metrics import Metrics
+        >>> scores = np.array([[4., 3., 2., 1.], [1., 2., 3., 4.], [1., 2., 3., 4.]])
+        >>> ground_truth = np.array([[0, 0, 1., 1.], [0, 0, 1., 1.], [1., 0, 0, 1.]])
+        >>> Metrics.auc(scores, ground_truth)
+        array([0., 1., .5])
         """
+        assert pred_scores.shape == ground_truth.shape,\
+                "'pred_scores' and 'ground_truth' must have the same shape."
+        # It is more efficient with pytorch than numpy
         gt = torch.FloatTensor(ground_truth)
         pred = torch.FloatTensor(pred_scores)
         gt = tensor_apply_permutation(gt, torch.argsort(pred))

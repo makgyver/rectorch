@@ -19,7 +19,7 @@ def test_Sampler():
     """
     sampler = Sampler(None, None)
     with pytest.raises(NotImplementedError):
-        sampler._set_mode("valid")
+        sampler.valid()
 
     with pytest.raises(NotImplementedError):
         sampler.train()

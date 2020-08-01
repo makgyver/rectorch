@@ -6,6 +6,7 @@ __all__ = ['baseline', 'nn', 'RecSysModel']
 class RecSysModel():
     r"""Abstract base class that any Recommendation model must inherit from.
     """
+
     def train(self, data_sampler, **kwargs):
         r"""Training procedure.
 

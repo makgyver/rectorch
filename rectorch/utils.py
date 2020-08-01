@@ -70,19 +70,19 @@ def get_data_cfg(ds_name=None):
     """
     p = os.path.dirname(rectorch.__file__) + "/"
     if ds_name == "ml100k":
-        with open(p+'config/config_data_ml100k.json') as f:
+        with open(p + 'config/config_data_ml100k.json') as f:
             cfg = json.load(f)
     elif ds_name == "ml1m":
-        with open(p+'config/config_data_ml1m.json') as f:
+        with open(p + 'config/config_data_ml1m.json') as f:
             cfg = json.load(f)
     elif ds_name == "ml20m":
-        with open(p+'config/config_data_ml20m.json') as f:
+        with open(p + 'config/config_data_ml20m.json') as f:
             cfg = json.load(f)
     elif ds_name == "netflix":
-        with open(p+'config/config_data_netflix.json') as f:
+        with open(p + 'config/config_data_netflix.json') as f:
             cfg = json.load(f)
     elif ds_name == "msd":
-        with open(p+'config/config_data_msd.json') as f:
+        with open(p + 'config/config_data_msd.json') as f:
             cfg = json.load(f)
     else:
         cfg = {

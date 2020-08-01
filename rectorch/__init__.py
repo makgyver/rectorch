@@ -2,6 +2,9 @@
 """
 __all__ = ['configuration', 'data', 'evaluation', 'metrics', 'models', 'nets', 'samplers', 'utils']
 
+# CURRENT VERSION
+__version__ = "1.0.0dev"
+
 import logging
 import torch
 
