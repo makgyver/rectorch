@@ -6,8 +6,23 @@ import pytest
 import torch
 sys.path.insert(0, os.path.abspath('..'))
 
-from rectorch.nets import AE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net,\
+from rectorch.nets import NeuralNet, AE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net,\
     CFGAN_D_net, SVAE_net
+
+def test_NeuralNet():
+    """Test the NeuralNet class
+    """
+    nn = NeuralNet()
+    with pytest.raises(NotImplementedError):
+        nn.forward()
+
+    with pytest.raises(NotImplementedError):
+        nn.init_weights()
+
+    with pytest.raises(NotImplementedError):
+        nn.get_state()
+
+    #TODO from_state
 
 def test_AE_net():
     """Test the AE_net class

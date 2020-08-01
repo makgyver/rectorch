@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.abspath('..'))
 import torch
 from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
 from torch import nn
-from rectorch.utils import init_optimizer, get_data_cfg
+from rectorch.utils import init_optimizer, get_data_cfg, tensor_apply_permutation, collect_results
 
 class Net(nn.Module):
     def __init__(self):
@@ -92,3 +92,26 @@ def test_get_data_cfg():
     assert set(cfg.keys()) == set(["splitting", "processing"])
     assert "netflix" in cfg["processing"]["data_path"]
     assert cfg["splitting"]["valid_size"] == 40000
+
+
+def test_tensor_apply_permutation():
+    """Test the 'tensor_apply_permutation' function
+    """
+    t = torch.FloatTensor([[1, 2, 3], [3, 2, 1]])
+    p = torch.LongTensor([[2, 1, 0], [2, 1, 0]])
+    r = tensor_apply_permutation(t, p)
+    assert torch.all(r == torch.FloatTensor([[3, 2, 1], [1, 2, 3]]))
+
+
+def test_collect_results():
+    """Test the 'collect_results' function
+    """
+    res = {"ndcg@10" : [.1, .1, .2, .2], "ap@10" : [1., 1., .0, .0]}
+    r = collect_results(res)
+    assert "ndcg@10" in r
+    assert "ap@10" in r
+    assert "recall@10" not in r
+    assert abs(r["ndcg@10"][0] - .15) < 0.000000001
+    assert abs(r["ap@10"][0] - .5) < 0.000000001
+    assert abs(r["ndcg@10"][1] - .05) < 0.000000001
+    assert abs(r["ap@10"][1] - .5) < 0.000000001

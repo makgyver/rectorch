@@ -5,6 +5,7 @@ import json
 from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
 import torch
 import rectorch
+import numpy as np
 
 __all__ = ['init_optimizer', 'get_data_cfg', 'prepare_for_prediction', 'tensor_apply_permutation']
 
@@ -158,3 +159,22 @@ def tensor_apply_permutation(x, permutation):
         permutation.flatten()
     ].view(d1, d2)
     return ret
+
+def collect_results(results):
+    """Collect the results from a results' dictionary.
+
+    The results' dictionary ``results`` contains for each metric (i.e., key) an array of values
+    (i.e., metric value for each user). The function compute the average and standard deviation of
+    each metric over the users.
+
+    Parameters
+    ----------
+    results : :obj:`dict` (:obj:`str` - :class:`numpy.ndarray`)
+        The results' dictionary.
+
+    Returns
+    -------
+    :obj:`dict` (:obj:`str`, :obj:`tuple` (:obj:`float, :obj:`float`))
+        The mean and standard deviation of each metric.
+    """
+    return {met : (np.mean(results[met]), np.std(results[met])) for met in results}
