@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 sys.path.insert(0, os.path.abspath('..'))
 
-from rectorch.models.baseline import Random, Popularity
+from rectorch.models.baseline import Random, Popularity, CF_KOMD
 from rectorch.data import Dataset
 from rectorch.samplers import DictDummySampler, ArrayDummySampler, SparseDummySampler,\
     TensorDummySampler
@@ -118,3 +118,52 @@ def test_popularity():
     pop2 = Popularity(4)
     pop2 = Popularity.load_model(tmp.name)
     assert torch.all(pop2.model == pop.model)
+
+def test_cfkomd():
+    """Test CF-KOMD.
+    """
+    values = [1.] * 7
+    rows = [0, 0, 1, 1, 1, 2, 2]
+    cols = [0, 1, 0, 1, 2, 1, 3]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1, 2:2}
+    iids = {0:0, 1:1, 2:2, 3:3}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+
+    cfkomd = CF_KOMD()
+    assert cfkomd.ker_fun == "linear"
+    assert cfkomd.lambda_p == .1
+    assert cfkomd.model == {}
+    assert cfkomd.disj_degree == 1
+
+    ads = ArrayDummySampler(data)
+    cfkomd = CF_KOMD(ker_fun="disjunctive", disj_degree=2)
+    cfkomd.train(ads)
+    assert isinstance(cfkomd.model, dict)
+    assert isinstance(cfkomd.model[0], torch.FloatTensor)
+
+    p = cfkomd.predict([0, 1], np.array([[0, 1, 0, 0], [0, 0, 1, 0]]))[0]
+    assert isinstance(p, torch.FloatTensor)
+    assert p.shape == torch.Size([2, 4])
+    assert p[0, 1] == -np.inf
+    assert p[1, 2] == -np.inf
+
+    cfkomd.train(ads, only_test=True)
+    assert isinstance(cfkomd.model, dict)
+    assert isinstance(cfkomd.model[0], torch.FloatTensor)
+
+    p = cfkomd.predict([0, 1], np.array([[0, 1, 0, 0], [0, 0, 1, 0]]))[0]
+    assert isinstance(p, torch.FloatTensor)
+    assert p.shape == torch.Size([2, 4])
+    assert p[0, 1] == -np.inf
+    assert p[1, 2] == -np.inf
+
+    tmp = tempfile.NamedTemporaryFile()
+    cfkomd.save_model(tmp.name)
+
+    cfkomd2 = CF_KOMD()
+    cfkomd2 = CF_KOMD.load_model(tmp.name)
+    assert torch.all(cfkomd2.model[0] == cfkomd.model[0])
+    assert torch.all(cfkomd2.model[1] == cfkomd.model[1])

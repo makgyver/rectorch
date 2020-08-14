@@ -731,7 +731,7 @@ class MultiVAE(VAE):
 
         Parameters
         ----------
-        data_sampler.train() : :class:`rectorch.samplers.Sampler`
+        data_sampler : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training/validation set in mini-batches.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default :obj:`None`.

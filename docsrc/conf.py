@@ -54,7 +54,8 @@ intersphinx_mapping = {
     'numpy': ('https://numpy.org/doc/stable/', None),
     'python': ('https://docs.python.org/3', None),
     'scipy': ('https://docs.scipy.org/doc/scipy/reference/', None),
-    'pandas': ('http://pandas.pydata.org/pandas-docs/dev', None)
+    'pandas': ('http://pandas.pydata.org/pandas-docs/dev', None),
+    'cvxopt': ('https://cvxopt.org/userguide', None)
 }
 
 # Add any paths that contain templates here, relative to this directory.

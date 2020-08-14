@@ -7,7 +7,7 @@ the following metrics are implemented:
 * :func:`recall@k <Metrics.recall_at_k>`
 * :func:`hit@k <Metrics.hit_at_k>`
 * :func:`mrr@k <Metrics.mrr_at_k>`
-* :func:`mrr@k <Metrics.ap_at_k>`
+* :func:`ap@k <Metrics.ap_at_k>`
 * :func:`AUC <Metrics.auc>`
 
 See Also
@@ -201,7 +201,8 @@ class Metrics:
     def ap_at_k(pred_scores, ground_truth, k=100):
         r"""Compute the Average Precision.
 
-        TODO
+        Average precision is computed as the mean of the precision scores obtained truncating
+        the ranking at different *k* (from 1 up to ``k``).
 
         Parameters
         ----------

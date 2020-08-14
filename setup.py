@@ -16,7 +16,8 @@ setup(
         "scipy>=1.4.1",
         "torch>=1.2.0",
         "Bottleneck>=1.2.1",
-        "munch>=2.5.0"
+        "munch>=2.5.0",
+        "cvxopt>=1.2.3"
     ],
     python_requires='>=3.6',
     license="MIT",

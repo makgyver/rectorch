@@ -4,10 +4,13 @@ import os
 import json
 from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
 import torch
-import rectorch
+import cvxopt as co
 import numpy as np
+import rectorch
 
-__all__ = ['init_optimizer', 'get_data_cfg', 'prepare_for_prediction', 'tensor_apply_permutation']
+
+__all__ = ['init_optimizer', 'get_data_cfg', 'prepare_for_prediction', 'tensor_apply_permutation',
+           'cvxopt_diag', 'md_kernel', 'kernel_normalization']
 
 def init_optimizer(params, opt_cfg=None):
     r"""Get a new optimizer initialize according to the given configurations.
@@ -139,7 +142,7 @@ def prepare_for_prediction(data_input, ground_truth):
 
 
 def tensor_apply_permutation(x, permutation):
-    """Apply a indices premutation tensor to a 2D tensor.
+    r"""Apply a indices premutation tensor to a 2D tensor.
 
     Parameters
     ----------
@@ -160,8 +163,9 @@ def tensor_apply_permutation(x, permutation):
     ].view(d1, d2)
     return ret
 
+
 def collect_results(results):
-    """Collect the results from a results' dictionary.
+    r"""Collect the results from a results' dictionary.
 
     The results' dictionary ``results`` contains for each metric (i.e., key) an array of values
     (i.e., metric value for each user). The function compute the average and standard deviation of
@@ -178,3 +182,88 @@ def collect_results(results):
         The mean and standard deviation of each metric.
     """
     return {met : (np.mean(results[met]), np.std(results[met])) for met in results}
+
+
+def cvxopt_diag(vec):
+    r"""Build a CVXopt diagonal matrix.
+
+    Parameters
+    ----------
+    vec : :class:`cvxopt.matrix`
+        The vector to put in the diagonal of the matrix.
+
+    Returns
+    -------
+    :class:`cvxopt.matrix`
+        The diagonal matrix with the vector ``vec`` as diagonal.
+    """
+    result = co.matrix(0.0, (vec.size[0], vec.size[0]))
+    for i, x in enumerate(vec):
+        result[i, i] = x
+    return result
+
+
+def md_kernel(X, degree=2):
+    r"""Monotone disjunctive kernel (mD-kernel).
+
+    Returns the (boolean) monotone disjunctive kernel of degree ``d``.
+
+    Parameters
+    ----------
+    K0 : :class:`numpy.ndarray`
+        The linear kernel between the examples.
+    n : :obj:`int`
+        The dimension (i.e., number of features) of the examples.
+    degree : :obj:`int` [optional]
+        The degree (integer >= 1) of the mD-kernel, default 2.
+
+    Returns
+    -------
+    :class:`numpy.ndarray`
+        The monotone disjunctive kernel.
+    """
+    def md_kernel_gen(K0, n, degree=2):
+        N = np.full(K0.shape, n)
+        XX = np.dot(np.diag(K0).reshape(K0.shape[0], 1), np.ones((1, K0.shape[0])))
+        N_x = N - XX
+        N_xz = N_x - XX.T + K0
+        N_d, N_xd, N_xzd = N.copy(), N_x.copy(), N_xz.copy()
+
+        yield N_d - N_xd - N_xd.T + N_xzd
+        for d in range(1, degree):
+            N_d = N_d * (N - d) / (d + 1)
+            N_xd = N_xd * (N_x - d) / (d + 1)
+            N_xzd = N_xzd * (N_xz - d) / (d + 1)
+            yield N_d - N_xd - N_xd.T + N_xzd
+
+    assert degree >= 1 and isinstance(degree, int), "'degree' must be an integer >= 1"
+    mdk = None
+    for ki in md_kernel_gen(np.dot(X.T, X), X.shape[0], degree):
+        mdk = ki
+
+    return mdk
+
+
+def kernel_normalization(K):
+    r"""Apply the kernel normalization.
+
+    Given the kernel **K** its normalized version can be computed as
+
+    :math:`\widetilde{\mathbf{K}} = \frac{\mathbf{K}}{\sqrt{\mathbf{d}\mathbf{d}^\intercal}}`
+
+    where **d** is the diagonal (vector) of **K**.
+
+    Parameters
+    ----------
+    :class:`numpy.ndarray`
+        The kernel to normlize.
+
+    Returns
+    -------
+    :class:`numpy.ndarray`
+        The normalized version of the input kernel.
+    """
+    n = K.shape[0]
+    d = np.array([[K[i, i] for i in range(n)]])
+    Kn = K / np.sqrt(np.dot(d.T, d))
+    return Kn
