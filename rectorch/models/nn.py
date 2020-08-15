@@ -380,7 +380,7 @@ class AETrainer(TorchNNTrainer):
         x : :class:`torch.Tensor`
             The input for which the prediction has to be computed.
         remove_train : :obj:`bool` [optional]
-            Whether to remove the training set from the prediction, by default True. Removing
+            Whether to remove the training set from the prediction, by default :obj:`True`. Removing
             the training items means set their scores to :math:`-\infty`.
 
         Returns
@@ -482,7 +482,7 @@ class VAE(AETrainer):
         x : :class:`torch.Tensor`
             The input batch tensor for which the prediction must be computed.
         remove_train : :obj:`bool` [optional]
-            Whether to remove the training set from the prediction, by default True. Removing
+            Whether to remove the training set from the prediction, by default :obj:`True`. Removing
             the training items means set their scores to :math:`-\infty`.
 
         Returns
@@ -883,7 +883,7 @@ class EASE(RecSysModel):
     References
     ----------
     .. [EASE] Harald Steck. 2019. Embarrassingly Shallow Autoencoders for Sparse Data.
-       In The World Wide Web Conference (WWW ’19). Association for Computing Machinery,
+       In The World Wide Web Conference (WWW '19). Association for Computing Machinery,
        New York, NY, USA, 3251–3257. DOI: https://doi.org/10.1145/3308558.3313710
     """
     def __init__(self, lam=100.):
@@ -938,7 +938,7 @@ class EASE(RecSysModel):
         test_tr : :class:`scipy.sparse.csr_matrix` or :class:`numpy.ndarray`
             Training portion of the test users.
         remove_train : :obj:`bool` [optional]
-            Whether to remove the training set from the prediction, by default True. Removing
+            Whether to remove the training set from the prediction, by default :obj:`True`. Removing
             the training items means set their scores to :math:`-\infty`.
 
         Returns
@@ -1017,11 +1017,11 @@ class CFGAN(RecSysModel):
         :math:`[2m, l_1, \dots, l_h, 1]` where *m* is the number of items :math:`l_i, i \in [1,h]`
         is the number of nodes of the hidden layer *i*.
     alpha : :obj:`float` [optional]
-        The ZR-coefficient, by default .1.
+        The ZR-coefficient, by default 0.1.
     s_pm : :obj:`float` [optional]
-        The sampling parameter for the partial-masking approach, by default .7.
+        The sampling parameter for the partial-masking approach, by default 0.7.
     s_zr : :obj:`float` [optional]
-        The sampling parameter for the zero-reconstruction regularization, by default .5.
+        The sampling parameter for the zero-reconstruction regularization, by default 0.5.
     opt_conf : :obj:`dict` [optional]
         The optimizer configuration dictionary, by default :obj:`None`.
 
@@ -1451,6 +1451,24 @@ class ADMM_Slim(RecSysModel):
         self.model = torch.from_numpy(self.model).float()
 
     def predict(self, ids_te_users, test_tr, remove_train=True):
+        r"""Prediction using the ADMM_Slim model.
+
+        Parameters
+        ----------
+        ids_te_users : array_like
+            List of the test user indexes.
+        test_tr : :class:`scipy.sparse.csr_matrix` or :class:`numpy.ndarray`
+            Training portion of the test users.
+        remove_train : :obj:`bool` [optional]
+            Whether to remove the training set from the prediction, by default :obj:`True`. Removing
+            the training items means set their scores to :math:`-\infty`.
+
+        Returns
+        -------
+        pred, : :obj:`tuple` with a single element
+            pred : :class:`numpy.ndarray`
+                The items' score (on the columns) for each user (on the rows).
+        """
         pred = self.model[ids_te_users, :]
         if remove_train:
             pred[test_tr.nonzero()] = -np.inf

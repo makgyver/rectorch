@@ -6,6 +6,7 @@ from torch.optim import Adam, SGD, Adagrad, Adadelta, Adamax, AdamW
 import torch
 import cvxopt as co
 import numpy as np
+from scipy.sparse import csr_matrix
 import rectorch
 
 
@@ -111,6 +112,28 @@ def get_data_cfg(ds_name=None):
 
     return cfg
 
+
+def sparse2tensor(sparse_matrix):
+    """Convert a scipy.sparse.csr_matrix to torch.FloatTensor
+
+    Parameters
+    ----------
+    sparse_matrix : :class:`scipy.sparse.csr_matrix`
+        The matrix to convert.
+
+    Returns
+    -------
+    :class:`torch.FloatTensor`
+        The converted matrix.
+    """
+    coo = sparse_matrix.tocoo()
+    values = coo.data
+    indices = np.vstack((coo.row, coo.col))
+    return torch.sparse.FloatTensor(torch.LongTensor(indices),
+                                    torch.FloatTensor(values),
+                                    torch.Size(coo.shape)).to_dense()
+
+
 def prepare_for_prediction(data_input, ground_truth):
     r"""Prepare the data for performing prediction.
 
@@ -135,6 +158,9 @@ def prepare_for_prediction(data_input, ground_truth):
         data_input = data_input.view(data_input.shape[0], -1)
         ground_truth = ground_truth.view(ground_truth.shape[0], -1).cpu().numpy()
         return (data_input,), ground_truth
+    elif isinstance(data_input, torch.FloatTensor) and isinstance(ground_truth, csr_matrix):
+        data_input = data_input.view(data_input.shape[0], -1)
+        return data_input, ground_truth.toarray()
     elif isinstance(data_input, tuple):
         return data_input, ground_truth
     else:

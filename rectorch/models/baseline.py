@@ -4,15 +4,16 @@ import os
 import time
 from collections import Counter
 from scipy.sparse import csr_matrix
+from sklearn.linear_model import ElasticNet
 import torch
 import numpy as np
 import cvxopt as co
 import cvxopt.solvers as solver
 from rectorch.models import RecSysModel
-from rectorch.utils import md_kernel, kernel_normalization, cvxopt_diag
+from rectorch.utils import md_kernel, kernel_normalization, cvxopt_diag, sparse2tensor
 from rectorch import env
 
-__all__ = ['Random', 'Popularity', 'CF_KOMD']
+__all__ = ['Random', 'Popularity', 'CF_KOMD', 'SLIM']
 
 class Random(RecSysModel):
     r"""Random recommender.
@@ -286,6 +287,24 @@ class CF_KOMD(RecSysModel):
                         .format(time.time() - start_time))
 
     def predict(self, users, train_items, remove_train=True):
+        r"""Prediction using the CF_KOMD model.
+
+        Parameters
+        ----------
+        users : array_like
+            List of the test user indexes.
+        train_items : :class:`numpy.ndarray`
+            Training portion of the test users.
+        remove_train : :obj:`bool` [optional]
+            Whether to remove the training set from the prediction, by default :obj:`True`. Removing
+            the training items means set their scores to :math:`-\infty`.
+
+        Returns
+        -------
+        pred, : :obj:`tuple` with a single element
+            pred : :class:`numpy.ndarray`
+                The items' score (on the columns) for each user (on the rows).
+        """
         pred = torch.stack([self.model[u] for u in users])
         if remove_train:
             for u in range(len(users)):
@@ -314,3 +333,179 @@ class CF_KOMD(RecSysModel):
         cfkomd.model = state["model"]
         env.logger.info("Model loaded!")
         return cfkomd
+
+
+class SLIM(RecSysModel):
+    r"""SLIM: Sparse Linear Methods for Top-N Recommender Systems.
+
+    **UNDOCUMENTED** [SLIM]_
+
+    :math:`\operatorname{min}_{\mathbf{w}_{j}} \frac{1}{2} \| \mathbf{a}_{j} -\
+    A \mathbf{w}_{j} \|_{2}^{2} +\frac{\beta}{2}\left\|\mathbf{w}_{j}\right\|_{2}^{2}+\lambda\
+    \left\|\mathbf{w}_{j}\right\|_{1}`
+
+    :math:`\text {subject to} \: \mathbf{w}_{j} \geq \mathbf{0}, \: w_{j, j}=0`
+
+    where ``l1_reg`` is :math:`\lambda` and ``l2_reg`` is :math:`\beta`.
+
+    Parameters
+    ----------
+    l1_reg : :obj:`float`
+        Regularization hyper-parameter for the L1 norm.
+    l2_reg : :obj:`float`
+        Regularization hyper-parameter for the L2 norm.
+
+    Attributes
+    ----------
+    l1_reg : :obj:`float`
+        Regularization hyper-parameter for the L1 norm.
+    l2_reg : :obj:`float`
+        Regularization hyper-parameter for the L2 norm.
+    slim : :class:`sklearn.linear_model.ElasticNet`
+        The elastic net solver.
+    model : :class:`scipy.sparse.csr_matrix`
+        The SLIM model (i.e., :math:`\mathbf{W}`).
+
+    References
+    ----------
+    .. [SLIM] X. Ning and George Karypis. 2011. SLIM: Sparse Linear Methods for Top-N Recommender
+       Systems. In the Proceedings of the IEEE 11th International Conference on Data Mining,
+       Vancouver, BC, 2011, pp. 497-506. DOI: 10.1109/ICDM.2011.134.
+    """
+    def __init__(self,
+                 l1_reg,
+                 l2_reg):
+        super(SLIM, self).__init__()
+        self.l1_reg = l1_reg
+        self.l2_reg = l2_reg
+
+        alpha = self.l1_reg + self.l2_reg
+        l1_ratio = self.l1_reg / alpha
+        self.slim = ElasticNet(alpha=alpha,
+                               l1_ratio=l1_ratio,
+                               positive=True,
+                               fit_intercept=False,
+                               copy_X=False,
+                               precompute=True,
+                               selection='random',
+                               max_iter=300,
+                               tol=1e-3)
+        self.model = None
+
+    def train(self, data_sampler, verbose=1):
+        """Training procedure of SLIM.
+
+        Parameters
+        ----------
+        data_sampler : :class:`samplers.SparseDummySampler`
+            The sampler object that load the training/validation set in mini-batches.
+        verbose : :obj:`int` [optional]
+            The level of verbosity of the logging, by default 1. The level can have any integer
+            value greater than 0. However, after reaching a maximum (that depends on the size of
+            the training set) verbosity higher values will not have any effect.
+        """
+        start_time = time.time()
+        train_matrix = data_sampler.data_tr.tocsc()
+        num_items = train_matrix.shape[1]
+
+        dataBlock = 10000000
+        rows = np.zeros(dataBlock, dtype=np.int32)
+        cols = np.zeros(dataBlock, dtype=np.int32)
+        values = np.zeros(dataBlock, dtype=np.float32)
+
+        count = 0
+        log_delay = max(100, len(num_items) // 10**verbose)
+        batch_start_time = time.time()
+        for item in range(num_items):
+            if (item + 1) % log_delay == 0:
+                elapsed = time.time() - batch_start_time
+                env.logger.info('| item {}/{} | ms/user {:.2f} |'
+                                .format(item + 1, len(num_items), elapsed * 1000 / log_delay))
+                batch_start_time = time.time()
+
+            y = train_matrix[:, item].toarray()
+            start_pos = train_matrix.indptr[item]
+            end_pos = train_matrix.indptr[item + 1]
+
+            current_item_data_backup = train_matrix.data[start_pos : end_pos].copy()
+            train_matrix.data[start_pos : end_pos] = 0.0
+
+            self.slim.fit(train_matrix, y)
+
+            nnz_coef_index = self.slim.sparse_coef_.indices
+            nnz_coef_value = self.slim.sparse_coef_.data
+
+            len_nnz_value = len(nnz_coef_value) - 1
+            relevant_items = (-nnz_coef_value).argpartition(len_nnz_value)[0 : len_nnz_value]
+            relevant_items_sorting = np.argsort(-nnz_coef_value[relevant_items])
+            ranking = relevant_items[relevant_items_sorting]
+
+            for index in range(len(ranking)):
+                if count == len(rows):
+                    rows = np.concatenate((rows, np.zeros(dataBlock, dtype=np.int32)))
+                    cols = np.concatenate((cols, np.zeros(dataBlock, dtype=np.int32)))
+                    values = np.concatenate((values, np.zeros(dataBlock, dtype=np.float32)))
+
+                rows[count] = nnz_coef_index[ranking[index]]
+                cols[count] = item
+                values[count] = nnz_coef_value[ranking[index]]
+
+                count += 1
+
+            train_matrix.data[start_pos:end_pos] = current_item_data_backup
+
+        self.model = csr_matrix((values[:count], (rows[:count], cols[:count])),
+                                shape=(num_items, num_items),
+                                dtype=np.float32)
+
+        env.logger.info('| training complete | total training time {:.2f} s |'
+                        .format(time.time() - start_time))
+
+    def predict(self, train_items, remove_train=True):
+        r"""Prediction using the SLIM model.
+
+        Parameters
+        ----------
+        train_items : :class:`numpy.ndarray`
+            Training portion of the test users.
+        remove_train : :obj:`bool` [optional]
+            Whether to remove the training set from the prediction, by default :obj:`True`. Removing
+            the training items means set their scores to :math:`-\infty`.
+
+        Returns
+        -------
+        pred, : :obj:`tuple` with a single element
+            pred : :class:`numpy.ndarray`
+                The items' score (on the columns) for each user (on the rows).
+        """
+        preds = (train_items * self.model)
+        preds = sparse2tensor(preds)
+        if remove_train:
+            preds[train_items.nonzero()] = -np.inf
+        return (preds,)
+
+    def save_model(self, filepath):
+        state = {'l1_reg': self.l1_reg,
+                 'l2_reg': self.l2_reg,
+                 'model_data' : self.model.data,
+                 'model_indices' : self.model.indices,
+                 'model_indptr' : self.model.indptr,
+                 'model_shape' : self.model.shape
+                }
+        env.logger.info("Saving SLIM model to %s...", filepath)
+        torch.save(state, filepath)
+        env.logger.info("Model saved!")
+
+    @classmethod
+    def load_model(cls, filepath):
+        assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
+        env.logger.info("Loading SLIM model from %s...", filepath)
+        state = torch.load(filepath)
+        slim = SLIM(l1_reg=state['l1_reg'],
+                    l2_reg=state['l2_reg'])
+        slim.model = csr_matrix((state['model_data'],
+                                 state['model_indices'],
+                                 state['model_indptr']),
+                                shape=state['model_shape'])
+        env.logger.info("Model loaded!")
+        return slim
