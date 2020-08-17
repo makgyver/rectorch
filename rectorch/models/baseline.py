@@ -225,7 +225,7 @@ class CF_KOMD(RecSysModel):
 
         Parameters
         ----------
-        data_sampler : :class:`samplers.ArrayDummySampler`
+        data_sampler : :class:`rectorch.samplers.ArrayDummySampler`
             The sampler object that load the training/validation set in mini-batches.
         only_test : :obj:`bool` [optional]
             Whether to build the model only for the test users, by default :obj:`False`.
@@ -339,14 +339,13 @@ class SLIM(RecSysModel):
     r"""SLIM: Sparse Linear Methods for Top-N Recommender Systems.
 
     The model utilized by SLIM [SLIM]_ can be presented as
-
     :math:`\tilde{\mathbf{A}} = \mathbf{A}\mathbf{W}`
+    where :math:`\mathbf{A}` is the rating matrix, :math:`\mathbf{W}` is an :math:`n \times n`
+    sparse matrix of aggregation coefficients, and where each row of :math:`\tilde{\mathbf{A}}`
+    represents the recommendation scores on all items for a user.
 
-    where :math:`A` is the rating matrix, :math:`W` is an :math:`n \times n` sparse matrix of
-    aggregation coefficients, and where each row of :math:`\tilde{\mathbf{A}}` represents the
-    recommendation scores on all items for a user.
-
-    The column of :math:`W` are learned independently by solving the following optimization problem:
+    The column of :math:`\mathbf{W}` are learned independently by solving the following optimization
+    problem:
 
     :math:`\operatorname{min}_{\mathbf{w}_{j}} \frac{1}{2} \| \mathbf{a}_{j} -\
     A \mathbf{w}_{j} \|_{2}^{2} +\frac{\beta}{2}\left\|\mathbf{w}_{j}\right\|_{2}^{2}+\lambda\
@@ -405,7 +404,7 @@ class SLIM(RecSysModel):
 
         Parameters
         ----------
-        data_sampler : :class:`samplers.SparseDummySampler`
+        data_sampler : :class:`rectorch.samplers.SparseDummySampler`
             The sampler object that load the training/validation set in mini-batches.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
@@ -422,7 +421,7 @@ class SLIM(RecSysModel):
         values = np.zeros(data_block, dtype=np.float32)
 
         count = 0
-        log_delay = max(100, len(num_items) // 10**verbose)
+        log_delay = max(100, num_items // 10**verbose)
         batch_start_time = time.time()
         for item in range(num_items):
             if (item + 1) % log_delay == 0:
@@ -466,7 +465,7 @@ class SLIM(RecSysModel):
         env.logger.info('| training complete | total training time {:.2f} s |'
                         .format(time.time() - start_time))
 
-    def predict(self, train_items, remove_train=True):
+    def predict(self, users, train_items, remove_train=True):
         r"""Prediction using the SLIM model.
 
         Parameters

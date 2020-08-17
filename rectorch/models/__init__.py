@@ -93,7 +93,7 @@ class RecSysModel():
 
         Returns
         -------
-        :class:`RecSysModel`
+        :class:`rectorch.models.RecSysModel`
             A recommendation model.
 
         Raises

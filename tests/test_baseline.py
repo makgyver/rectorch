@@ -6,9 +6,11 @@ import tempfile
 import torch
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
-from rectorch.models.baseline import Random, Popularity, CF_KOMD
+from rectorch.utils import prepare_for_prediction
+from rectorch.models.baseline import Random, Popularity, CF_KOMD, SLIM
 from rectorch.data import Dataset
 from rectorch.samplers import DictDummySampler, ArrayDummySampler, SparseDummySampler,\
     TensorDummySampler
@@ -167,3 +169,41 @@ def test_cfkomd():
     cfkomd2 = CF_KOMD.load_model(tmp.name)
     assert torch.all(cfkomd2.model[0] == cfkomd.model[0])
     assert torch.all(cfkomd2.model[1] == cfkomd.model[1])
+
+
+def test_slim():
+    """Test SLIM.
+    """
+    values = [1.] * 7
+    rows = [0, 0, 1, 1, 1, 2, 2]
+    cols = [0, 1, 0, 1, 2, 1, 3]
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {0:0, 1:1, 2:2}
+    iids = {0:0, 1:1, 2:2, 3:3}
+    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+
+    slim = SLIM(l1_reg=.1, l2_reg=.1)
+    assert slim.l1_reg == .1
+    assert slim.l2_reg == .1
+    assert slim.model is None
+
+    sds = SparseDummySampler(data)
+    slim = SLIM(l1_reg=.1, l2_reg=.1)
+    slim.train(sds)
+
+    sds.test()
+    p = slim.predict(*prepare_for_prediction(*next(iter(sds))))[0]
+    assert isinstance(p, torch.FloatTensor)
+    assert p.shape == torch.Size([1, 4])
+    assert p[0, 1] == -np.inf
+
+    tmp = tempfile.NamedTemporaryFile()
+    slim.save_model(tmp.name)
+
+    slim2 = SLIM(l1_reg=.3, l2_reg=.2)
+    slim2 = SLIM.load_model(tmp.name)
+    assert (slim2.model != slim.model).nnz == 0
+    assert slim2.l1_reg == .1
+    assert slim2.l2_reg == .1
