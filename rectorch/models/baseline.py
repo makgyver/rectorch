@@ -338,7 +338,15 @@ class CF_KOMD(RecSysModel):
 class SLIM(RecSysModel):
     r"""SLIM: Sparse Linear Methods for Top-N Recommender Systems.
 
-    **UNDOCUMENTED** [SLIM]_
+    The model utilized by SLIM [SLIM]_ can be presented as
+
+    :math:`\tilde{\mathbf{A}} = \mathbf{A}\mathbf{W}`
+
+    where :math:`A` is the rating matrix, :math:`W` is an :math:`n \times n` sparse matrix of
+    aggregation coefficients, and where each row of :math:`\tilde{\mathbf{A}}` represents the
+    recommendation scores on all items for a user.
+
+    The column of :math:`W` are learned independently by solving the following optimization problem:
 
     :math:`\operatorname{min}_{\mathbf{w}_{j}} \frac{1}{2} \| \mathbf{a}_{j} -\
     A \mathbf{w}_{j} \|_{2}^{2} +\frac{\beta}{2}\left\|\mathbf{w}_{j}\right\|_{2}^{2}+\lambda\
@@ -408,10 +416,10 @@ class SLIM(RecSysModel):
         train_matrix = data_sampler.data_tr.tocsc()
         num_items = train_matrix.shape[1]
 
-        dataBlock = 10000000
-        rows = np.zeros(dataBlock, dtype=np.int32)
-        cols = np.zeros(dataBlock, dtype=np.int32)
-        values = np.zeros(dataBlock, dtype=np.float32)
+        data_block = 10000000
+        rows = np.zeros(data_block, dtype=np.int32)
+        cols = np.zeros(data_block, dtype=np.int32)
+        values = np.zeros(data_block, dtype=np.float32)
 
         count = 0
         log_delay = max(100, len(num_items) // 10**verbose)
@@ -426,30 +434,27 @@ class SLIM(RecSysModel):
             y = train_matrix[:, item].toarray()
             start_pos = train_matrix.indptr[item]
             end_pos = train_matrix.indptr[item + 1]
-
-            current_item_data_backup = train_matrix.data[start_pos : end_pos].copy()
-            train_matrix.data[start_pos : end_pos] = 0.0
+            current_item_data_backup = train_matrix.data[start_pos:end_pos].copy()
+            train_matrix.data[start_pos:end_pos] = 0.0
 
             self.slim.fit(train_matrix, y)
 
             nnz_coef_index = self.slim.sparse_coef_.indices
             nnz_coef_value = self.slim.sparse_coef_.data
-
             len_nnz_value = len(nnz_coef_value) - 1
-            relevant_items = (-nnz_coef_value).argpartition(len_nnz_value)[0 : len_nnz_value]
+            relevant_items = (-nnz_coef_value).argpartition(len_nnz_value)[0:len_nnz_value]
             relevant_items_sorting = np.argsort(-nnz_coef_value[relevant_items])
             ranking = relevant_items[relevant_items_sorting]
 
             for index in range(len(ranking)):
                 if count == len(rows):
-                    rows = np.concatenate((rows, np.zeros(dataBlock, dtype=np.int32)))
-                    cols = np.concatenate((cols, np.zeros(dataBlock, dtype=np.int32)))
-                    values = np.concatenate((values, np.zeros(dataBlock, dtype=np.float32)))
+                    rows = np.concatenate((rows, np.zeros(data_block, dtype=np.int32)))
+                    cols = np.concatenate((cols, np.zeros(data_block, dtype=np.int32)))
+                    values = np.concatenate((values, np.zeros(data_block, dtype=np.float32)))
 
                 rows[count] = nnz_coef_index[ranking[index]]
                 cols[count] = item
                 values[count] = nnz_coef_value[ranking[index]]
-
                 count += 1
 
             train_matrix.data[start_pos:end_pos] = current_item_data_backup
