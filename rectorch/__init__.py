@@ -33,9 +33,9 @@ class Environment():
 
     def _check_default(self):
         if self._default_env:
-            out_str = ("You are using the default rectorch environment."
-                       "If you are aware of this then it is ok, however to remove this"
-                       "warning call 'init()'. Otherwise, please check the"
+            out_str = ("You are using the default rectorch environment. "
+                       "If you are aware of this then it is ok, however to remove this "
+                       "warning call 'init()'. Otherwise, please check the "
                        "documentation for properly configure the rectorch environment.")
             self._logger.warning(out_str)
 

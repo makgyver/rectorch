@@ -395,7 +395,7 @@ class AETrainer(TorchNNTrainer):
             x_tensor = x.to(self.device)
             recon_x = self.network(x_tensor)
             if remove_train:
-                recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
+                recon_x[torch.nonzero(x_tensor, as_tuple=True)] = -np.inf
             return (recon_x, )
 
 
@@ -504,7 +504,7 @@ class VAE(AETrainer):
             x_tensor = x.to(self.device)
             recon_x, mu, logvar = self.network(x_tensor)
             if remove_train:
-                recon_x[tuple(x_tensor.nonzero().t())] = -np.inf
+                recon_x[torch.nonzero(x_tensor, as_tuple=True)] = -np.inf
             return recon_x, mu, logvar
 
 
@@ -839,7 +839,7 @@ class CMultiVAE(MultiVAE):
             x_tensor = x.to(self.device)
             recon_x, mu, logvar = self.network(x_tensor)
             if remove_train:
-                recon_x[tuple(x_tensor[:, :-cond_dim].nonzero().t())] = -np.inf
+                recon_x[torch.nonzero(x_tensor[:, :-cond_dim], as_tuple=True)] = -np.inf
             return recon_x, mu, logvar
 
 
@@ -1240,7 +1240,7 @@ class CFGAN(RecSysModel):
             x_tensor = x.to(self.device)
             pred = self.generator(x_tensor)
             if remove_train:
-                pred[tuple(x_tensor.nonzero().t())] = -np.inf
+                pred[torch.nonzero(x_tensor, as_tuple=True)] = -np.inf
         return (pred, )
 
     def __str__(self):
