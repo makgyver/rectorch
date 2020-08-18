@@ -487,11 +487,19 @@ class DataSampler(Sampler):
             self.sparse_data_tr = self._sptr
             self.sparse_data_te = None
         elif self.mode == "valid":
-            self.sparse_data_tr = self._spval[0]
-            self.sparse_data_te = self._spval[1]
+            if isinstance(self._spval, tuple):
+                self.sparse_data_tr = self._spval[0]
+                self.sparse_data_te = self._spval[1]
+            else:
+                self.sparse_data_tr = self._sptr
+                self.sparse_data_te = self._spval
         else:
-            self.sparse_data_tr = self._spte[0]
-            self.sparse_data_te = self._spte[1]
+            if isinstance(self._spte, tuple):
+                self.sparse_data_tr = self._spte[0]
+                self.sparse_data_te = self._spte[1]
+            else:
+                self.sparse_data_tr = self._sptr
+                self.sparse_data_te = self._spte
 
         if batch_size is not None:
             self.batch_size = batch_size

@@ -33,15 +33,16 @@ class Environment():
 
     def _check_default(self):
         if self._default_env:
-            self._logger.warning("""You are using the default rectorch environment.\
-                                  If you are aware of this then it is ok, however to remove this\
-                                  warning call 'init()'. Otherwise, please check the\
-                                  documentation for properly configure the rectorch environment.""")
+            out_str = ("You are using the default rectorch environment."
+                       "If you are aware of this then it is ok, however to remove this"
+                       "warning call 'init()'. Otherwise, please check the"
+                       "documentation for properly configure the rectorch environment.")
+            self._logger.warning(out_str)
 
     def _check_for_cuda(self):
         if torch.cuda.is_available() and self._device.type == "cpu":
-            self._logger.warning("You have a CUDA device,\
-                                  so you should probably set the device to 'cuda'.")
+            out_str = "You have a CUDA device, so you should probably set the device to 'cuda'."
+            self._logger.warning(out_str)
 
     def reset(self):
         r"""Reset the rectorch environment to the standard configuration.
