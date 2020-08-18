@@ -427,7 +427,7 @@ class SLIM(RecSysModel):
             if (item + 1) % log_delay == 0:
                 elapsed = time.time() - batch_start_time
                 env.logger.info('| item {}/{} | ms/user {:.2f} |'
-                                .format(item + 1, len(num_items), elapsed * 1000 / log_delay))
+                                .format(item + 1, num_items, elapsed * 1000 / log_delay))
                 batch_start_time = time.time()
 
             y = train_matrix[:, item].toarray()
@@ -482,6 +482,7 @@ class SLIM(RecSysModel):
             pred : :class:`numpy.ndarray`
                 The items' score (on the columns) for each user (on the rows).
         """
+        assert len(users) == train_items.shape[0]
         preds = (train_items * self.model)
         preds = sparse2tensor(preds)
         if remove_train:

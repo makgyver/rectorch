@@ -194,10 +194,12 @@ def test_slim():
     slim.train(sds)
 
     sds.test()
-    p = slim.predict(*prepare_for_prediction(*next(iter(sds))))[0]
+    t = prepare_for_prediction(*next(iter(sds)))
+    p = slim.predict(*t[0])[0]
     assert isinstance(p, torch.FloatTensor)
     assert p.shape == torch.Size([1, 4])
-    assert p[0, 1] == -np.inf
+    assert p[0, 0] == -np.inf
+    assert p[0, 1] != -np.inf
 
     tmp = tempfile.NamedTemporaryFile()
     slim.save_model(tmp.name)
