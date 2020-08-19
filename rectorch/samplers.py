@@ -5,8 +5,16 @@ The ``samplers`` module is inspired by the :class:`torch.utils.data.DataLoader` 
 however, is not really efficient because it outputs a single example at a time. The idea behind the
 samplers defined in this module is to treat the data set at batches highly improving the efficiency.
 Each new sampler must extend the base class :class:`Sampler` implementing all the abstract
-methods, in particular :meth:`samplers.Sampler._set_mode`, :meth:`samplers.Sampler.__len__` and
-:meth:`samplers.Sampler.__iter__`.
+methods, in particular :meth:`Sampler._set_mode`,
+:meth:`Sampler.__len__` and :meth:`Sampler.__iter__`.
+
+A sampler object provides the dataset to a model during training, validation and test.
+In its most conventional form, a sampler delivers batches of samples that are used to train/test the
+model. However, it is also necessary when the dataset is used as a single batch (see the
+:class:`rectorch.samplers.DummySampler` family). A sampler can be in three different states:
+``train``, ``valid``, and ``test``. These states represent which kind of data the sampler will
+deliver when you cycle through it. To change the sampler's state call the ``train()``, ``valid()``,
+and ``test()`` methods.
 """
 import importlib
 import numpy as np
@@ -17,8 +25,6 @@ from torch.autograd import Variable
 __all__ = ['Sampler', 'DataSampler', 'DummySampler', 'DictDummySampler', 'ArrayDummySampler',\
     'SparseDummySampler', 'TensorDummySampler', 'ConditionedDataSampler',\
     'EmptyConditionedDataSampler', 'CFGAN_Sampler', 'SVAE_Sampler']
-
-#TODO document the way sampler works
 
 
 class Sampler():
@@ -42,8 +48,7 @@ class Sampler():
     Notes
     -----
     Each new sampler must extend this base class implementing all the abstract
-    special methods, in particular :meth:`rectorch.samplers.Sampler.__len__` and
-    :meth:`rectorch.samplers.Sampler.__iter__`.
+    special methods, in particular :meth:`Sampler.__len__` and :meth:`Sampler.__iter__`.
     """
     def __init__(self, data, mode="train", batch_size=1):
         self.data = data

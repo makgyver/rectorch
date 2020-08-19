@@ -204,7 +204,7 @@ class GridSearch(RecSysModel):
 
     Parameters
     ----------
-    model_class : class model from :mod:`rectorch.models.nn` module
+    model_class : class model from :mod:`rectorch.models` module
         The class of the model.
     params_grid : :obj:`dict`
         Dictionary containing the hyper-parametrs' sets for constructing the grid. A key represents
@@ -220,7 +220,7 @@ class GridSearch(RecSysModel):
 
     Attributes
     ----------
-    model_class : class model from :mod:`rectorch.models.nn` module
+    model_class : model class from :mod:`rectorch.models.nn` module
         The class of the model.
     params_grid : :obj:`dict`
         Dictionary containing the hyper-parametrs' sets for constructing the grid. A key represents
@@ -338,8 +338,39 @@ class GridSearch(RecSysModel):
         return self.best_model.predict(*args, **kwargs)
 
     def save_model(self, filepath):
-        return self.best_model.save_model(filepath)
+        r"""Save the best model to file.
 
-    #TODO review load_model
-    def load_model(self, filepath):
-        return self.best_model.load_model(filepath)
+        Parameters
+        ----------
+        filepath : :obj:`str`
+            String representing the path to the file to save the model.
+
+        Notes
+        -----
+        Using the ``save_model`` method of the ``GridSearch`` class is actually the same as invoking
+        the ``save_model`` of the best model.
+        """
+        self.best_model.save_model(filepath)
+
+    @classmethod
+    def load_model(cls, filepath, model_class):
+        r"""Load a model from file.
+
+        Parameters
+        ----------
+        filepath : :obj:`str`
+            String representing the path to the file where the model is saved.
+        model_class : model_class : model class from :mod:`rectorch.models` module
+            The class of the model.
+
+        Returns
+        -------
+        :class:`rectorch.models.RecSysModel`
+            A recommendation model.
+
+        Notes
+        -----
+        Using the ``load_model`` method of the ``GridSearch`` class is actually the same as invoking
+        the ``load_model`` of the model class.
+        """
+        return model_class.load_model(filepath)
