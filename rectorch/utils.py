@@ -20,7 +20,7 @@ def init_optimizer(params, opt_cfg=None):
     ----------
     params: iterable
         Iterable of parameters to optimize or dicts defining parameter groups.
-    opt_cfg : :obj:`dict` or :obj:`None`, optional
+    opt_cfg : :obj:`dict` or :obj:`None` [optional]
         Dictionary containing the configuration for the optimizer, by default :obj:`None`.
         If :obj:`None` a default optimizer is returned, i.e., ``torch.optim.Adam(params)``.
     """

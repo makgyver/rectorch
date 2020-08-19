@@ -237,7 +237,7 @@ class MultiDAE_net(AE_net):
         See :class:`AE_net`.
     enc_dims : :obj:`list`, array_like of :obj:`int` or None [optional]
         See :class:`AE_net`.
-    dropout : :obj:`float`, optional
+    dropout : :obj:`float` [optional]
         The dropout probability (in the range [0,1]), by default 0.5.
 
     Attributes
@@ -443,7 +443,7 @@ class MultiVAE_net(VAE_net):
         See :class:`AE_net`.
     enc_dims : :obj:`list`, array_like of :obj:`int` or None [optional]
         See :class:`AE_net`.
-    dropout : :obj:`float`, optional
+    dropout : :obj:`float` [optional]
         See :class:`VAE_net`
 
     Attributes
@@ -515,7 +515,7 @@ class CMultiVAE_net(MultiVAE_net):
         See :class:`AE_net`.
     enc_dims : :obj:`list`, array_like of :obj:`int` or None [optional]
         See :class:`AE_net`.
-    dropout : :obj:`float`, optional
+    dropout : :obj:`float` [optional]
         See :class:`VAE_net`.
 
     Attributes

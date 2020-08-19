@@ -61,7 +61,7 @@ class Dataset():
         The test set data frame. When the dataset is vertically splitted the test
         set is a pair of data frames that correspond to the training part and the test
         part of the set.
-    numerize : :obj:`bool`, optional
+    numerize : :obj:`bool` [optional]
         Whether the user/item ids must be re-mapped, by default :obj:`True`.
 
     Attributes
