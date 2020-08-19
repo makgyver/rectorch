@@ -846,7 +846,7 @@ class SVAE_Sampler(Sampler):
                 self.sparse_data_tr = self._dictr
                 self.sparse_data_te = self._dicval
         else:
-            if isinstance(self._spte, tuple):
+            if isinstance(self._dicte, tuple):
                 self.dict_data_tr = self._dicte[0]
                 self.dict_data_te = self._dicte[1]
             else:
