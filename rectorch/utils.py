@@ -231,14 +231,18 @@ def cvxopt_diag(vec):
 def md_kernel(X, degree=2):
     r"""Monotone disjunctive kernel (mD-kernel).
 
-    Returns the (boolean) monotone disjunctive kernel of degree ``d``.
+    Returns the (boolean) monotone disjunctive kernel of degree ``d``. Given two n-dimensional
+    binary vectors :math:`\mathbf{x}` and :math:`\mathbf{z}` the mD-kernel of degree :math:`d` is
+    defined as
+
+    :math:`K_\vee^d (\mathbf{x}, \mathbf{z}) = \binom{n}{d} - \binom{n - \|\mathbf{x}\|_1}{d} -\
+    \binom{n - \|\mathbf{z}\|_1}{d} + \binom{n - \|\mathbf{x}\|_1 - \|\mathbf{z}\|_1 -\
+    \mathbf{x}^\top \mathbf{z}}{d}`.
 
     Parameters
     ----------
-    K0 : :class:`numpy.ndarray`
-        The linear kernel between the examples.
-    n : :obj:`int`
-        The dimension (i.e., number of features) of the examples.
+    X : :class:`numpy.ndarray`
+        The examples matrix.
     degree : :obj:`int` [optional]
         The degree (integer >= 1) of the mD-kernel, default 2.
 
@@ -272,16 +276,16 @@ def md_kernel(X, degree=2):
 def kernel_normalization(K):
     r"""Apply the kernel normalization.
 
-    Given the kernel **K** its normalized version can be computed as
+    Given the kernel :math:`\mathbf{K}` its normalized version can be computed as
 
-    :math:`\widetilde{\mathbf{K}} = \frac{\mathbf{K}}{\sqrt{\mathbf{d}\mathbf{d}^\intercal}}`
+    :math:`\tilde{\mathbf{K}} = \frac{\mathbf{K}}{\sqrt{\mathbf{d}^\top \mathbf{d}}}`
 
-    where **d** is the diagonal (vector) of **K**.
+    where :math:`\mathbf{d}` is the diagonal (vector) of :math:`\mathbf{K}`.
 
     Parameters
     ----------
-    :class:`numpy.ndarray`
-        The kernel to normlize.
+    K : :class:`numpy.ndarray`
+        The kernel to normalize.
 
     Returns
     -------
