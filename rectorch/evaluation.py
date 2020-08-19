@@ -71,7 +71,7 @@ class ValidFunc():
 
 
 def evaluate(model, test_sampler, metric_list):
-    r"""Evaluate the given method.
+    r"""Evaluate the given model.
 
     The ``model`` evaluation is performed with all the provided metrics in ``metric_list``.
     The test set is loaded through the provided :class:`rectorch.samplers.Sampler`

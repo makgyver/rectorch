@@ -839,11 +839,19 @@ class SVAE_Sampler(Sampler):
             self.dict_data_tr = self._dictr
             self.dict_data_te = None
         elif self.mode == "valid":
-            self.dict_data_tr = self._dicval[0]
-            self.dict_data_te = self._dicval[1]
+            if isinstance(self._dicval, tuple):
+                self.dict_data_tr = self._dicval[0]
+                self.dict_data_te = self._dicval[1]
+            else:
+                self.sparse_data_tr = self._dictr
+                self.sparse_data_te = self._dicval
         else:
-            self.dict_data_tr = self._dicte[0]
-            self.dict_data_te = self._dicte[1]
+            if isinstance(self._spte, tuple):
+                self.dict_data_tr = self._dicte[0]
+                self.dict_data_te = self._dicte[1]
+            else:
+                self.sparse_data_tr = self._dictr
+                self.sparse_data_te = self._dicte
 
     def __len__(self):
         return len(self.dict_data_tr)
