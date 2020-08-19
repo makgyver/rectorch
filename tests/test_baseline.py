@@ -6,7 +6,6 @@ import tempfile
 import torch
 import numpy as np
 import pandas as pd
-from scipy.sparse import csr_matrix
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.utils import prepare_for_prediction

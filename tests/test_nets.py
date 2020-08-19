@@ -6,8 +6,8 @@ import pytest
 import torch
 sys.path.insert(0, os.path.abspath('..'))
 
-from rectorch.nets import NeuralNet, AE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net,\
-    CFGAN_D_net, SVAE_net
+from rectorch.nets import NeuralNet, AE_net, CDAE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net,\
+     CFGAN_G_net, CFGAN_D_net, SVAE_net
 
 def test_NeuralNet():
     """Test the NeuralNet class
@@ -44,6 +44,26 @@ def test_AE_net():
 
     assert hasattr(net, "enc_dims"), "Missing enc_dims attribute"
     assert hasattr(net, "dec_dims"), "Missing dec_dims attribute"
+
+def test_CDAE_net():
+    """Test the CDAE_net class
+    """
+    net = CDAE_net(2, 2, 2)
+    x = torch.FloatTensor([[1, 1, 1, 1], [2, 2, 3, 3]])
+    y = net(x)
+
+    assert hasattr(net, "n_items"), "Missing n_items attribute"
+    assert hasattr(net, "n_users"), "Missing n_users attribute"
+    assert hasattr(net, "dropout"), "Missing dropout attribute"
+    assert hasattr(net, "latent_size"), "Missing latent_size attribute"
+    assert hasattr(net, "sigmoid_hidden"), "Missing sigmoid_hidden attribute"
+    assert hasattr(net, "sigmoid_out"), "Missing sigmoid_out attribute"
+    assert isinstance(net.dropout, torch.nn.Dropout), "dropout must be a torch.nn.Dropout"
+    assert net.dropout.p == .5, "dropout probability must be equal to .5"
+    assert not net.sigmoid_hidden
+    assert not net.sigmoid_out
+    assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
+    assert y.shape == torch.Size([2, 2])
 
 def test_MultiDAE_net():
     """Test the MultiDAE_net class

@@ -116,7 +116,6 @@ class AE_net(NeuralNet):
         return self.decode(z)
 
 
-#TODO check this network
 class CDAE_net(AE_net):
     r"""Collaborative Deonising AutoEncoder (CDAE).
 
@@ -130,10 +129,16 @@ class CDAE_net(AE_net):
         Number of items.
     n_users : :obj:`int`
         Number of users.
-    latent_size : :obj:`int`, optional
+    latent_size : :obj:`int` [optional]
         Dimension of the latent space, by default 50.
-    dropout : :obj:`float`, optional
+    dropout : :obj:`float` [optional]
         Dropout (noise) percentage defined in the interval [0,1], by default 0.5.
+    sigmoid_hidden : :obj:`bool` [optional]
+        Whether the activation function of the output layer of the encoder is a sigmoid, default
+        :obj:`False`.
+    sigmoid_out : :obj:`bool` [optional]
+        Whether the activation function of the output layer of the decoder is a sigmoid, default
+        :obj:`False`.
 
     References
     ----------
@@ -143,7 +148,13 @@ class CDAE_net(AE_net):
        and Data Mining (WSDM ’16). Association for Computing Machinery,
        New York, NY, USA, 153–162. DOI: https://doi.org/10.1145/2835776.2835837
     """
-    def __init__(self, n_items, n_users, latent_size=50, dropout=0.5):
+    def __init__(self,
+                 n_items,
+                 n_users,
+                 latent_size=50,
+                 dropout=0.5,
+                 sigmoid_hidden=False,
+                 sigmoid_out=False):
         super(CDAE_net, self).__init__([latent_size, n_items], [n_items + n_users, latent_size])
         self.dropout = nn.Dropout(dropout)
 
@@ -152,6 +163,8 @@ class CDAE_net(AE_net):
         self.latent_size = latent_size
         self.enc_layer = nn.Linear(self.enc_dims[0], self.enc_dims[1])
         self.dec_layer = nn.Linear(self.dec_dims[0], self.dec_dims[1])
+        self.sigmoid_hidden = sigmoid_hidden
+        self.sigmoid_out = sigmoid_out
 
         self.init_weights()
 
@@ -176,11 +189,12 @@ class CDAE_net(AE_net):
             x[:self.n_items] *= 1. / (1. - self.dropout.p)
             x[:self.n_items] = self.dropout(x[:self.n_items])
 
-        x = torch.sigmoid(self.enc_layer(x))
-        return x
+        x = self.enc_layer(x)
+        return torch.sigmoid(x) if self.sigmoid_hidden else x
 
     def decode(self, z):
-        return torch.sigmoid(self.dec_layer(z))
+        z = self.dec_layer(z)
+        return torch.sigmoid(z) if self.sigmoid_out else z
 
     def init_weights(self):
         r"""Initialize the weights of the network.
@@ -202,7 +216,9 @@ class CDAE_net(AE_net):
                 "dec_dims" : self.dec_dims,
                 "n_items" : self.n_items,
                 "n_users" : self.n_users,
-                "dropout" : self.dropout.p
+                "dropout" : self.dropout.p,
+                "sigmoid_hidden" : self.sigmoid_hidden,
+                "sigmoid_out" : self.sigmoid_out
             }
         }
         return state

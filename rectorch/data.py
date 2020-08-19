@@ -634,19 +634,19 @@ class DataProcessing:
         :attr:`cfg`. The splitting procedure follows a specific pipeline:
 
         1. Split the users in training, validation and test sets;
-        2. (In case of vertical splitting) Split the validation and test set user ratings\
+        2. (In case of vertical splitting) Split the validation and test set user ratings \
             in training and test items according to ``test_prop``;
         3. Returns the corresponding :class:`Dataset` object.
 
-        .. warning:: In step (1) there is the possibility that users in the validation or test set\
-           have less than 2 ratings making step (2) inconsistent for those users. For this reason,\
+        .. warning:: In step (1) there is the possibility that users in the validation or test set \
+           have less than 2 ratings making step (2) inconsistent for those users. For this reason, \
            this set of users is simply discarded.
 
-        .. warning:: In step (2) there is the possibility that users in the validation or test set\
-           have a number of items which could cause problems in applying the division between\
-           training items and test items (e.g., users with 2 ratings and ``test_prop`` = 0.1).\
-           In these cases, it is always guaranteed that there is at least one item in the test part\
-           of the users.
+        .. warning:: In step (2) there is the possibility that users in the validation or test set \
+           have a number of items which could cause problems in applying the division between \
+           training items and test items (e.g., users with 2 ratings and ``test_prop`` = 0.1). \
+           In these cases, it is always guaranteed that there is at least one item in the test \
+           part of the users.
 
         Parameters
         ----------
