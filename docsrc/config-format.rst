@@ -35,6 +35,7 @@ The ``splitting`` options are the following:
 * ``valid_size``: if float is considered as the portion of ratings (if horizontal split) or users (if vertical split) to consider in the validation set. In the case of vertical splitting the value can be also an integer that indicates the number of users in the validation set;
 * ``test_size``: if float is considered as the portion of ratings (if horizontal split) or users (if vertical split) to consider in the test set. In the case of vertical splitting the value can be also an integer that indicates the number of users in the test set;
 * ``test_prop``: (used only in the case of vertical splitting) float in the range (0,1) which represents the proportion of items of the test users that are considered as test items (optional, default 0.2).
+* ``cv``: whether to split the dataset in a cross-validationn fashion. If 'cv' is provided and it is > 1 then the splitting procedure returns a list of datasets. Note that in this case when the horizontal splitting is performed the default values of both 'shuffle' and 'sort_by' are used.
 
 This is an example of a valid data configuration file:
 
@@ -56,7 +57,8 @@ This is an example of a valid data configuration file:
             "shuffle": 1,
             "valid_size": 100,
             "test_size": 100,
-            "test_prop": 0.2
+            "test_prop": 0.2,
+            "cv": 1
         }
     }
 

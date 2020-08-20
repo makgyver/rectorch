@@ -673,17 +673,41 @@ class DataProcessing:
         """
         return self.split(self.process())
 
-    def _split(self, data, split_type, valid_size, test_size, test_prop, sort_by, shuffle, seed):
+    def _split(self,
+               data,
+               split_type,
+               valid_size,
+               test_size,
+               test_prop,
+               sort_by,
+               shuffle,
+               seed,
+               cv=1):
+        assert isinstance(cv, int) and cv >= 1
         if split_type == "horizontal":
-            return self._horizontal_split(data, valid_size, test_size, sort_by, shuffle, seed)
+            if cv == 1:
+                return self._horizontal_split(data, valid_size, test_size, sort_by, shuffle, seed)
+            else:
+                return [self._horizontal_split(data,
+                                               valid_size,
+                                               test_size,
+                                               seed=i * 98765 + seed) for i in range(cv)]
         elif split_type == "vertical":
-            return self._vertical_split(data,
-                                        valid_size,
-                                        test_size,
-                                        test_prop,
-                                        sort_by,
-                                        shuffle,
-                                        seed)
+            if cv == 1:
+                return self._vertical_split(data,
+                                            valid_size,
+                                            test_size,
+                                            test_prop,
+                                            sort_by,
+                                            shuffle,
+                                            seed)
+            else:
+                return [self._vertical_split(data,
+                                             valid_size,
+                                             test_size,
+                                             test_prop,
+                                             sort_by,
+                                             seed=i * 98765 + seed) for i in range(cv)]
         else:
             raise ValueError("Splitting type must be 'vertical' or 'horizontal'")
 
