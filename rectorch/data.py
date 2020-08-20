@@ -655,11 +655,14 @@ class DataProcessing:
 
         Returns
         -------
-        :class:`Dataset`
-            The splitted dataset.
+        :class:`Dataset` or :obj:`list` of :class:`Dataset`
+            The splitted dataset(s).
         """
         splitted = self._split(data, **self.cfg.splitting)
-        return Dataset(*splitted)
+        if isinstance(splitted, list):
+            return [Dataset(*spl) for spl in splitted]
+        else:
+            return Dataset(*splitted)
 
     def process_and_split(self):
         r"""Process and split the dataset.
