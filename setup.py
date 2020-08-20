@@ -17,7 +17,8 @@ setup(
         "torch>=1.2.0",
         "Bottleneck>=1.2.1",
         "munch>=2.5.0",
-        "cvxopt>=1.2.3"
+        "cvxopt>=1.2.3",
+        "hyperopt>=0.1.2"
     ],
     python_requires='>=3.6',
     license="MIT",

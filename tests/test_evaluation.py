@@ -9,7 +9,8 @@ import pandas as pd
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.data import Dataset
-from rectorch.evaluation import evaluate, one_plus_random, ValidFunc, GridSearch
+from rectorch.evaluation import evaluate, one_plus_random
+from rectorch.validation import ValidFunc, GridSearch, BayesianSearch
 from rectorch.models import RecSysModel
 from rectorch.models.nn import MultiVAE
 from rectorch.samplers import Sampler, DataSampler
@@ -234,3 +235,46 @@ def test_GridSearch():
     assert per in gs.valid_scores
 
     gs.report()
+
+def test_BayesianSearch():
+    """Test the BayesianSearch class
+    """
+    rows = [0, 0, 1, 1]
+    cols = [0, 1, 1, 2]
+    values = [1.] * len(cols)
+    df_tr = pd.DataFrame(list(zip(rows, cols, values)), columns=['uid', 'iid', 'rating'])
+    df_te_tr = pd.DataFrame([(0, 0, 1.)], columns=['uid', 'iid', 'rating'])
+    df_te_te = pd.DataFrame([(0, 1, 1.)], columns=['uid', 'iid', 'rating'])
+    uids = {i:i for i in range(len(set(rows)))}
+    iids = {i:i for i in range(len(set(cols)))}
+    dataset = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
+
+    gs = BayesianSearch(MultiVAE, {
+        "mvae_net" : ("MultiVAE_net", [{"dec_dims":[10, dataset.n_items]}]),
+        "beta" : [.5, 1.],
+        "anneal_steps" : [0, 1]
+    }, ValidFunc(evaluate), "ndcg@1", num_eval=4)
+    gs.report()
+
+    assert hasattr(gs, "model_class")
+    assert hasattr(gs, "params_domains")
+    assert hasattr(gs, "valid_func")
+    assert hasattr(gs, "valid_metric")
+    assert hasattr(gs, "params_dicts")
+    assert hasattr(gs, "valid_scores")
+    assert hasattr(gs, "best_model")
+
+    assert gs.model_class == MultiVAE
+    assert gs.valid_metric == "ndcg@1"
+    assert gs.best_model is None
+
+    sampler = DataSampler(dataset, mode="train")
+    mod, per = gs.train(sampler, num_epochs=1)
+    gs.report()
+    
+    assert gs.best_model is not None
+    assert isinstance(gs.best_model, MultiVAE)
+    assert gs.best_model == mod
+    assert per in gs.valid_scores
+
+    

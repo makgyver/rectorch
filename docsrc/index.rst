@@ -28,6 +28,7 @@ rectorch modules
    nets
    samplers
    utils
+   validation
 
 configuration
 =============

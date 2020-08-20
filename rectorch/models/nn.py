@@ -64,7 +64,8 @@ import torch.nn.functional as F
 from rectorch import env
 from rectorch.models import RecSysModel
 from rectorch.utils import init_optimizer
-from rectorch.evaluation import ValidFunc, evaluate
+from rectorch.evaluation import evaluate
+from rectorch.validation import ValidFunc
 from rectorch.samplers import ArrayDummySampler, TensorDummySampler, SparseDummySampler
 
 __all__ = ['TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
