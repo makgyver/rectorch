@@ -1,4 +1,4 @@
-r"""TODO DOCUMENTATION
+r"""This module contains classes and methods for perfoming model selection/validation.
 """
 import importlib
 import itertools
@@ -77,7 +77,7 @@ class HPSearch(RecSysModel):
         The class of the model.
     params_domains : :obj:`dict`
         Dictionary containing the hyper-parametrs' sets for initilizing the searching strategy.
-    valid_func : :class:`rectorch.evaluation.ValidFunc`
+    valid_func : :class:`rectorch.validation.ValidFunc`
         The validation function.
     valid_metric : :obj:`str`
         The metric used during the validation to select the best model.
@@ -88,7 +88,7 @@ class HPSearch(RecSysModel):
         The class of the model.
     params_domains : :obj:`dict`
         Dictionary containing the hyper-parametrs' sets for initilizing the searching strategy.
-    valid_func : :class:`rectorch.evaluation.ValidFunc`
+    valid_func : :class:`rectorch.validation.ValidFunc`
         The validation function.
     valid_metric : :obj:`str`
         The metric used during the validation to select the best model.
@@ -131,7 +131,7 @@ class HPSearch(RecSysModel):
 
         Notes
         -----
-        Using the ``save_model`` method of the ``GridSearch`` class is actually the same as invoking
+        Using the ``save_model`` method of the ``HPSearch`` class is actually the same as invoking
         the ``save_model`` of the best model.
         """
         self.best_model.save_model(filepath)
@@ -144,7 +144,7 @@ class HPSearch(RecSysModel):
         ----------
         filepath : :obj:`str`
             String representing the path to the file where the model is saved.
-        model_class : model_class : model class from :mod:`rectorch.models` module
+        model_class : class model from :mod:`rectorch.models` module
             The class of the model.
 
         Returns
@@ -154,7 +154,7 @@ class HPSearch(RecSysModel):
 
         Notes
         -----
-        Using the ``load_model`` method of the ``GridSearch`` class is actually the same as invoking
+        Using the ``load_model`` method of the ``HPSearch`` class is actually the same as invoking
         the ``load_model`` of the model class.
         """
         return model_class.load_model(filepath)
@@ -190,7 +190,7 @@ class GridSearch(HPSearch):
         of a neural network (i.e., object of the module :mod:`rectorch.nets`) must be specified
         using a tuple where the first element is the name of the nets class, while the second the
         list of hyper-parameters for that neural network inside e dictionary.
-    valid_func : :class:`rectorch.evaluation.ValidFunc`
+    valid_func : :class:`rectorch.validation.ValidFunc`
         The validation function.
     valid_metric : :obj:`str`
         The metric used during the validation to select the best model.
@@ -206,7 +206,7 @@ class GridSearch(HPSearch):
         of a neural network (i.e., object of the module :mod:`rectorch.nets`) must be specified
         using a tuple where the first element is the name of the nets class, while the second the
         list of hyper-parameters for that neural network inside e dictionary.
-    valid_func : :class:`rectorch.evaluation.ValidFunc`
+    valid_func : :class:`rectorch.validation.ValidFunc`
         The validation function.
     valid_metric : :obj:`str`
         The metric used during the validation to select the best model.
@@ -229,13 +229,13 @@ class GridSearch(HPSearch):
     >>> from rectorch.nets import MultiVAE_net
     >>> from rectorch.samplers import DataSampler
     >>> n_items = dataset.n_items
-    >>> grid = GridSearch(MultiVAE, {
-            "mvae_net" : ("MultiVAE_net",
-                          [{"dec_dims":[50, n_items]}, {"dec_dims":[100, n_items]}]),
-            "beta" : [.2, .5],
-            "anneal_steps" : [0, 100]},
-            ValidFunc(evaluate),
-            "ndcg@10")
+    >>> grid = GridSearch(MultiVAE,
+    >>>                   {"mvae_net" : ("MultiVAE_net",
+    >>>                                  [{"dec_dims":[50, n_items]}, {"dec_dims":[100, n_items]}]),
+    >>>                    "beta" : [.2, .5],
+    >>>                    "anneal_steps" : [0, 100]},
+    >>>                   ValidFunc(evaluate),
+    >>>                   "ndcg@10")
     >>> sampler = DataSampler(dataset, mode="train")
     >>> best_model, best_ndcg10 = grid.train(sampler, num_epochs=10)
     """
@@ -308,7 +308,7 @@ class BayesianSearch(HPSearch):
         The class of the model.
     params_domains : :obj:`dict`
         Dictionary containing the hyper-parametrs' sets for initilizing the searching strategy.
-    valid_func : :class:`rectorch.evaluation.ValidFunc`
+    valid_func : :class:`rectorch.validation.ValidFunc`
         The validation function.
     valid_metric : :obj:`str`
         The metric used during the validation to select the best model.
@@ -321,7 +321,7 @@ class BayesianSearch(HPSearch):
         The class of the model.
     params_domains : :obj:`dict`
         Dictionary containing the hyper-parametrs' sets for initilizing the searching strategy.
-    valid_func : :class:`rectorch.evaluation.ValidFunc`
+    valid_func : :class:`rectorch.validation.ValidFunc`
         The validation function.
     valid_metric : :obj:`str`
         The metric used during the validation to select the best model.
@@ -345,9 +345,9 @@ class BayesianSearch(HPSearch):
     >>> sampler = DataSampler(dataset, mode="train")
     >>> n_items = dataset.n_items
     >>> params = {"mvae_net" : ("MultiVAE_net", [{"dec_dims":[50, n_items]},
-                                                 {"dec_dims":[100, n_items]}]),
-                  "beta" : (0., 1.),
-                  "anneal_steps" : [0, 100]}
+    >>>                                          {"dec_dims":[100, n_items]}]),
+    >>>           "beta" : (0., 1.),
+    >>>           "anneal_steps" : [0, 100]}
     >>> bs = BayesianSearch(MultiVAE, params, ValidFunc(evaluate), "ndcg@10", 4)
     >>> best_model, best_ndcg10 = bs.train(sampler, num_epochs=2)
     """

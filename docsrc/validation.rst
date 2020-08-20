@@ -14,5 +14,5 @@ Class list
    rectorch.validation.BayesianSearch
 
 .. automodule:: rectorch.validation
-   :members: HPSearch, GridSearch, BayesianSearch
+   :members: ValidFunc, HPSearch, GridSearch, BayesianSearch
    :show-inheritance:

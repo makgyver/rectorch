@@ -142,7 +142,7 @@ class TorchNNTrainer(RecSysModel):
             The metric used during the validation to select the best model, by default :obj:`None`.
             If ``valid_metric`` is set to :obj:`None` the validation step is skipped.
             To see the valid strings for the metric please see the module :mod:`metrics`.
-        valid_func : :class:`rectorch.evaluation.ValidFunc` [optional]
+        valid_func : :class:`rectorch.validation.ValidFunc` [optional]
             The validation function, by default it set to the standard validation procedure, i.e.,
             :func:`rectorch.evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
