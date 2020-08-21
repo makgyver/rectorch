@@ -179,7 +179,7 @@ class HPSearch(RecSysModel):
             env.logger.info("Grid search has not been performed, yet! Call the 'train' method.")
         else:
             for i, p in enumerate(self.params_dicts):
-                env.logger.info(p, ":", self.valid_scores[i])
+                env.logger.info("%s : %.6f", p, self.valid_scores[i])
 
 
 class GridSearch(HPSearch):

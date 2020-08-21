@@ -1574,9 +1574,6 @@ class SVAE(MultiVAE):
                                    beta=beta,
                                    anneal_steps=anneal_steps,
                                    opt_conf=opt_conf)
-        #self.optimizer = optim.Adam(self.network.parameters(),
-        #                            lr=learning_rate,
-        #                            weight_decay=5e-3)
 
     def loss_function(self, recon_x, x, mu, logvar, beta=1.0):
         likelihood_n = -torch.sum(torch.sum(F.log_softmax(recon_x, -1) * x.view(recon_x.shape), -1))

@@ -448,7 +448,7 @@ class TensorDummySampler(DummySampler):
             else:
                 tr_sets = self.data_tr[users]
                 te_sets = self._data[users]
-                filter_idx = torch.nonzero(te_sets.sum(axis=1) > 0)[:, 0]
+                filter_idx = torch.nonzero(te_sets.sum(axis=1) > 0, as_tuple=False)[:, 0]
                 tr_sets = tr_sets[filter_idx]
                 te_sets = te_sets[filter_idx]
                 users = filter_idx.tolist()
