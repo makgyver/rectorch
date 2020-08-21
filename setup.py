@@ -9,7 +9,7 @@ setup(
     name='rectorch',
     packages=find_packages(exclude=['build', 'doc', 'templates', 'tests']),
     include_package_data=True,
-    version='0.1.0b0',
+    version='0.9.0dev',
     install_requires=[
         "pandas>=1.1.0",
         "numpy>=1.17.2",

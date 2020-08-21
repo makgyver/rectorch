@@ -68,6 +68,16 @@ from rectorch.evaluation import evaluate
 from rectorch.validation import ValidFunc
 from rectorch.samplers import ArrayDummySampler, TensorDummySampler, SparseDummySampler
 
+# AUTHORSHIP
+__version__ = "0.9.0dev"
+__author__ = "Mirko Polato"
+__copyright__ = "Copyright 2020, rectorch"
+__license__ = "MIT"
+__maintainer__ = "Mirko Polato"
+__email__ = "mak1788@gmail.com"
+__status__ = "Development"
+#
+
 __all__ = ['TorchNNTrainer', 'AETrainer', 'VAE', 'MultiVAE', 'MultiDAE',\
     'CMultiVAE', 'EASE', 'CFGAN', 'SVAE']
 

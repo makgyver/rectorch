@@ -14,6 +14,16 @@ import torch.nn.functional as F
 from torch.nn.init import normal_ as normal_init
 from torch.nn.init import xavier_uniform_ as xavier_init
 
+# AUTHORSHIP
+__version__ = "0.9.0dev"
+__author__ = "Mirko Polato"
+__copyright__ = "Copyright 2020, rectorch"
+__license__ = "MIT"
+__maintainer__ = "Mirko Polato"
+__email__ = "mak1788@gmail.com"
+__status__ = "Development"
+#
+
 __all__ = ['AE_net', 'MultiDAE_net', 'VAE_net', 'MultiVAE_net', 'CMultiVAE_net', 'CFGAN_G_net',\
     'CFGAN_D_net', 'SVAE_net']
 

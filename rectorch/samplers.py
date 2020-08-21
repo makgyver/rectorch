@@ -22,6 +22,16 @@ from scipy.sparse import csr_matrix, hstack
 import torch
 from torch.autograd import Variable
 
+# AUTHORSHIP
+__version__ = "0.9.0dev"
+__author__ = "Mirko Polato"
+__copyright__ = "Copyright 2020, rectorch"
+__license__ = "MIT"
+__maintainer__ = "Mirko Polato"
+__email__ = "mak1788@gmail.com"
+__status__ = "Development"
+#
+
 __all__ = ['Sampler', 'DataSampler', 'DummySampler', 'DictDummySampler', 'ArrayDummySampler',\
     'SparseDummySampler', 'TensorDummySampler', 'ConditionedDataSampler',\
     'EmptyConditionedDataSampler', 'CFGAN_Sampler', 'SVAE_Sampler']
@@ -438,7 +448,7 @@ class TensorDummySampler(DummySampler):
             else:
                 tr_sets = self.data_tr[users]
                 te_sets = self._data[users]
-                filter_idx = (te_sets.sum(axis=1) > 0).nonzero()[:, 0]
+                filter_idx = torch.nonzero(te_sets.sum(axis=1) > 0)[:, 0]
                 tr_sets = tr_sets[filter_idx]
                 te_sets = te_sets[filter_idx]
                 users = filter_idx.tolist()

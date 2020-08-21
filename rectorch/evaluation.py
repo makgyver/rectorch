@@ -1,14 +1,20 @@
 r"""Module containing utility functions to evaluate recommendation engines.
 """
-import itertools
-import importlib
 import random
 import numpy as np
 from scipy.sparse import csr_matrix
-from rectorch import env
 from .metrics import Metrics
 from .utils import prepare_for_prediction
-from .models import RecSysModel
+
+# AUTHORSHIP
+__version__ = "0.9.0dev"
+__author__ = "Mirko Polato"
+__copyright__ = "Copyright 2020, rectorch"
+__license__ = "MIT"
+__maintainer__ = "Mirko Polato"
+__email__ = "mak1788@gmail.com"
+__status__ = "Development"
+#
 
 __all__ = ['evaluate', 'one_plus_random']
 
