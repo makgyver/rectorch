@@ -363,4 +363,3 @@ def test_BayesianSearch():
     assert gs.best_model == mod
     assert per in gs.valid_scores
     print(str(gs))
-

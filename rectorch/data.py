@@ -731,11 +731,11 @@ class DataProcessing:
         [uhead, ihead] = data.columns.values[:2]
         if min_i > 0:
             icnt = self._get_count(data, ihead)
-            data = data[data[ihead].isin(icnt[1][icnt["size"] >= min_i])]
+            data = data[data[ihead].isin(icnt.iloc[:, 0][icnt["size"] >= min_i])]
 
         if min_u > 0:
             ucnt = self._get_count(data, uhead)
-            data = data[data[uhead].isin(ucnt[0][ucnt["size"] >= min_u])]
+            data = data[data[uhead].isin(ucnt.iloc[:, 0][ucnt["size"] >= min_u])]
 
         return data
 
@@ -810,7 +810,7 @@ class DataProcessing:
         uhead, ihead = data.columns.values[:2]
         cnt = self._get_count(data, uhead)
 
-        unique_uid = cnt[0]
+        unique_uid = cnt.iloc[:, 0]
         idx_perm = list(range(unique_uid.size))
         if shuffle:
             env.logger.info("Shuffling data.")
@@ -848,8 +848,8 @@ class DataProcessing:
 
         vcnt = self._get_count(val_data, uhead)
         tcnt = self._get_count(test_data, uhead)
-        val_data = val_data.loc[val_data[uhead].isin(vcnt[vcnt["size"] >= 2][0])]
-        test_data = test_data.loc[test_data[uhead].isin(tcnt[tcnt["size"] >= 2][0])]
+        val_data = val_data.loc[val_data[uhead].isin(vcnt[vcnt["size"] >= 2].iloc[:, 0])]
+        test_data = test_data.loc[test_data[uhead].isin(tcnt[tcnt["size"] >= 2].iloc[:, 0])]
 
         vcnt_diff = len(vcnt) - len(pd.unique(val_data[uhead]))
         tcnt_diff = len(tcnt) - len(pd.unique(test_data[uhead]))
