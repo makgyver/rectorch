@@ -606,7 +606,7 @@ class ConditionedDataSampler(DataSampler):
         values = np.ones(len(rows))
         self.M = csr_matrix((values, (rows, cols)), shape=(len(self.iid2cids), self.n_cond))
 
-    def _set_mode(self, mode="vero", batch_size=None):
+    def _set_mode(self, mode="train", batch_size=None):
         if self.sparse_data_tr is not None:
             super()._set_mode(mode, batch_size)
             self._compute_conditions()

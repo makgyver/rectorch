@@ -859,10 +859,10 @@ class DataProcessing:
             env.logger.warning("Skipped %d users in test set.", tcnt_diff)
 
         if valid_size > 0:
-            val_data_tr, val_data_te = self._split_train_test(val_data, test_prop)
+            val_data_tr, val_data_te = self._split_train_test(val_data, test_prop, seed)
         else:
             val_data_tr, val_data_te = None, None
-        test_data_tr, test_data_te = self._split_train_test(test_data, test_prop)
+        test_data_tr, test_data_te = self._split_train_test(test_data, test_prop, seed)
 
         return (train_data,
                 (val_data_tr, val_data_te),
