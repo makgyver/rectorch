@@ -816,9 +816,12 @@ class DataProcessing:
             env.logger.info("Shuffling data.")
             idx_perm = np.random.permutation(unique_uid.size)
             unique_uid = unique_uid[idx_perm]
+        else:
+            seed = None
         if sort_by:
             env.logger.info("Sorting users' ratings.")
             data = data.sort_values(by=[sort_by])
+            seed = None
 
         n_users = unique_uid.size
         valid_heldout = int(valid_size * n_users) if valid_size < 1 else valid_size
@@ -880,8 +883,14 @@ class DataProcessing:
             n_items_u = len(group)
             if n_items_u >= 2:
                 ute_sz = max(1, int(n_items_u * test_prop)) if test_prop < 1 else 1
-                tr_list.append(group[:-ute_sz])
-                te_list.append(group[-ute_sz:])
+                if seed and seed >= 0:
+                    idx = np.zeros(n_items_u, dtype='bool')
+                    idx[np.random.choice(n_items_u, size=ute_sz, replace=False).astype('int64')] = True
+                    tr_list.append(group[np.logical_not(idx)])
+                    te_list.append(group[idx])
+                else:
+                    tr_list.append(group[:-ute_sz])
+                    te_list.append(group[-ute_sz:])
             else:
                 tr_list.append(group)
         data_tr = pd.concat(tr_list)
