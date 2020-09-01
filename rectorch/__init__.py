@@ -1,7 +1,9 @@
 """rectorch: state-of-the-art recsys approaches implemented in pytorch.
 """
 import logging
+import random
 import torch
+import numpy as np
 
 # AUTHORSHIP
 __version__ = "0.9.0dev"
@@ -13,7 +15,8 @@ __email__ = "mak1788@gmail.com"
 __status__ = "Development"
 #
 
-__all__ = ['configuration', 'data', 'evaluation', 'metrics', 'models', 'nets', 'samplers', 'utils']
+__all__ = ['configuration', 'data', 'evaluation', 'metrics', 'models', 'nets', 'samplers', 'utils',
+           'validation']
 
 class Environment():
     r"""Rectorch environment class.
@@ -78,3 +81,15 @@ class Environment():
 
 
 env = Environment()
+
+def set_seed(seed):
+    """Set the random seed.
+
+    Parameters
+    ----------
+    seed : :obj:`int`
+        An integer random seed.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)

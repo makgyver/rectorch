@@ -885,7 +885,8 @@ class DataProcessing:
                 ute_sz = max(1, int(n_items_u * test_prop)) if test_prop < 1 else 1
                 if seed and seed >= 0:
                     idx = np.zeros(n_items_u, dtype='bool')
-                    idx[np.random.choice(n_items_u, size=ute_sz, replace=False).astype('int64')] = True
+                    id_sel = np.random.choice(n_items_u, size=ute_sz, replace=False).astype('int64')
+                    idx[id_sel] = True
                     tr_list.append(group[np.logical_not(idx)])
                     te_list.append(group[idx])
                 else:

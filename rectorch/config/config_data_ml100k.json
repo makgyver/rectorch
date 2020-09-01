@@ -2,7 +2,7 @@
     "processing": {
         "data_path": "./ml-100k/u.data",
         "threshold": 3.5,
-        "separator": ",",
+        "separator": "\t",
         "header": null,
         "u_min": 3,
         "i_min": 0
