@@ -747,9 +747,8 @@ class MultiVAE(VAE):
             The sampler object that load the training/validation set in mini-batches.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default :obj:`None`.
-            If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
             To see the valid strings for the metric please see the module :mod:`metrics`.
-        valid_func : :class:`evaluation.ValidFunc` [optional]
+        valid_func : :class:`rectorch.validation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
             :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
@@ -1108,7 +1107,7 @@ class CFGAN(RecSysModel):
             The metric used during the validation to select the best model, by default :obj:`None`.
             If ``valid_data`` is not :obj:`None` then ``valid_metric`` must be not :obj:`None`.
             To see the valid strings for the metric please see the module :mod:`metrics`.
-        valid_func : :class:`evaluation.ValidFunc` [optional]
+        valid_func : :class:`rectorch.validation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
             :func:`evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
@@ -1594,16 +1593,22 @@ class SVAE(MultiVAE):
 
 
 class RecVAE(RecSysModel):
-    """RecVAE: A New Variational Autoencoder for Top-N Recommendations with Implicit Feedback.
+    r"""RecVAE: A New Variational Autoencoder for Top-N Recommendations with Implicit Feedback.
+
+    RecVAE [RecVAE]_ introduces several novel ideas to improve Mult-VAE [MultVAE]_, including a
+    novel composite prior distribution for the latent codes, a new approach to setting the
+    :math:`\beta` hyperparameter for the :math:`\beta`-VAE framework, and a new approach to
+    training based on alternating updates.
 
     Parameters
     ----------
     recvae_net : :class:`rectorch.nets.RecVAE_net`
         The RecVAE neural network architecture.
-    beta : :obj:`float [optional]
-        [description], by default 0.
+    beta : :obj:`float` [optional]
+        KL-divergence scaling factor, by default 0.
     gamma : :obj:`float` [optional]
-        [description], by default 1.
+        KL-divergence scaling factor that substitute ``beta`` when set to a positive value,
+        by default 1. In this case, gamma is multiplied by the L1 norm of the input batch.
     opt_conf : :obj:`dict` [optional]
         The optimizer configuration dictionary, by default :obj:`None`.
 
@@ -1623,7 +1628,12 @@ class RecVAE(RecSysModel):
        I. Nikolenko. 2020. RecVAE: A New Variational Autoencoder for Top-N Recommendations
        with Implicit Feedback. In Proceedings of the 13th International Conference on Web
        Search and Data Mining (WSDM '20). Association for Computing Machinery, New York, NY, USA,
-       528–536. DOI:https://doi.org/10.1145/3336191.3371831
+       528–536. DOI: https://doi.org/10.1145/3336191.3371831
+    .. [MultVAE] Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
+       Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
+       World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
+       Committee, Republic and Canton of Geneva, CHE, 689–698.
+       DOI: https://doi.org/10.1145/3178876.3186150
     """
     def __init__(self,
                  recvae_net,
@@ -1641,6 +1651,31 @@ class RecVAE(RecSysModel):
         self.current_epoch = 0
 
     def loss_function(self, recon_x, x, z, mu, logvar):
+        r"""RecVAE loss function.
+
+        Parameters
+        ----------
+        recon_x : :class:`torch.Tensor`
+            The reconstructed input, i.e., the output of the variational autoencoder. It is meant
+            to be the reconstruction over a batch.
+        x : :class:`torch.Tensor`
+            The input, and hence the target tensor. It is meant to be a batch size input.
+        z : :class:`torch.Tensor`
+            The output of the encoder network.
+        mu : :class:`torch.Tensor`
+            The mean part of latent space for the given ``x``. Together with ``logvar`` represents
+            the representation of the input ``x`` before the reparameteriation trick.
+        logvar : :class:`torch.Tensor`
+            The (logarithm of the) variance part of latent space for the given ``x``. Together with
+            ``mu`` represents the representation of the input ``x`` before the reparameteriation
+            trick.
+
+        Returns
+        -------
+        :class:`torch.Tensor`
+            Tensor (:math:`1 \times 1`) representing the average loss incurred over the input
+            batch.
+        """
         kl_weight = self.gamma * x.sum(dim=-1) if self.gamma > 0 else self.beta
         mll = (F.log_softmax(recon_x, dim=-1) * x).sum(dim=-1).mean()
         kld = (log_norm_pdf(z, mu, logvar) - self.network.prior(x, z))
@@ -1648,6 +1683,24 @@ class RecVAE(RecSysModel):
         return -(mll - kld)
 
     def train_batch(self, tr_batch, optimizer, te_batch=None, dropout=0.):
+        r"""Training of a single batch.
+
+        Parameters
+        ----------
+        tr_batch : :class:`torch.Tensor`
+            Traning part of the current batch.
+        optimizer : :class:`torch.optimizer.Optimizer`
+            The optimizer to use for this batch.
+        te_batch : :class:`torch.Tensor` or :obj:`None` [optional]
+            Test part of the current batch, if any, otherwise :obj:`None`, by default :obj:`None`.
+        dropout : :obj:`float` [optional]
+            The dropout rate for the encoder network (if necessary), default 0.
+
+        Returns
+        -------
+        :obj:`float`
+            The loss incurred in the batch.
+        """
         data_tensor = tr_batch.view(tr_batch.shape[0], -1).to(self.device)
         if te_batch is None:
             gt_tensor = data_tensor
@@ -1662,6 +1715,21 @@ class RecVAE(RecSysModel):
         return loss.item()
 
     def train_epoch(self, epoch, data_sampler, net_part, verbose=1):
+        r"""Training of a single epoch.
+
+        Parameters
+        ----------
+        epoch : :obj:`int`
+            Epoch's number.
+        data_sampler : :class:`rectorch.samplers.Sampler`
+            The sampler object that load the training set in mini-batches.
+        net_part : :obj:`str` in the set {``"enc"``, ``"dec"``}
+            The part of the network to train. "enc" means encoder and "dec" decoder.
+        verbose : :obj:`int` [optional]
+            The level of verbosity of the logging, by default 1. The level can have any integer
+            value greater than 0. However, after reaching a maximum (that depends on the size of
+            the training set) verbosity higher values will not have any effect.
+        """
         optimizer = self.opt_enc if net_part == "enc" else self.opt_dec
         train_loss = 0
         partial_loss = 0
@@ -1687,7 +1755,24 @@ class RecVAE(RecSysModel):
                         net_part, epoch, total_loss, time_diff)
         return total_loss
 
-    def train_metaepoch(self, epoch, data_sampler, enc_epochs, dec_epochs, verbose):
+    def train_metaepoch(self, epoch, data_sampler, enc_epochs, dec_epochs, verbose=1):
+        r"""Train an epoch for the whole network (both encoder and decoder).
+
+        Parameters
+        ----------
+        epoch : :obj:`int`
+            Number of (meta) epochs.
+        data_sampler : :class:`rectorch.samplers.DataSampler`
+            The training sampler.
+        enc_epochs : :obj:`int`
+            Number of training epochs for each meta-epoch for the encoder.
+        dec_epochs : :obj:`int`
+            Number of training epochs for each meta-epoch for the decoder.
+        verbose : :obj:`int` [optional]
+            The level of verbosity of the logging, by default 1. The level can have any integer
+            value greater than 0. However, after reaching a maximum (that depends on the size of
+            the training set) verbosity higher values will not have any effect.
+        """
         self.network.train()
         total_loss = 0
         start_time = time.time()
@@ -1714,6 +1799,36 @@ class RecVAE(RecSysModel):
               enc_epochs=3,
               dec_epochs=1,
               verbose=1):
+        r"""Training procedure for RecVAE.
+
+        The training of RecVAE works in an alternated fashion. At each (meta) epoch the encoder is
+        trained for a fixed number of epochs (``enc_epochs``), then the decoder is trained for a
+        number of epochs (``dec_epochs``).
+
+        Parameters
+        ----------
+        data_sampler : :class:`rectorch.samplers.Sampler`
+            The sampler object that load the training/validation set in mini-batches.
+        valid_metric : :obj:`str` [optional]
+            The metric used during the validation to select the best model, by default :obj:`None`.
+            To see the valid strings for the metric please see the module :mod:`metrics`.
+        valid_func : :class:`rectorch.validation.ValidFunc` [optional]
+            The validation function, by default a standard validation procedure, i.e.,
+            :func:`evaluation.evaluate`.
+        num_epochs : :obj:`int` [optional]
+            Number of training epochs, by default 100.
+        best_path : :obj:`str` [optional]
+            String representing the path where to save the best performing model on the validation
+            set. By default ``"chkpt_best.pth"``.
+        enc_epochs : :obj:`int` [optional]
+            Number of training epochs for each meta-epoch for the encoder, by default 3.
+        dec_epochs : :obj:`int` [optional]
+            Number of training epochs for each meta-epoch for the decoder, by default 1.
+        verbose : :obj:`int` [optional]
+            The level of verbosity of the logging, by default 1. The level can have any integer
+            value greater than 0. However, after reaching a maximum (that depends on the size of
+            the training set) verbosity higher values will not have any effect.
+        """
         try:
             for epoch in range(1, num_epochs + 1):
                 data_sampler.train()
