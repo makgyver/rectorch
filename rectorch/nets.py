@@ -8,11 +8,14 @@ Modules:
 :mod:`models.nn <rectorch.models.nn>`
 """
 import importlib
+from copy import deepcopy
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.init import normal_ as normal_init
 from torch.nn.init import xavier_uniform_ as xavier_init
+from rectorch.utils import swish, log_norm_pdf
 
 # AUTHORSHIP
 __version__ = "0.9.0dev"
@@ -378,7 +381,7 @@ class VAE_net(AE_net):
 
         Returns
         -------
-        :py:class:`torch.Tensor`
+        :class:`torch.Tensor`
             The output tensor of the decoder network.
         """
         h = z
@@ -780,12 +783,6 @@ class SVAE_net(VAE_net):
         self.item_embed = nn.Embedding(n_items, embed_size)
 
         self.gru = nn.GRU(embed_size, rnn_size, batch_first=True, num_layers=1)
-        #temp_dims = self.enc_dims[:-1] + [self.enc_dims[-1] * 2]
-        #self.enc_layers = nn.ModuleList(
-        #    [nn.Linear(d_in, d_out) for d_in, d_out in zip(temp_dims[:-1], temp_dims[1:])])
-
-        #self.dec_layers = nn.ModuleList(
-        #    [nn.Linear(d_in, d_out) for d_in, d_out in zip(self.dec_dims[:-1], self.dec_dims[1:])])
         self.init_weights()
 
     def forward(self, x):
@@ -821,6 +818,165 @@ class SVAE_net(VAE_net):
                 "dec_dims" : self.dec_dims,
                 "embed_size" : self.embed_size,
                 "rnn_size" : self.rnn_size
+            }
+        }
+        return state
+
+
+class RecVAE_CompositePrior_net(nn.Module):
+    r"""Composite prior network of the RecVAE model.
+
+    Parameters
+    ----------
+    input_dim : :obj:`int`
+        The dimension of the input, i.e., the number of items.
+    hidden_dim : :obj:`int`
+        The dimension of the hidden layers.
+    latent_dim : :obj:`int`
+        The dimension of the latent space.
+    mixture_weights : :obj:`list` of :obj:`float`
+        Weights in the mixture of the priors (:math:`\alpha` in [RecVAE]_).
+    """
+    def __init__(self, input_dim, hidden_dim, latent_dim, mixture_weights):
+        super(RecVAE_CompositePrior_net, self).__init__()
+        self.mixture_weights = mixture_weights
+
+        param_no_grad = lambda dim: nn.Parameter(torch.Tensor(1, dim), requires_grad=False)
+        self.mu_prior = param_no_grad(latent_dim)
+        self.logvar_prior = param_no_grad(latent_dim)
+        self.logvar_uniform_prior = param_no_grad(latent_dim)
+        self.encoder_old = RecVAE_Encoder_net(input_dim, hidden_dim, latent_dim)
+        self.encoder_old.requires_grad_(False)
+        self.init_weights()
+
+    def init_weights(self):
+        self.logvar_uniform_prior.data.fill_(10)
+        self.logvar_prior.data.fill_(0)
+        self.mu_prior.data.fill_(0)
+
+    def forward(self, x, z):
+        post_mu, post_logvar = self.encoder_old(x, 0)
+        stnd_prior = log_norm_pdf(z, self.mu_prior, self.logvar_prior)
+        post_prior = log_norm_pdf(z, post_mu, post_logvar)
+        unif_prior = log_norm_pdf(z, self.mu_prior, self.logvar_uniform_prior)
+        gaussians = [stnd_prior, post_prior, unif_prior]
+        gaussians = [g.add(np.log(w)) for g, w in zip(gaussians, self.mixture_weights)]
+        density_per_gaussian = torch.stack(gaussians, dim=-1)
+        return torch.logsumexp(density_per_gaussian, dim=-1)
+
+
+class RecVAE_Encoder_net(nn.Module):
+    r"""Encoder network of the RecVAE model.
+
+    Parameters
+    ----------
+    input_dim : :obj:`int`
+        The dimension of the input, i.e., the number of items.
+    hidden_dim : :obj:`int`
+        The dimension of the hidden layers.
+    latent_dim : :obj:`int`
+        The dimension of the latent space.
+    num_hidden : :obj:`int` [optional]
+        Number of hidden layers, by default 4.
+    """
+    def __init__(self, input_dim, hidden_dim, latent_dim, num_hidden=4):
+        super(RecVAE_Encoder_net, self).__init__()
+        layers = [nn.Linear(input_dim, hidden_dim)]
+        layers += [nn.Linear(hidden_dim, hidden_dim) for i in range(num_hidden)]
+        self.layers = nn.ModuleList(layers)
+        self.ln = nn.LayerNorm(hidden_dim, eps=1e-1)
+        self.fc_mu = nn.Linear(hidden_dim, latent_dim)
+        self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
+
+    def forward(self, x, dropout_rate):
+        xnorm = x.pow(2).sum(dim=-1).sqrt()
+        x = x / xnorm[:, None]
+        x = F.dropout(x, p=dropout_rate, training=self.training)
+
+        hprev = [self.ln(swish(self.layers[0](x)))]
+        for layer in self.layers[1:]:
+            hnext = self.ln(swish(layer(hprev[-1])) + sum(hprev))
+            hprev.append(hnext)
+
+        return self.fc_mu(hprev[-1]), self.fc_logvar(hprev[-1])
+
+
+class RecVAE_net(NeuralNet):
+    r"""RecVAE neural network model.
+
+    Parameters
+    ----------
+    input_dim : :obj:`int`
+        The dimension of the input, i.e., the number of items.
+    hidden_dim : :obj:`int`
+        The dimension of the hidden layers.
+    latent_dim : :obj:`int`
+        The dimension of the latent space.
+    enc_num_hidden : :obj:`int` [optional]
+        Number of hidden layers in the encoder network, by default 4.
+    prior_mixture_weights : :obj:`list` of :obj:`float` [optional]
+        Weights in the mixture of the priors (:math:`\alpha` in [RecVAE]_),
+        by default [3/20, 3/4, 1/10].
+
+    References
+    ----------
+    .. [RecVAE] Ilya Shenbin, Anton Alekseev, Elena Tutubalina, Valentin Malykh, and Sergey
+       I. Nikolenko. 2020. RecVAE: A New Variational Autoencoder for Top-N Recommendations
+       with Implicit Feedback. In Proceedings of the 13th International Conference on Web
+       Search and Data Mining (WSDM '20). Association for Computing Machinery, New York, NY, USA,
+       528–536. DOI:https://doi.org/10.1145/3336191.3371831
+    """
+    def __init__(self,
+                 input_dim,
+                 hidden_dim,
+                 latent_dim,
+                 enc_num_hidden=4,
+                 prior_mixture_weights=[3/20, 3/4, 1/10]):
+        super(RecVAE_net, self).__init__()
+        self.input_dim = input_dim
+        self.hidden_dim = hidden_dim
+        self.latent_dim = latent_dim
+        self.enc_num_hidden = enc_num_hidden
+        self.prior_mixture_weights = prior_mixture_weights
+        self.encoder = RecVAE_Encoder_net(input_dim, hidden_dim, latent_dim, enc_num_hidden)
+        self.prior = RecVAE_CompositePrior_net(input_dim,
+                                               hidden_dim,
+                                               latent_dim,
+                                               prior_mixture_weights)
+        self.decoder = nn.Linear(latent_dim, input_dim)
+
+    def init_weights(self):
+        pass
+
+    def _reparameterize(self, mu, logvar):
+        if self.training:
+            std = torch.exp(0.5*logvar)
+            eps = torch.randn_like(std)
+            return mu + eps * std
+        else:
+            return mu
+
+    def forward(self, user_ratings, dropout_rate=0.5):
+        mu, logvar = self.encoder(user_ratings, dropout_rate=dropout_rate)    
+        z = self._reparameterize(mu, logvar)
+        x_pred = self.decoder(z)
+        return x_pred, z, mu, logvar
+
+    def update_prior(self):
+        r"""Update the weights in the prior network.
+        """
+        self.prior.encoder_old.load_state_dict(deepcopy(self.encoder.state_dict()))
+
+    def get_state(self):
+        state = {
+            "name" : self.__class__.__name__,
+            "state" : self.state_dict(),
+            "params" : {
+                "input_dim" : self.input_dim,
+                "hidden_dim" : self.hidden_dim,
+                "latent_dim" : self.latent_dim,
+                "enc_num_hidden" : self.enc_num_hidden,
+                "prior_mixture_weights" : self.prior_mixture_weights
             }
         }
         return state

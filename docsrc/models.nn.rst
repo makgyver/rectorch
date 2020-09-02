@@ -18,8 +18,9 @@ Class list
    rectorch.models.nn.CFGAN
    rectorch.models.nn.ADMM_Slim
    rectorch.models.nn.SVAE
+   rectorch.models.nn.RecVAE
 
 .. automodule:: rectorch.models.nn
-   :members: RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE, CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE
+   :members: RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE, CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE, RecVAE
    :show-inheritance:
 

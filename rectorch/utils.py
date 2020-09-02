@@ -305,3 +305,41 @@ def kernel_normalization(K):
     d = np.array([[K[i, i] for i in range(n)]])
     Kn = K / np.sqrt(np.dot(d.T, d))
     return Kn
+
+def swish(x, beta=1.):
+    r"""The swish function.
+
+    The swish function is a mathematical function defined as follows:
+
+    :math:`\operatorname{swish}(x) = x \times \operatorname{sigmoid}(\beta x)=\
+    \frac{x}{1+e^{-\beta x}}`.
+
+    Parameters
+    ----------
+    x : :class:`torch.Tensor`
+        The input tensor.
+    beta : :obj:`float` [optional]
+        Multiplicative constant, by default 1. When ``beta``=1, the function becomes equivalent
+        to the Sigmoid-weighted Linear Unit function used in reinforcement learning, whereas for
+        ``beta``=0, the function turns into the scaled linear function :math:`f(x)=\frac{x}{2}`.
+        With ``beta`` approaching infinity, the swish becomes like the ReLU function.
+    """
+    return x.mul(torch.sigmoid(beta * x))
+
+def log_norm_pdf(x, mu, logvar):
+    r"""Lognormal Probability Density Function.
+
+    The lognormal PDF is of the :math:`\mathcal{N}(0,1)` distribution is defined as
+    :math:`f(x) = \frac{1}{x} \cdot \frac{1}{\sigma \sqrt{2 \pi}}\
+    \exp \left(-\frac{(\ln x-\mu)^{2}}{2 \sigma^{2}}\right)`
+
+    Parameters
+    ----------
+    x : :class:`torch.Tensor`
+        The input tensor.
+    mu : :class:`torch.Tensor`
+        The mean tensor.
+    logvar : :class:`torch.Tensor`
+        The tensor representing the logarithm of the variance.
+    """
+    return -0.5 * (logvar + np.log(2 * np.pi) + (x - mu).pow(2) / logvar.exp())

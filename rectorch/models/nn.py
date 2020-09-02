@@ -63,7 +63,7 @@ import torch
 import torch.nn.functional as F
 from rectorch import env
 from rectorch.models import RecSysModel
-from rectorch.utils import init_optimizer
+from rectorch.utils import init_optimizer, log_norm_pdf
 from rectorch.evaluation import evaluate
 from rectorch.validation import ValidFunc
 from rectorch.samplers import ArrayDummySampler, TensorDummySampler, SparseDummySampler
@@ -280,6 +280,7 @@ class TorchNNTrainer(RecSysModel):
         net.load_state_dict(checkpoint['network']['state'])
         model = trainer_class(net, checkpoint['optimizer']['cfg'])
         model.optimizer.load_state_dict(checkpoint['optimizer']['state'])
+        model.current_epoch = checkpoint['epoch']
         env.logger.info("Model checkpoint loaded!")
         return model
 
@@ -1302,6 +1303,7 @@ class CFGAN(RecSysModel):
         cfgan.discriminator.load_state_dict(checkpoint["network_d"]['state'])
         cfgan.opt_g.load_state_dict(checkpoint['optimizer_g'])
         cfgan.opt_d.load_state_dict(checkpoint['optimizer_d'])
+        cfgan.current_epoch = checkpoint['epoch']
         env.logger.info("Model checkpoint loaded!")
         return cfgan
 
@@ -1589,3 +1591,193 @@ class SVAE(MultiVAE):
             if remove_train:
                 recon_x[0, -1, x_tensor] = -np.inf
             return recon_x[:, -1, :], mu, logvar
+
+
+class RecVAE(RecSysModel):
+    """RecVAE: A New Variational Autoencoder for Top-N Recommendations with Implicit Feedback.
+
+    Parameters
+    ----------
+    recvae_net : :class:`rectorch.nets.RecVAE_net`
+        The RecVAE neural network architecture.
+    beta : :obj:`float [optional]
+        [description], by default 0.
+    gamma : :obj:`float` [optional]
+        [description], by default 1.
+    opt_conf : :obj:`dict` [optional]
+        The optimizer configuration dictionary, by default :obj:`None`.
+
+    Attributes
+    ----------
+    opt_enc : :class:`torch.optim.Optimizer`
+        The optimizer for the encoder network initialized according to the given configurations
+        in ``opt_conf``.
+    opt_dec : :class:`torch.optim.Optimizer`
+        The optimizer for the decoder network initialized according to the given configurations
+        in ``opt_conf``.
+    other attributes : see the **Parameters** section.
+
+    References
+    ----------
+    .. [RecVAE] Ilya Shenbin, Anton Alekseev, Elena Tutubalina, Valentin Malykh, and Sergey
+       I. Nikolenko. 2020. RecVAE: A New Variational Autoencoder for Top-N Recommendations
+       with Implicit Feedback. In Proceedings of the 13th International Conference on Web
+       Search and Data Mining (WSDM '20). Association for Computing Machinery, New York, NY, USA,
+       528–536. DOI:https://doi.org/10.1145/3336191.3371831
+    """
+    def __init__(self,
+                 recvae_net,
+                 beta=0.,
+                 gamma=1.,
+                 opt_conf=None):
+        super(RecVAE, self).__init__()
+        self.device = env.device
+        self.network = recvae_net.to(self.device)
+        self.beta = beta
+        self.gamma = gamma
+        self._opt_conf = opt_conf
+        self.opt_enc = init_optimizer(self.network.encoder.parameters(), opt_conf)
+        self.opt_dec = init_optimizer(self.network.decoder.parameters(), opt_conf)
+        self.current_epoch = 0
+
+    def loss_function(self, recon_x, x, z, mu, logvar):
+        kl_weight = self.gamma * x.sum(dim=-1) if self.gamma > 0 else self.beta
+        mll = (F.log_softmax(recon_x, dim=-1) * x).sum(dim=-1).mean()
+        kld = (log_norm_pdf(z, mu, logvar) - self.network.prior(x, z))
+        kld = kld.sum(dim=-1).mul(kl_weight).mean()
+        return -(mll - kld)
+
+    def train_batch(self, tr_batch, optimizer, te_batch=None, dropout=0.):
+        data_tensor = tr_batch.view(tr_batch.shape[0], -1).to(self.device)
+        if te_batch is None:
+            gt_tensor = data_tensor
+        else:
+            gt_tensor = te_batch.view(te_batch.shape[0], -1).to(self.device)
+
+        optimizer.zero_grad()
+        recon_batch, z, mu, var = self.network(data_tensor, dropout)
+        loss = self.loss_function(recon_batch, gt_tensor, z, mu, var)
+        loss.backward()
+        optimizer.step()
+        return loss.item()
+
+    def train_epoch(self, epoch, data_sampler, net_part, verbose=1):
+        optimizer = self.opt_enc if net_part == "enc" else self.opt_dec
+        train_loss = 0
+        partial_loss = 0
+        epoch_start_time = time.time()
+        start_time = time.time()
+        log_delay = max(10, len(data_sampler) // 10**verbose)
+        dropout = .5 if net_part == "enc" else 0
+        for batch_idx, (data, gt) in enumerate(data_sampler):
+
+            partial_loss += self.train_batch(data, optimizer, gt, dropout)
+            if (batch_idx+1) % log_delay == 0:
+                elapsed = time.time() - start_time
+                env.logger.info('| %s - epoch %d | %d/%d batches | ms/batch %.2f | loss %.2f |',
+                                net_part, epoch, (batch_idx+1), len(data_sampler),
+                                elapsed * 1000 / log_delay,
+                                partial_loss / log_delay)
+                train_loss += partial_loss
+                partial_loss = 0.0
+                start_time = time.time()
+        total_loss = (train_loss + partial_loss) / len(data_sampler)
+        time_diff = time.time() - epoch_start_time
+        env.logger.info("| %s - epoch %d | loss %.4f | total time: %.2fs |",
+                        net_part, epoch, total_loss, time_diff)
+        return total_loss
+
+    def train_metaepoch(self, epoch, data_sampler, enc_epochs, dec_epochs, verbose):
+        self.network.train()
+        total_loss = 0
+        start_time = time.time()
+
+        env.logger.info("| meta-epoch %d start |", epoch)
+        for ee in range(enc_epochs):
+            total_loss += self.train_epoch(ee + 1, data_sampler, "enc", verbose)
+
+        self.network.update_prior()
+
+        for de in range(dec_epochs):
+            total_loss += self.train_epoch(de + 1, data_sampler, "dec", verbose)
+
+        total_loss /= enc_epochs + dec_epochs
+        time_diff = time.time() - start_time
+        env.logger.info("| meta-epoch %d | loss %.4f | total time: %.2fs |",
+                        epoch, total_loss, time_diff)
+
+    def train(self,
+              data_sampler,
+              valid_metric=None,
+              valid_func=ValidFunc(evaluate),
+              num_epochs=50,
+              enc_epochs=3,
+              dec_epochs=1,
+              verbose=1):
+        try:
+            for epoch in range(1, num_epochs + 1):
+                data_sampler.train()
+                self.train_metaepoch(epoch, data_sampler, enc_epochs, dec_epochs, verbose)
+                if valid_metric is not None:
+                    data_sampler.valid()
+                    valid_res = valid_func(self, data_sampler, valid_metric)
+                    mu_val = np.mean(valid_res)
+                    std_err_val = np.std(valid_res) / np.sqrt(len(valid_res))
+                    env.logger.info('| epoch %d | %s %.3f (%.4f) |',
+                                    epoch, valid_metric, mu_val, std_err_val)
+                self.current_epoch += 1
+        except KeyboardInterrupt:
+            env.logger.warning('Handled KeyboardInterrupt: exiting from training early')
+
+    def save_model(self, filepath):
+        state = {
+            'epoch': self.current_epoch,
+            'network': self.network.get_state(),
+            'optimizer_e': self.opt_enc.state_dict(),
+            'optimizer_d': self.opt_dec.state_dict(),
+            'opt_conf' : self._opt_conf,
+            'gamma' : self.gamma,
+            'beta' : self.beta
+        }
+        env.logger.info("Saving RecVAE model to %s...", filepath)
+        torch.save(state, filepath)
+        env.logger.info("Model saved!")
+
+    @classmethod
+    def load_model(cls, filepath):
+        assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
+        env.logger.info("Loading RecVAE model checkpoint from %s...", filepath)
+        checkpoint = torch.load(filepath)
+        net_class = getattr(importlib.import_module("rectorch.nets"),
+                            checkpoint["network"]["name"])
+        net = net_class(**checkpoint['network']['params'])
+        recvae = RecVAE(net,
+                        checkpoint['beta'],
+                        checkpoint['gamma'],
+                        checkpoint['opt_conf'])
+        recvae.network.load_state_dict(checkpoint["network"]['state'])
+        recvae.opt_enc.load_state_dict(checkpoint['optimizer_e'])
+        recvae.opt_dec.load_state_dict(checkpoint['optimizer_d'])
+        recvae.current_epoch = checkpoint['epoch']
+        env.logger.info("Model checkpoint loaded!")
+        return recvae
+
+    def predict(self, x, remove_train=True):
+        self.network.eval()
+        with torch.no_grad():
+            x_tensor = x.to(self.device)
+            recon_x, _, mu, logvar = self.network(x_tensor)
+            if remove_train:
+                recon_x[torch.nonzero(x_tensor, as_tuple=True)] = -np.inf
+            return recon_x, mu, logvar
+
+    def __str__(self):
+        s = self.__class__.__name__ + "(\n"
+        for k, v in self.__dict__.items():
+            sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
+            s += "  %s = %s,\n" % (k, sv)
+        s = s[:-2] + "\n)"
+        return s
+
+    def __repr__(self):
+        return str(self)

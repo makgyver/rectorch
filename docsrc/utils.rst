@@ -14,6 +14,8 @@ Functions list
    rectorch.utils.cvxopt_diag
    rectorch.utils.md_kernel
    rectorch.utils.kernel_normalization
+   rectorch.utils.swish
+   rectorch.utils.log_norm_pdf
 
 .. currentmodule:: rectorch.utils
 
@@ -23,3 +25,5 @@ Functions list
 .. autofunction:: cvxopt_diag
 .. autofunction:: md_kernel
 .. autofunction:: kernel_normalization
+.. autofunction:: swish
+.. autofunction:: log_norm_pdf

@@ -23,8 +23,9 @@ Class list
    rectorch.nets.CFGAN_G_net
    rectorch.nets.CFGAN_D_net
    rectorch.nets.SVAE_net
+   rectorch.nets.RecVAE_net
 
 .. automodule:: rectorch.nets
-   :members: NeuralNet, AE_net, MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net, CFGAN_D_net, SVAE_net
+   :members: NeuralNet, AE_net, MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_G_net, CFGAN_D_net, SVAE_net, RecVAE_net
    :show-inheritance:
 
