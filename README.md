@@ -25,16 +25,25 @@ It includes several state-of-the-art top-N recommendation approaches implemented
 
 The latest PyPi release contains the following methods.
 
-| Name      | Description                                                                | Ref.      |
-|-----------|----------------------------------------------------------------------------|-----------|
-| MultiDAE  | Denoising Autoencoder for Collaborative filtering with Multinomial prior   | [[1]](#1) |
-| MultiVAE  | Variational Autoencoder for Collaborative filtering with Multinomial prior | [[1]](#1) |
-| CMultiVAE | Conditioned Variational Autoencoder                                        | [[2]](#2) |
-| CFGAN     | Collaborative Filtering with Generative Adversarial Networks               | [[3]](#3) |
-| EASE      | Embarrassingly shallow autoencoder for sparse data                         | [[4]](#4) |
-| ADMM_Slim | ADMM SLIM: Sparse Recommendations for Many Users                           | [[5]](#5) |
-| SVAE      | Sequential Variational Autoencoders for Collaborative Filtering            | [[6]](#6) |
+| Name      | Description                                                                            | Ref.      |
+|-----------|----------------------------------------------------------------------------------------|-----------|
+| MultiDAE  | Denoising Autoencoder for Collaborative filtering with Multinomial prior               | [[1]](#1) |
+| MultiVAE  | Variational Autoencoder for Collaborative filtering with Multinomial prior             | [[1]](#1) |
+| CMultiVAE | Conditioned Variational Autoencoder                                                    | [[2]](#2) |
+| CFGAN     | Collaborative Filtering with Generative Adversarial Networks                           | [[3]](#3) |
+| EASE      | Embarrassingly shallow autoencoder for sparse data                                     | [[4]](#4) |
+| ADMM_Slim | ADMM SLIM: Sparse Recommendations for Many Users                                       | [[5]](#5) |
+| SVAE      | Sequential Variational Autoencoders for Collaborative Filtering                        | [[6]](#6) |
+| RecVAE    | RecVAE: A New Variational Autoencoder for Top-N Recommendations with Implicit Feedback | [[7]](#7) |
 
+Now **rectorch** also includes some baseline methods.
+
+| Name      | Description                                                                            | Ref.      |
+|-----------|----------------------------------------------------------------------------------------|-----------|
+| Random    | Random recommender                                                                     |           |
+| Popularity| Popularity-based recommender                                                           |           |
+| SLIM      | SLIM: Sparse Linear Methods for Top-N Recommender Systems                              | [[8]](#8) |
+| CF-KOMD   | Boolean kernels for collaborative filtering in top-N item recommendation               | [[9]](#9) |
 
 # Getting started
 ## Installation
@@ -53,7 +62,7 @@ pip3 install -r requirements.txt
 ```
 
 ## Architecture
-**rectorch** is composed of 7 main modules summarized in the following.
+**rectorch** is composed of 9 main modules summarized in the following.
 
 | Name          | Scope                                                                                        |
 |---------------|----------------------------------------------------------------------------------------------|
@@ -64,6 +73,8 @@ pip3 install -r requirements.txt
 | models        | Includes the training algorithm for the implemented recommender systems.                     |
 | nets          | Contains definitions of the neural newtork architectures used by the implemented approaches. |
 | samplers      | Contains definitions of sampler classes useful when training neural network-based models.    |
+| utils         | Contains definitions of some utility functions.                                              |
+| validation    | Contains methods and classes for performing model selection.                                 |
 
 ## Tutorials
 
@@ -111,10 +122,10 @@ pip3 install -r requirements.txt
 # Work in progress
 
 The following features/changes will be soon released:
-* Splitting of the `models` module in more sub-modules on the basis of the models' characteristics;
-* Introduction of a "global" setting/configuration for the framework;
-* Adding optimizer's parameters in the configuration;
-* Including horizontal splitting and leave-one-out in `DataProcessing`.
+* Adding new baselines: BPR, WRMF, ...
+* Adding new state-of-the-art models: NeuMF, ...
+* Tutorials
+* Adding a set of methods/classes for performing series of experiments
 
 # Suggestions
 
@@ -131,9 +142,9 @@ If you are using **rectorch** in your work, please consider citing this reposito
     author = {Mirko Polato},
     title = {{rectorch: pytorch-based framework for top-N recommendation}},
     year = {2020},
-    month = {may},
+    month = {sep},
     doi = {10.5281/zenodo.3841898},
-    version = {1.0},
+    version = {0.9.0dev},
     publisher = {Zenodo},
     url = {https://doi.org/10.5281/zenodo.153841898991}
 }
@@ -175,3 +186,20 @@ Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
    Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the Twelfth
    ACM International Conference on Web Search and Data Mining (WSDM ’19). Association for Computing
    Machinery, New York, NY, USA, 600–608. DOI: https://doi.org/10.1145/3289600.3291007
+
+<a id="7">[7]</a>
+Ilya Shenbin, Anton Alekseev, Elena Tutubalina, Valentin Malykh, and Sergey
+   I. Nikolenko. 2020. RecVAE: A New Variational Autoencoder for Top-N Recommendations
+   with Implicit Feedback. In Proceedings of the 13th International Conference on Web
+   Search and Data Mining (WSDM '20). Association for Computing Machinery, New York, NY, USA,
+   528–536. DOI:https://doi.org/10.1145/3336191.3371831
+
+<a id="8">[8]</a>
+Mirko Polato and Fabio Aiolli. 2018. Boolean kernels for collaborative filtering in
+   top-N item recommendation.  Neurocomputing, Elsevier Science Ltd., Vol. 286, pp. 214-225,
+   Oxford, UK. DOI: https://doi.org/10.1016/j.neucom.2018.01.057, ISSN: 0925-2312.
+
+<a id="9">[9]</a>
+X. Ning and George Karypis. 2011. SLIM: Sparse Linear Methods for Top-N Recommender
+   Systems. In the Proceedings of the IEEE 11th International Conference on Data Mining,
+   Vancouver, BC, 2011, pp. 497-506. DOI: https://doi.org/10.1109/ICDM.2011.134.
