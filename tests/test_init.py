@@ -4,6 +4,8 @@ import sys
 import os
 import logging
 import torch
+import numpy as np
+import random
 sys.path.insert(0, os.path.abspath('..'))
 
 import rectorch
@@ -25,3 +27,13 @@ def test_init():
     assert rectorch.env.device.type == "cpu"
     rectorch.env.reset()
     assert rectorch.env._default_env
+    rectorch.set_seed(1234)
+    x = np.random.rand()
+    np.random.seed(1234)
+    assert x == np.random.rand()
+    x = random.random()
+    random.seed(1234)
+    assert x == random.random()
+    x = torch.randn(1)
+    torch.manual_seed(1234)
+    assert x == torch.randn(1)

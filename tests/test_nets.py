@@ -22,7 +22,6 @@ def test_NeuralNet():
     with pytest.raises(NotImplementedError):
         nn.get_state()
 
-    #TODO from_state
 
 def test_AE_net():
     """Test the AE_net class
@@ -218,3 +217,7 @@ def test_RecVAE_net():
     state = net.get_state()
     assert state['params']['hidden_dim'] == 4
     assert state['params']['latent_dim'] == 2
+    net2 = RecVAE_net.from_state(state)
+    assert net2.input_dim == net.input_dim
+    assert net2.hidden_dim == net.hidden_dim
+    assert net2.latent_dim == net.latent_dim

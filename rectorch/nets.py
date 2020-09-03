@@ -60,7 +60,7 @@ class NeuralNet(nn.Module):
             The network's state dictionary  useful to replicate the saved network.
         """
         net_class = getattr(importlib.import_module("rectorch.nets"), cls.__name__)
-        net = net_class(state["params"])
+        net = net_class(**state["params"])
         net.load_state_dict(state["state"])
         return net
 
@@ -823,7 +823,7 @@ class SVAE_net(VAE_net):
         return state
 
 
-class RecVAE_CompositePrior_net(nn.Module):
+class RecVAE_CompositePrior_net(NeuralNet):
     r"""Composite prior network of the RecVAE model.
 
     Parameters
@@ -864,8 +864,11 @@ class RecVAE_CompositePrior_net(nn.Module):
         density_per_gaussian = torch.stack(gaussians, dim=-1)
         return torch.logsumexp(density_per_gaussian, dim=-1)
 
+    def get_state(self):
+        pass
 
-class RecVAE_Encoder_net(nn.Module):
+
+class RecVAE_Encoder_net(NeuralNet):
     r"""Encoder network of the RecVAE model.
 
     Parameters
@@ -887,6 +890,7 @@ class RecVAE_Encoder_net(nn.Module):
         self.ln = nn.LayerNorm(hidden_dim, eps=1e-1)
         self.fc_mu = nn.Linear(hidden_dim, latent_dim)
         self.fc_logvar = nn.Linear(hidden_dim, latent_dim)
+        self.init_weights()
 
     def forward(self, x, dropout_rate):
         xnorm = x.pow(2).sum(dim=-1).sqrt()
@@ -900,6 +904,11 @@ class RecVAE_Encoder_net(nn.Module):
 
         return self.fc_mu(hprev[-1]), self.fc_logvar(hprev[-1])
 
+    def init_weights(self):
+        pass
+
+    def get_state(self):
+        pass
 
 class RecVAE_net(NeuralNet):
     r"""RecVAE neural network model.
@@ -947,6 +956,7 @@ class RecVAE_net(NeuralNet):
                                                latent_dim,
                                                self.prior_mixture_weights)
         self.decoder = nn.Linear(latent_dim, input_dim)
+        self.init_weights()
 
     def init_weights(self):
         pass
