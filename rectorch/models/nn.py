@@ -18,6 +18,8 @@ Currently the implemented training algorithms are:
 * :class:`EASE`: Embarrassingly shallow autoencoder for sparse data [EASE]_.
 * :class:`ADMM_Slim`: ADMM SLIM: Sparse Recommendations for Many Users [ADMMS]_.
 * :class:`SVAE`: Sequential Variational Autoencoders for Collaborative Filtering [SVAE]_.
+* :class:`RecVAE`: RecVAE: A New Variational Autoencoder for Top-N Recommendations
+  with Implicit Feedback [RecVAE]_.
 
 It is also implemented a generic Variational autoencoder trainer (:class:`VAE`) based on the classic
 loss function *cross-entropy* based reconstruction loss, plus the KL loss.
@@ -32,7 +34,7 @@ References
 ----------
 .. [VAE] Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
    Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
-   World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
+   World Wide Web Conference (WWW '18). International World Wide Web Conferences Steering
    Committee, Republic and Canton of Geneva, CHE, 689–698.
    DOI: https://doi.org/10.1145/3178876.3186150
 .. [CVAE] Tommaso Carraro, Mirko Polato and Fabio Aiolli. Conditioned Variational
@@ -41,19 +43,24 @@ References
 .. [CFGAN] Dong-Kyu Chae, Jin-Soo Kang, Sang-Wook Kim, and Jung-Tae Lee. 2018.
    CFGAN: A Generic Collaborative Filtering Framework based on Generative Adversarial Networks.
    In Proceedings of the 27th ACM International Conference on Information and Knowledge
-   Management (CIKM ’18). Association for Computing Machinery, New York, NY, USA, 137–146.
+   Management (CIKM '18). Association for Computing Machinery, New York, NY, USA, 137–146.
    DOI: https://doi.org/10.1145/3269206.3271743
 .. [EASE] Harald Steck. 2019. Embarrassingly Shallow Autoencoders for Sparse Data.
-   In The World Wide Web Conference (WWW ’19). Association for Computing Machinery,
+   In The World Wide Web Conference (WWW '19). Association for Computing Machinery,
    New York, NY, USA, 3251–3257. DOI: https://doi.org/10.1145/3308558.3313710
 .. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
    ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
-   Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+   Conference on Web Search and Data Mining (WSDM '20). Association for Computing Machinery,
    New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774
 .. [SVAE] Noveen Sachdeva, Giuseppe Manco, Ettore Ritacco, and Vikram Pudi. 2019.
    Sequential Variational Autoencoders for Collaborative Filtering. In Proceedings of the Twelfth
-   ACM International Conference on Web Search and Data Mining (WSDM ’19). Association for Computing
+   ACM International Conference on Web Search and Data Mining (WSDM '19). Association for Computing
    Machinery, New York, NY, USA, 600–608. DOI: https://doi.org/10.1145/3289600.3291007
+.. [RecVAE] Ilya Shenbin, Anton Alekseev, Elena Tutubalina, Valentin Malykh, and Sergey
+   I. Nikolenko. 2020. RecVAE: A New Variational Autoencoder for Top-N Recommendations
+   with Implicit Feedback. In Proceedings of the 13th International Conference on Web
+   Search and Data Mining (WSDM '20). Association for Computing Machinery, New York, NY, USA,
+   528–536. DOI: https://doi.org/10.1145/3336191.3371831
 """
 import os
 import time
@@ -159,8 +166,8 @@ class TorchNNTrainer(RecSysModel):
             Number of training epochs, by default 100.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
-            value greater than 0. However, after reaching a maximum (that depends on the size of
-            the training set) verbosity higher values will not have any effect.
+            value greater than 0. However, after reaching a maximum verbosity value (that depends on
+            the size of the training set), higher values will not have any effect.
 
         Raises
         ------
@@ -540,7 +547,7 @@ class MultiDAE(AETrainer):
     ----------
     .. [VAE] Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
        Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
-       World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
+       World Wide Web Conference (WWW '18). International World Wide Web Conferences Steering
        Committee, Republic and Canton of Geneva, CHE, 689–698.
        DOI: https://doi.org/10.1145/3178876.3186150
     """
@@ -647,7 +654,7 @@ class MultiVAE(VAE):
     ----------
     .. [VAE] Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
         Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
-        World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
+        World Wide Web Conference (WWW '18). International World Wide Web Conferences Steering
         Committee, Republic and Canton of Geneva, CHE, 689–698.
         DOI: https://doi.org/10.1145/3178876.3186150
     """
@@ -750,7 +757,7 @@ class MultiVAE(VAE):
             To see the valid strings for the metric please see the module :mod:`metrics`.
         valid_func : :class:`rectorch.validation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
-            :func:`evaluation.evaluate`.
+            :func:`rectorch.evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
         best_path : :obj:`str` [optional]
@@ -758,8 +765,8 @@ class MultiVAE(VAE):
             set. By default ``"chkpt_best.pth"``.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
-            value greater than 0. However, after reaching a maximum (that depends on the size of
-            the training set) verbosity higher values will not have any effect.
+            value greater than 0. However, after reaching a maximum verbosity value (that depends on
+            the size of the training set), higher values will not have any effect.
         """
         try:
             best_perf = -1. #Assume the higher the better >= 0
@@ -821,7 +828,7 @@ class CMultiVAE(MultiVAE):
     More details about the loss function are given in the paper [CVAE]_.
 
     The training process is almost identical to the one of :class:`MultiVAE` but the sampler
-    must be a :class:`samplers.ConditionedDataSampler`.
+    must be a :class:`rectorch.samplers.ConditionedDataSampler`.
 
     Notes
     -----
@@ -1058,7 +1065,7 @@ class CFGAN(RecSysModel):
     .. [CFGAN] Dong-Kyu Chae, Jin-Soo Kang, Sang-Wook Kim, and Jung-Tae Lee. 2018.
        CFGAN: A Generic Collaborative Filtering Framework based on Generative Adversarial Networks.
        In Proceedings of the 27th ACM International Conference on Information and Knowledge
-       Management (CIKM ’18). Association for Computing Machinery, New York, NY, USA, 137–146.
+       Management (CIKM '18). Association for Computing Machinery, New York, NY, USA, 137–146.
        DOI: https://doi.org/10.1145/3269206.3271743
     """
     def __init__(self,
@@ -1101,7 +1108,7 @@ class CFGAN(RecSysModel):
 
         Parameters
         ----------
-        data_sampler : :class:`samplers.CFGAN_TrainingSampler`
+        data_sampler : :class:`rectorch.samplers.CFGAN_TrainingSampler`
             The sampler object that load the training/validation set in mini-batches.
         valid_metric : :obj:`str` [optional]
             The metric used during the validation to select the best model, by default :obj:`None`.
@@ -1109,7 +1116,7 @@ class CFGAN(RecSysModel):
             To see the valid strings for the metric please see the module :mod:`metrics`.
         valid_func : :class:`rectorch.validation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
-            :func:`evaluation.evaluate`.
+            :func:`rectorch.evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 1000.
         g_steps : :obj:`int` [optional]
@@ -1118,8 +1125,8 @@ class CFGAN(RecSysModel):
             Number of steps for a discriminator epoch, by default 5.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
-            value greater than 0. However, after reaching a maximum (that depends on the size of
-            the training set) verbosity higher values will not have any effect.
+            value greater than 0. However, after reaching a maximum verbosity value (that depends on
+            the size of the training set), higher values will not have any effect.
         """
         self.discriminator.train()
         self.generator.train()
@@ -1254,17 +1261,6 @@ class CFGAN(RecSysModel):
                 pred[torch.nonzero(x_tensor, as_tuple=True)] = -np.inf
         return (pred, )
 
-    def __str__(self):
-        s = self.__class__.__name__ + "(\n"
-        for k, v in self.__dict__.items():
-            sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
-            s += "  %s = %s,\n" % (k, sv)
-        s = s[:-2] + "\n)"
-        return s
-
-    def __repr__(self):
-        return str(self)
-
     def save_model(self, filepath):
         state = {
             'epoch': self.current_epoch,
@@ -1325,6 +1321,7 @@ class ADMM_Slim(RecSysModel):
     The prediction for a user-item pair *(u,j)* is then computed by
     :math:`S_{u j}=\mathbf{X}_{u,:} \cdot \mathbf{B}_{:, j}`.
 
+
     Parameters
     ----------
     lambda1 : :obj:`float` [optional]
@@ -1355,7 +1352,7 @@ class ADMM_Slim(RecSysModel):
     ----------
     .. [ADMMS] Harald Steck, Maria Dimakopoulou, Nickolai Riabov, and Tony Jebara. 2020.
        ADMM SLIM: Sparse Recommendations for Many Users. In Proceedings of the 13th International
-       Conference on Web Search and Data Mining (WSDM ’20). Association for Computing Machinery,
+       Conference on Web Search and Data Mining (WSDM '20). Association for Computing Machinery,
        New York, NY, USA, 555–563. DOI: https://doi.org/10.1145/3336191.3371774
     .. [SLIM] X. Ning and G. Karypis. 2011. SLIM: Sparse Linear Methods for Top-N Recommender
        Systems. In Proceedings of the IEEE 11th International Conference on Data Mining,
@@ -1408,8 +1405,8 @@ class ADMM_Slim(RecSysModel):
             if both :attr:`nn_constr` and :attr:`l1_penalty` are set to :obj:`False`.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
-            value greater than 0. However, after reaching a maximum (that depends on the size of
-            the training set) verbosity higher values will not have any effect.
+            value greater than 0. However, after reaching a maximum verbosity value (that depends on
+            the size of the training set), higher values will not have any effect.
         """
         def _soft_threshold(a, k):
             return np.maximum(0., a - k) - np.maximum(0., -a - k)
@@ -1531,11 +1528,13 @@ class ADMM_Slim(RecSysModel):
         return str(self)
 
 
-#TODO documentation
 class SVAE(MultiVAE):
-    r"""Sequential Variational Autoencoders for Collaborative Filtering.
+    r"""Sequential Variational Autoencoders (SVAE) for Collaborative Filtering.
 
-    **UNDOCUMENTED** [SVAE]_
+    SVAE [SVAE]_ introduces a recurrent version of the VAE, where temporal dependencies are taken
+    into account and passed through a recurrent neural network (RNN). At each time-step of the RNN,
+    the sequence is fed through a series of fully-connected layers, the output of which models the
+    probability distribution of the most likely future preferences.
 
     Parameters
     ----------
@@ -1631,7 +1630,7 @@ class RecVAE(RecSysModel):
        528–536. DOI: https://doi.org/10.1145/3336191.3371831
     .. [MultVAE] Dawen Liang, Rahul G. Krishnan, Matthew D. Hoffman, and Tony Jebara. 2018.
        Variational Autoencoders for Collaborative Filtering. In Proceedings of the 2018
-       World Wide Web Conference (WWW ’18). International World Wide Web Conferences Steering
+       World Wide Web Conference (WWW '18). International World Wide Web Conferences Steering
        Committee, Republic and Canton of Geneva, CHE, 689–698.
        DOI: https://doi.org/10.1145/3178876.3186150
     """
@@ -1689,7 +1688,7 @@ class RecVAE(RecSysModel):
         ----------
         tr_batch : :class:`torch.Tensor`
             Traning part of the current batch.
-        optimizer : :class:`torch.optimizer.Optimizer`
+        optimizer : :class:`torch.optim.Optimizer`
             The optimizer to use for this batch.
         te_batch : :class:`torch.Tensor` or :obj:`None` [optional]
             Test part of the current batch, if any, otherwise :obj:`None`, by default :obj:`None`.
@@ -1724,11 +1723,11 @@ class RecVAE(RecSysModel):
         data_sampler : :class:`rectorch.samplers.Sampler`
             The sampler object that load the training set in mini-batches.
         net_part : :obj:`str` in the set {``"enc"``, ``"dec"``}
-            The part of the network to train. "enc" means encoder and "dec" decoder.
+            The part of the network to train. ``"enc"`` means encoder and ``"dec"`` decoder.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
-            value greater than 0. However, after reaching a maximum (that depends on the size of
-            the training set) verbosity higher values will not have any effect.
+            value greater than 0. However, after reaching a maximum verbosity value (that depends on the size of
+            the training set), higher values will not have any effect.
         """
         optimizer = self.opt_enc if net_part == "enc" else self.opt_dec
         train_loss = 0
@@ -1770,8 +1769,8 @@ class RecVAE(RecSysModel):
             Number of training epochs for each meta-epoch for the decoder.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
-            value greater than 0. However, after reaching a maximum (that depends on the size of
-            the training set) verbosity higher values will not have any effect.
+            value greater than 0. However, after reaching a maximum verbosity value (that depends on
+            the size of the training set), higher values will not have any effect.
         """
         self.network.train()
         total_loss = 0
@@ -1814,7 +1813,7 @@ class RecVAE(RecSysModel):
             To see the valid strings for the metric please see the module :mod:`metrics`.
         valid_func : :class:`rectorch.validation.ValidFunc` [optional]
             The validation function, by default a standard validation procedure, i.e.,
-            :func:`evaluation.evaluate`.
+            :func:`rectorch.evaluation.evaluate`.
         num_epochs : :obj:`int` [optional]
             Number of training epochs, by default 100.
         best_path : :obj:`str` [optional]
@@ -1826,8 +1825,8 @@ class RecVAE(RecSysModel):
             Number of training epochs for each meta-epoch for the decoder, by default 1.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
-            value greater than 0. However, after reaching a maximum (that depends on the size of
-            the training set) verbosity higher values will not have any effect.
+            value greater than 0. However, after reaching a maximum verbosity value (that depends on
+            the size of the training set), higher values will not have any effect.
         """
         try:
             for epoch in range(1, num_epochs + 1):
@@ -1857,12 +1856,14 @@ class RecVAE(RecSysModel):
         env.logger.info("Saving RecVAE model to %s...", filepath)
         torch.save(state, filepath)
         env.logger.info("Model saved!")
+        return state
 
     @classmethod
     def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
         env.logger.info("Loading RecVAE model checkpoint from %s...", filepath)
         checkpoint = torch.load(filepath)
+
         net_class = getattr(importlib.import_module("rectorch.nets"),
                             checkpoint["network"]["name"])
         net = net_class(**checkpoint['network']['params'])
@@ -1870,7 +1871,7 @@ class RecVAE(RecSysModel):
                         checkpoint['beta'],
                         checkpoint['gamma'],
                         checkpoint['opt_conf'])
-        recvae.network.load_state_dict(checkpoint["network"]['state'])
+        recvae.network.load_state_dict(checkpoint['network']['state'])
         recvae.opt_enc.load_state_dict(checkpoint['optimizer_e'])
         recvae.opt_dec.load_state_dict(checkpoint['optimizer_d'])
         recvae.current_epoch = checkpoint['epoch']
@@ -1886,13 +1887,3 @@ class RecVAE(RecSysModel):
                 recon_x[torch.nonzero(x_tensor, as_tuple=True)] = -np.inf
             return recon_x, mu, logvar
 
-    def __str__(self):
-        s = self.__class__.__name__ + "(\n"
-        for k, v in self.__dict__.items():
-            sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
-            s += "  %s = %s,\n" % (k, sv)
-        s = s[:-2] + "\n)"
-        return s
-
-    def __repr__(self):
-        return str(self)

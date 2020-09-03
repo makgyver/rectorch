@@ -115,6 +115,8 @@ class RecSysModel():
     def __str__(self):
         s = self.__class__.__name__ + "(\n"
         for k, v in self.__dict__.items():
+            if k.startswith("_"):
+                continue
             sv = "\n".join(["  "+line for line in str(str(v)).split("\n")])[2:]
             s += "  %s = %s,\n" % (k, sv)
         s = s[:-2] + "\n)"

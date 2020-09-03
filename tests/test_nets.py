@@ -7,7 +7,7 @@ import torch
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.nets import NeuralNet, AE_net, CDAE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net,\
-     CFGAN_G_net, CFGAN_D_net, SVAE_net
+     CFGAN_G_net, CFGAN_D_net, SVAE_net, RecVAE_net
 
 def test_NeuralNet():
     """Test the NeuralNet class
@@ -196,3 +196,25 @@ def test_SVAE_net():
     assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
     assert isinstance(mu, torch.FloatTensor), "mu should be a torch.FloatTensor"
     assert isinstance(logvar, torch.FloatTensor), "logvar should be a torch.FloatTensor"
+
+def test_RecVAE_net():
+    """Test the RecVAE_net class
+    """
+    net = RecVAE_net(2, 4, 2)
+    x = torch.FloatTensor([[1, 1], [2, 2]])
+    torch.manual_seed(98765)
+    y, z, mu, logvar = net(x)
+
+    assert hasattr(net, "input_dim"), "Missing input_dim attribute"
+    assert hasattr(net, "hidden_dim"), "Missing hidden_dim attribute"
+    assert hasattr(net, "latent_dim"), "Missing latent_dim attribute"
+    assert hasattr(net, "enc_num_hidden"), "Missing enc_num_hidden attribute"
+    assert hasattr(net, "prior_mixture_weights"), "Missing prior_mixture_weights attribute"
+    assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
+    assert isinstance(z, torch.FloatTensor), "z should be a torch.FloatTensor"
+    assert isinstance(mu, torch.FloatTensor), "mu should be a torch.FloatTensor"
+    assert isinstance(logvar, torch.FloatTensor), "logvar should be a torch.FloatTensor"
+    assert y.shape == x.shape, "The shape of x and y should be the same"
+    state = net.get_state()
+    assert state['params']['hidden_dim'] == 4
+    assert state['params']['latent_dim'] == 2

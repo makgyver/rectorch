@@ -931,18 +931,21 @@ class RecVAE_net(NeuralNet):
                  hidden_dim,
                  latent_dim,
                  enc_num_hidden=4,
-                 prior_mixture_weights=[3/20, 3/4, 1/10]):
+                 prior_mixture_weights=None):#[3/20, 3/4, 1/10]):
         super(RecVAE_net, self).__init__()
         self.input_dim = input_dim
         self.hidden_dim = hidden_dim
         self.latent_dim = latent_dim
         self.enc_num_hidden = enc_num_hidden
-        self.prior_mixture_weights = prior_mixture_weights
+        if prior_mixture_weights is None:
+            self.prior_mixture_weights = [1/3, 1/3, 1/3]
+        else:
+            self.prior_mixture_weights = prior_mixture_weights
         self.encoder = RecVAE_Encoder_net(input_dim, hidden_dim, latent_dim, enc_num_hidden)
         self.prior = RecVAE_CompositePrior_net(input_dim,
                                                hidden_dim,
                                                latent_dim,
-                                               prior_mixture_weights)
+                                               self.prior_mixture_weights)
         self.decoder = nn.Linear(latent_dim, input_dim)
 
     def init_weights(self):
@@ -957,7 +960,7 @@ class RecVAE_net(NeuralNet):
             return mu
 
     def forward(self, user_ratings, dropout_rate=0.5):
-        mu, logvar = self.encoder(user_ratings, dropout_rate=dropout_rate)    
+        mu, logvar = self.encoder(user_ratings, dropout_rate=dropout_rate)
         z = self._reparameterize(mu, logvar)
         x_pred = self.decoder(z)
         return x_pred, z, mu, logvar

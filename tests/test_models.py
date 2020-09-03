@@ -6,14 +6,16 @@ import tempfile
 import pytest
 import torch
 import pandas as pd
+import warnings
+warnings.simplefilter('ignore')
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.data import Dataset
 from rectorch.models import RecSysModel
 from rectorch.models.nn import TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
-    CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE
+    CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE, RecVAE
 from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
-    CFGAN_G_net, SVAE_net
+    CFGAN_G_net, SVAE_net, RecVAE_net
 from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_Sampler,\
     SVAE_Sampler
 from rectorch.samplers import ArrayDummySampler
@@ -539,3 +541,57 @@ def test_SVAE():
     torch.manual_seed(12345)
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
+
+
+def test_RecVAE():
+    """Test the RecVAE class
+    """
+    net = RecVAE_net(2, 4, 2)
+    model = RecVAE(net)
+
+    assert hasattr(model, "network"), "model should have the attribute newtork"
+    assert hasattr(model, "device"), "model should have the attribute device"
+    assert hasattr(model, "opt_dec"), "model should have the attribute opt_dec"
+    assert hasattr(model, "opt_enc"), "model should have the attribute opt_enc"
+    assert model.network == net, "the network should be the same as the parameter"
+    assert model.device == torch.device("cpu"), "the device should be cpu"
+    assert isinstance(model.opt_enc, torch.optim.Adam), "opt_enc should be of Adam type"
+    assert isinstance(model.opt_dec, torch.optim.Adam), "opt_dec should be of Adam type"
+    assert str(model) == repr(model), "repr and str should have the same effect"
+
+    #gt = torch.FloatTensor([[1, 1], [2, 1]])
+    #pred = torch.FloatTensor([[1, 1], [1, 1]])
+
+    sampler = create_sampler([0, 0, 1], [0, 1, 1])
+
+    x = torch.FloatTensor([[1, 1], [2, 2]])
+    model.predict(x, True)
+    torch.manual_seed(12345)
+    out_1 = model.predict(x, False)[0]
+    model.train(sampler, num_epochs=10, verbose=4)
+    torch.manual_seed(12345)
+    out_2 = model.predict(x, False)[0]
+
+    assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
+
+    tmp = tempfile.NamedTemporaryFile()
+    model.save_model(tmp.name)
+
+    model2 = RecVAE.load_model(tmp.name)
+
+    torch.manual_seed(12345)
+    out_1 = model.predict(x, False)[0]
+    torch.manual_seed(12345)
+    out_2 = model2.predict(x, False)[0]
+    assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
+
+    tmp2 = tempfile.NamedTemporaryFile()
+    net = RecVAE_net(2, 4, 3)
+    model = RecVAE(net, gamma=.03)
+    model.train(sampler,
+                valid_metric="ndcg@1",
+                num_epochs=10)
+
+    model.save_model(tmp2.name)
+    model2 = RecVAE.load_model(tmp2.name)
+    assert model2.current_epoch > 0

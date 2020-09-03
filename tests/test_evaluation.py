@@ -6,6 +6,8 @@ import numpy as np
 import pytest
 import torch
 import pandas as pd
+import warnings
+warnings.simplefilter('ignore')
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.data import Dataset
