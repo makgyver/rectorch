@@ -80,7 +80,7 @@ class ValidFunc():
 
 
 class HPSearch(RecSysModel):
-    """Abstract hyper-parameter search algorithm.
+    r"""Abstract hyper-parameter search algorithm.
 
     The :class:`HPSearch` class is a sub-class of :class:`rectorch.models.RecSysModel` and hence it
     can be used as a trained model.
@@ -194,7 +194,9 @@ class HPSearch(RecSysModel):
 class GridSearch(HPSearch):
     r"""Perform a hyper-parameters grid search to select the best setting.
 
-    **UNDOCUMENTED**
+    The grid search algorithm is an exahustive search in a predefined hyper-parameters space. This
+    space is defined as a (multi-dimensional) grid (like a tensor), where each entry represents a
+    combination of values of the hyper-parameters. 
 
     The :class:`GridSearch` class is a sub-class of :class:`HPSearch` and hence it can be used as a
     trained model. After training, the ``GridSearch`` object is like a wrapper for the model class
@@ -319,7 +321,7 @@ class GridSearch(HPSearch):
 
 
 class HyperoptSearch(HPSearch):
-    """Random hyper-parameter optimization.
+    r"""Random hyper-parameter optimization.
 
     The :class:`RandomSearch` class is a sub-class of :class:`HPSearch` and hence it can be used
     as a trained model. After training, the ``RandomSearch`` object is like a wrapper for the
@@ -361,7 +363,7 @@ class HyperoptSearch(HPSearch):
         not been performed yet.
     best_model : trained model from :mod:`rectorch.models.nn` module
         The best performing model on the validation set.
-    
+
     Notes
     -----
     Using the :class:`HyperoptSearch` with the default parameter for ``algorithm`` is the same as
@@ -444,7 +446,7 @@ class HyperoptSearch(HPSearch):
 
 
 class RandomSearch(HyperoptSearch):
-    """Random hyper-parameter optimization.
+    r"""Random hyper-parameter optimization.
 
     The :class:`RandomSearch` class is a sub-class of :class:`HPSearch` and hence it can be used
     as a trained model. After training, the ``RandomSearch`` object is like a wrapper for the
@@ -513,9 +515,15 @@ class RandomSearch(HyperoptSearch):
                                            rand.suggest)
 
 class BayesianSearch(HyperoptSearch):
-    """Bayesian hyper-parameter optimization.
+    r"""Bayesian hyper-parameter optimization.
 
-    **UNDOCUMENTED**
+    Bayesian optimization is a probabilistic model based approach for finding the minimum of any
+    function that returns a real-value metric. Bayesian optimization (aka Sequential Model-Based
+    Optimization (SMBO)) builds a probability model of the objective function that maps input values
+    to a probability of a loss: :math:`p(\textit{loss} | \textit{input values})`. The probability
+    model (aka the surrogate/response surface) is easier to optimize than the actual objective
+    function. Bayesian methods select the next values with the maximum expected improvement to the
+    surrogate.
 
     The :class:`BayesianSearch` class is a sub-class of :class:`HPSearch` and hence it can be used
     as a trained model. After training, the ``BayesianSearch`` object is like a wrapper for the

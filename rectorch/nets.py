@@ -746,7 +746,9 @@ class CFGAN_D_net(NeuralNet):
 class SVAE_net(VAE_net):
     """Sequential Variational Autoencoders for Collaborative Filtering.
 
-    **UNDOCUMENTED** [SVAE]_
+    The network structure follows the definition as in [SVAE]_. Items are embedded into a latent
+    space and then fed into a Gated Recurrent Unit (GRU). Finally, a VAE network takes as input
+    the GRU representation and returns the items' scores.
 
     Parameters
     ----------
