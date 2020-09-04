@@ -477,7 +477,7 @@ class VAE(AETrainer):
 
         References
         ----------
-        .. [KINGMA] Kingma, Diederik P and Welling, Max Auto-Encoding Variational Bayes, 2013.
+        .. [KINGMA] Kingma, Diederik P and Welling, Max. Auto-Encoding Variational Bayes, 2013.
            arXiv pre-print: https://arxiv.org/abs/1312.6114.
         """
         BCE = F.binary_cross_entropy(recon_x, x)

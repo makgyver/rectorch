@@ -22,7 +22,7 @@ The ``processing`` options are the following:
 * ``data_path``: string representing the path to the data set `.csv <https://it.wikipedia.org/wiki/Comma-separated_values>`_ file;
 * ``threshold``: float cut-off value for converting explicit feedback to implicit feedback;
 * ``separator``: string delimiter used in the `.csv <https://it.wikipedia.org/wiki/Comma-separated_values>`_ file;
-* ``header``: number of rows of the header (if no header set to ``None`` or``null`` if in *json*);
+* ``header``: number of rows of the header (if no header set to ``None`` or ``null`` if in *json*);
 * ``u_min``: integer minimum number of items for a user to be kept in the data set;
 * ``i_min``: integer minimum number of users for an item to be kept in the data set;
 
