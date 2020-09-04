@@ -12,12 +12,12 @@ import rectorch
 from rectorch import Environment
 
 def test_init():
-    assert rectorch.env._default_env
+    assert rectorch.env.is_default()
     assert isinstance(rectorch.env, Environment)
     assert isinstance(rectorch.env.logger, logging.Logger)
     assert isinstance(rectorch.env.device, torch.device)
     rectorch.env.init()
-    assert not rectorch.env._default_env
+    assert not rectorch.env.is_default()
     assert rectorch.env.device.type == "cpu"
     rectorch.env.device = "cuda"
     assert rectorch.env.device.type == "cuda"
@@ -26,7 +26,7 @@ def test_init():
     rectorch.env.device = "cpu"
     assert rectorch.env.device.type == "cpu"
     rectorch.env.reset()
-    assert rectorch.env._default_env
+    assert rectorch.env.is_default()
     rectorch.set_seed(1234)
     x = np.random.rand()
     np.random.seed(1234)

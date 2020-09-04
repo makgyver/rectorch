@@ -76,6 +76,11 @@ class Environment():
     def _get_logger(self):
         return self._logger
 
+    def is_default(self):
+        r"""Get if the environment is the default one.
+        """
+        return self._default_env
+
     device = property(fget=_get_device, fset=_set_device)
     logger = property(fget=_get_logger)
 
