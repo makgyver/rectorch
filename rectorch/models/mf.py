@@ -3,6 +3,7 @@ r"""This module contains recommender systems based on matrix factorization or re
 import os
 import torch
 import numpy as np
+from rectorch.data import Dataset
 from rectorch.models import RecSysModel
 from rectorch.samplers import ArrayDummySampler, TensorDummySampler, SparseDummySampler
 from rectorch import env
@@ -67,14 +68,19 @@ class EASE(RecSysModel):
         self.lam = lam
         self.model = None
 
-    def train(self, data_sampler):
+    def train(self, dataset):
         """Training of the EASE model.
 
         Parameters
         ----------
-        data_sampler : :class:`rectorch.samplers.DummySampler`
-            The training sampler.
+        dataset : :class:`rectorch.data.Dataset` or :class:`rectorch.samplers.DummySampler`
+            The training set/sampler.
         """
+        if isinstance(dataset, Dataset):
+            data_sampler = ArrayDummySampler(dataset)
+        else:
+            data_sampler = dataset
+
         env.logger.info("EASE - start tarining (lam=%.4f)", self.lam)
         if isinstance(data_sampler, ArrayDummySampler):
             X = data_sampler.data_tr
@@ -236,7 +242,7 @@ class ADMM_Slim(RecSysModel):
         self.model = None
 
 
-    def train(self, data_sampler, num_iter=50, verbose=1):
+    def train(self, dataset, num_iter=50, verbose=1):
         r"""Training of ADMM SLIM.
 
         The training procedure of ADMM SLIM highly depends on the setting of the
@@ -260,8 +266,8 @@ class ADMM_Slim(RecSysModel):
 
         Parameters
         ----------
-        data_sampler : :class:`rectorch.samplers.DummySampler`
-            The training sampler.
+        dataset : :class:`rectorch.data.Dataset` or :class:`rectorch.samplers.DummySampler`
+            The training set/sampler.
         num_iter : :obj:`int` [optional]
             Maximum number of training iterations, by default 50. This argument has no effect
             if both :attr:`nn_constr` and :attr:`l1_penalty` are set to :obj:`False`.
@@ -272,6 +278,11 @@ class ADMM_Slim(RecSysModel):
         """
         def _soft_threshold(a, k):
             return np.maximum(0., a - k) - np.maximum(0., -a - k)
+
+        if isinstance(dataset, Dataset):
+            data_sampler = ArrayDummySampler(dataset)
+        else:
+            data_sampler = dataset
 
         if isinstance(data_sampler, ArrayDummySampler):
             X = data_sampler.data_tr

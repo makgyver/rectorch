@@ -3,6 +3,7 @@ r"""Module containing utility functions to evaluate recommendation engines.
 import random
 import numpy as np
 from scipy.sparse import csr_matrix
+from rectorch import env
 from rectorch.metrics import Metrics
 from rectorch.utils import prepare_for_prediction
 
@@ -51,6 +52,10 @@ def evaluate(model, test_sampler, metric_list):
         representing the metric, while the value is an array with the value of the metric
         computed on the users.
     """
+    if test_sampler.mode == "train":
+        test_sampler.test()
+        env.logger.warning("Sampler must be in valid or test mode. Froced switch to test mode!")
+
     results = {m:[] for m in metric_list}
     for _, (data_input, ground_truth) in enumerate(test_sampler):
         data_input, ground_truth = prepare_for_prediction(data_input, ground_truth)
@@ -107,6 +112,10 @@ def one_plus_random(model, test_sampler, metric_list, r=1000):
        Recommender Systems (RecSys '11). ACM, New York, NY, USA, 333–336, 2011.
        DOI: https://doi.org/10.1145/2043932.2043996
     """
+    if test_sampler.mode == "train":
+        test_sampler.test()
+        env.logger.warning("Sampler must be in valid or test mode. Froced switch to test mode!")
+
     results = {m:[] for m in metric_list}
     for _, (data_input, ground_truth) in enumerate(test_sampler):
         data_input, ground_truth = prepare_for_prediction(data_input, ground_truth)
@@ -142,4 +151,3 @@ def one_plus_random(model, test_sampler, metric_list, r=1000):
     for m in results:
         results[m] = np.concatenate(results[m])
     return results
-

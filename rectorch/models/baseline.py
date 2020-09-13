@@ -9,6 +9,8 @@ import torch
 import numpy as np
 import cvxopt as co
 import cvxopt.solvers as solver
+from rectorch.data import Dataset
+from rectorch.samplers import ArrayDummySampler, SparseDummySampler
 from rectorch.models import RecSysModel
 from rectorch.utils import md_kernel, kernel_normalization, cvxopt_diag, sparse2tensor
 from rectorch import env
@@ -55,7 +57,7 @@ class Random(RecSysModel):
         self.seed = seed
         self.fixed = fixed
 
-    def train(self, data_sampler=None):
+    def train(self, dataset=None):
         pass
 
     def predict(self, users, train_items, remove_train=True):
@@ -124,13 +126,13 @@ class Popularity(RecSysModel):
         self.n_items = n_items
         self.model = None
 
-    def train(self, data_sampler, retrain=False):
+    def train(self, dataset, retrain=False):
         r"""Compute the items' popularity.
 
         Parameters
         ----------
-        data_sampler : :class:`rectorch.samplers.DummySampler`
-            The training sampler.
+        dataset : :class:`rectorch.data.Dataset` or :class:`rectorch.samplers.DummySampler`
+            The training set/sampler.
         retrain : :obj:`bool` [optional]
             Whether the popularity must be recomputed or not, by default :obj:`False`.
             If :obj:`False` the computation is avoided iff the model is not empty
@@ -138,6 +140,11 @@ class Popularity(RecSysModel):
         """
         if not retrain and self.model is not None:
             return
+
+        if isinstance(dataset, Dataset):
+            data_sampler = ArrayDummySampler(dataset)
+        else:
+            data_sampler = dataset
 
         train_data = data_sampler.data_tr
         if isinstance(train_data, csr_matrix):
@@ -248,13 +255,13 @@ class CF_KOMD(RecSysModel):
         else:
             raise ValueError("'ker_fun' can only be 'linear' or 'disjunctive'.")
 
-    def train(self, data_sampler, only_test=False, verbose=1):
+    def train(self, dataset, only_test=False, verbose=1):
         """Training procedure of CF-KOMD.
 
         Parameters
         ----------
-        data_sampler : :class:`rectorch.samplers.ArrayDummySampler`
-            The sampler object that load the training/validation set in mini-batches.
+        dataset : :class:`rectorch.data.Dataset` or :class:`rectorch.samplers.ArrayDummySampler`
+            The dataset/sampler object that load the training/validation set in mini-batches.
         only_test : :obj:`bool` [optional]
             Whether to build the model only for the test users, by default :obj:`False`.
         verbose : :obj:`int` [optional]
@@ -263,6 +270,11 @@ class CF_KOMD(RecSysModel):
             the training set) verbosity higher values will not have any effect.
         """
         start_time = time.time()
+
+        if isinstance(dataset, Dataset):
+            data_sampler = ArrayDummySampler(dataset)
+        else:
+            data_sampler = dataset
 
         if only_test:
             data_sampler.test()
@@ -352,7 +364,7 @@ class CF_KOMD(RecSysModel):
         env.logger.info("Saving CF_KOMD model to %s...", filepath)
         torch.save(self.get_state(), filepath)
         env.logger.info("Model saved!")
-    
+
     @classmethod
     def from_state(cls, state):
         cfkomd = CF_KOMD(lam=state["lam"],
@@ -435,19 +447,24 @@ class SLIM(RecSysModel):
                                tol=1e-3)
         self.model = None
 
-    def train(self, data_sampler, verbose=1):
+    def train(self, dataset, verbose=1):
         """Training procedure of SLIM.
 
         Parameters
         ----------
-        data_sampler : :class:`rectorch.samplers.SparseDummySampler`
-            The sampler object that load the training/validation set in mini-batches.
+        datates : :class:`rectorch.data.Dataset` or :class:`rectorch.samplers.SparseDummySampler`
+            The dataset/sampler object that load the training/validation set in mini-batches.
         verbose : :obj:`int` [optional]
             The level of verbosity of the logging, by default 1. The level can have any integer
             value greater than 0. However, after reaching a maximum (that depends on the size of
             the training set) verbosity higher values will not have any effect.
         """
         start_time = time.time()
+        if isinstance(dataset, Dataset):
+            data_sampler = SparseDummySampler(dataset)
+        else:
+            data_sampler = dataset
+
         train_matrix = data_sampler.data_tr.tocsc()
         num_items = train_matrix.shape[1]
 

@@ -70,7 +70,8 @@ class Sampler():
         mode : :obj:`str` in the set {``'train'``, ``'valid'``, ``'test'``}
             Indicates the mode in which the sampler operates.
         """
-        raise NotImplementedError
+        assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
+        self.mode = mode
 
     def train(self, batch_size=None):
         """Set the sampler to training mode.
@@ -162,8 +163,7 @@ class DummySampler(Sampler):
         self.shuffle = shuffle
 
     def _set_mode(self, mode="train", batch_size=None):
-        assert mode in ["train", "valid", "test"], "Invalid sampler's mode."
-        self.mode = mode
+        super()._set_mode(mode)
         if self.mode == "train":
             self._data = self.data_tr
         elif self.mode == "valid":

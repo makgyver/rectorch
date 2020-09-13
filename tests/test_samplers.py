@@ -21,17 +21,12 @@ def test_Sampler():
     """Test the Sampler class
     """
     sampler = Sampler(None, None)
-    with pytest.raises(NotImplementedError):
-        sampler.valid()
-
-    with pytest.raises(NotImplementedError):
-        sampler.train()
-
-    with pytest.raises(NotImplementedError):
-        sampler.test()
-
-    with pytest.raises(NotImplementedError):
-        sampler.valid()
+    sampler.train()
+    assert sampler.mode == "train"
+    sampler.valid()
+    assert sampler.mode == "valid"
+    sampler.test()
+    assert sampler.mode == "test"
 
     with pytest.raises(NotImplementedError):
         len(sampler)
