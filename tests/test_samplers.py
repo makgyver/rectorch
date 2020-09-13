@@ -10,9 +10,12 @@ import scipy
 sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.data import Dataset
-from rectorch.samplers import Sampler, DataSampler, EmptyConditionedDataSampler,\
-    ConditionedDataSampler, CFGAN_Sampler, SVAE_Sampler, DictDummySampler,\
+from rectorch.models.nn.svae import SVAE_Sampler
+from rectorch.models.nn.cfgan import CFGAN_Sampler
+from rectorch.samplers import Sampler, DataSampler, DictDummySampler,\
     ArrayDummySampler, TensorDummySampler, SparseDummySampler
+
+from rectorch.models.nn.cvae import EmptyConditionedDataSampler, ConditionedDataSampler
 
 def test_Sampler():
     """Test the Sampler class

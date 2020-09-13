@@ -6,8 +6,13 @@ import pytest
 import torch
 sys.path.insert(0, os.path.abspath('..'))
 
-from rectorch.nets import NeuralNet, AE_net, CDAE_net, MultiDAE_net, MultiVAE_net, CMultiVAE_net,\
-     CFGAN_G_net, CFGAN_D_net, SVAE_net, RecVAE_net
+from rectorch.models.nn import NeuralNet, AE_net, VAE_net
+from rectorch.models.nn.cfgan import CFGAN_G_net, CFGAN_D_net
+from rectorch.models.nn.multvae import MultVAE_net
+from rectorch.models.nn.multdae import MultDAE_net
+from rectorch.models.nn.recvae import RecVAE_net
+from rectorch.models.nn.svae import SVAE_net
+from rectorch.models.nn.cvae import CMultVAE_net
 
 def test_NeuralNet():
     """Test the NeuralNet class
@@ -19,8 +24,7 @@ def test_NeuralNet():
     with pytest.raises(NotImplementedError):
         nn.init_weights()
 
-    with pytest.raises(NotImplementedError):
-        nn.get_state()
+    assert nn.get_state() == {}
 
 
 def test_AE_net():
@@ -44,6 +48,23 @@ def test_AE_net():
     assert hasattr(net, "enc_dims"), "Missing enc_dims attribute"
     assert hasattr(net, "dec_dims"), "Missing dec_dims attribute"
 
+def test_VAE_net():
+    """Test the VAE_net class
+    """
+    net = VAE_net([1, 2], [2, 1])
+    x = torch.FloatTensor([[1, 1], [2, 2]])
+    y, mu, logvar = net.forward(x)
+
+    assert hasattr(net, "enc_dims"), "Missing enc_dims attribute"
+    assert hasattr(net, "dec_dims"), "Missing dec_dims attribute"
+    assert isinstance(y, torch.Tensor)
+    assert isinstance(mu, torch.Tensor)
+    assert isinstance(logvar, torch.Tensor)
+    assert y.shape == torch.Size([2, 2])
+    assert mu.shape == torch.Size([2, 1])
+    assert logvar.shape == torch.Size([2, 1])
+
+'''
 def test_CDAE_net():
     """Test the CDAE_net class
     """
@@ -57,27 +78,28 @@ def test_CDAE_net():
     assert hasattr(net, "latent_size"), "Missing latent_size attribute"
     assert hasattr(net, "sigmoid_hidden"), "Missing sigmoid_hidden attribute"
     assert hasattr(net, "sigmoid_out"), "Missing sigmoid_out attribute"
-    assert isinstance(net.dropout, torch.nn.Dropout), "dropout must be a torch.nn.Dropout"
+    assert isinstance(net.dropout_rate, float), "dropout must be a float"
     assert net.dropout.p == .5, "dropout probability must be equal to .5"
     assert not net.sigmoid_hidden
     assert not net.sigmoid_out
     assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
     assert y.shape == torch.Size([2, 2])
+'''
 
 def test_MultiDAE_net():
     """Test the MultiDAE_net class
     """
-    net = MultiDAE_net([1, 2], [2, 1], .1)
+    net = MultDAE_net([1, 2], [2, 1], .1)
     x = torch.FloatTensor([[1, 1], [2, 2]])
     y = net(x)
 
     assert hasattr(net, "enc_dims"), "Missing enc_dims attribute"
     assert hasattr(net, "dec_dims"), "Missing dec_dims attribute"
-    assert hasattr(net, "dropout"), "Missing dropout attribute"
+    assert hasattr(net, "dropout_rate"), "Missing dropout attribute"
     assert hasattr(net, "dec_layers"), "Missing dec_layers attribute"
     assert hasattr(net, "enc_layers"), "Missing end_layers attribute"
-    assert isinstance(net.dropout, torch.nn.Dropout), "dropout must be a torch.nn.Dropout"
-    assert net.dropout.p == .1, "dropout probability must be equal to .1"
+    assert isinstance(net.dropout_rate, float), "dropout must be a float"
+    assert net.dropout_rate == .1, "dropout probability must be equal to .1"
     assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
     assert y.shape == x.shape, "The shape of x and y should be the same"
 
@@ -85,7 +107,7 @@ def test_MultiDAE_net():
 def test_MultiVAE_net():
     """Test the MultiVAE_net class
     """
-    net = MultiVAE_net([1, 2], [2, 1], .1)
+    net = MultVAE_net([1, 2], [2, 1], .1)
     x = torch.FloatTensor([[1, 1], [2, 2]])
     torch.manual_seed(98765)
     mu, logvar = net.encode(x)
@@ -94,11 +116,11 @@ def test_MultiVAE_net():
 
     assert hasattr(net, "enc_dims"), "Missing enc_dims attribute"
     assert hasattr(net, "dec_dims"), "Missing dec_dims attribute"
-    assert hasattr(net, "dropout"), "Missing dropout attribute"
+    assert hasattr(net, "dropout_rate"), "Missing dropout attribute"
     assert hasattr(net, "dec_layers"), "Missing dec_layers attribute"
     assert hasattr(net, "enc_layers"), "Missing end_layers attribute"
-    assert isinstance(net.dropout, torch.nn.Dropout), "dropout must be a torch.nn.Dropout"
-    assert net.dropout.p == .1, "dropout probability must be equal to .1"
+    assert isinstance(net.dropout_rate, float), "dropout must be a float"
+    assert net.dropout_rate == .1, "dropout probability must be equal to .1"
     assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
     assert isinstance(mu, torch.FloatTensor), "mu should be a torch.FloatTensor"
     assert isinstance(logvar, torch.FloatTensor), "logvar should be a torch.FloatTensor"
@@ -112,7 +134,7 @@ def test_MultiVAE_net():
 def test_CMultiVAE_net():
     """Test the CMultiVAE_net class
     """
-    net = CMultiVAE_net(1, [1, 2], [2, 1], .1)
+    net = CMultVAE_net(1, [1, 2], [2, 1], .1)
     x = torch.FloatTensor([[1, 1, 1], [2, 2, 0]])
     torch.manual_seed(98765)
     mu, logvar = net.encode(x)
@@ -121,11 +143,11 @@ def test_CMultiVAE_net():
 
     assert hasattr(net, "enc_dims"), "Missing enc_dims attribute"
     assert hasattr(net, "dec_dims"), "Missing dec_dims attribute"
-    assert hasattr(net, "dropout"), "Missing dropout attribute"
+    assert hasattr(net, "dropout_rate"), "Missing dropout attribute"
     assert hasattr(net, "dec_layers"), "Missing dec_layers attribute"
     assert hasattr(net, "enc_layers"), "Missing end_layers attribute"
-    assert isinstance(net.dropout, torch.nn.Dropout), "dropout must be a torch.nn.Dropout"
-    assert net.dropout.p == .1, "dropout probability must be equal to .1"
+    assert isinstance(net.dropout_rate, float), "dropout must be a float"
+    assert net.dropout_rate == .1, "dropout probability must be equal to .1"
     assert isinstance(y, torch.FloatTensor), "y should be a torch.FloatTensor"
     assert isinstance(mu, torch.FloatTensor), "mu should be a torch.FloatTensor"
     assert isinstance(logvar, torch.FloatTensor), "logvar should be a torch.FloatTensor"

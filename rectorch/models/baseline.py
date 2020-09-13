@@ -25,6 +25,7 @@ __status__ = "Development"
 
 __all__ = ['Random', 'Popularity', 'CF_KOMD', 'SLIM']
 
+
 class Random(RecSysModel):
     r"""Random recommender.
 
@@ -70,12 +71,23 @@ class Random(RecSysModel):
                 pred[u, train_items[u]] = -np.inf
         return (pred, )
 
+    def get_state(self):
+        state = {
+            "n_items" : self.n_items,
+            "seed" : self.seed,
+            "fixed" : 1 if self.fixed else 0
+        }
+        return state
+
+    @classmethod
+    def from_state(cls, state):
+        return Random(**state)
+
     def save_model(self, filepath):
         env.logger.info("Saving model checkpoint to %s...", filepath)
         with open(filepath, "w") as f:
-            f.write(str(self.n_items) + "\n")
-            f.write(str(self.seed) + "\n")
-            f.write(str(1 if self.fixed else 0))
+            content = " ".join([str(self.n_items), str(self.seed), str(1 if self.fixed else 0)])
+            f.write(content)
         env.logger.info("Model checkpoint saved!")
 
     @classmethod
@@ -84,9 +96,7 @@ class Random(RecSysModel):
         env.logger.info("Loading model checkpoint from %s...", filepath)
         n_items, seed, fixed = 0, 0, False
         with open(filepath, "r") as f:
-            n_items = int(f.readline().strip())
-            seed = int(f.readline().strip())
-            fixed = bool(f.readline().strip())
+            n_items, seed, fixed = list(map(int, f.readline().strip().split()))
         rnd = Random(n_items, seed, fixed)
         env.logger.info("Model checkpoint loaded!")
         return rnd
@@ -152,18 +162,26 @@ class Popularity(RecSysModel):
                 pred[u, train_items[u]] = -np.inf
         return (pred, )
 
+    def get_state(self):
+        return {"model" : self.model, "n_items": self.n_items}
+
     def save_model(self, filepath):
         env.logger.info("Saving model checkpoint to %s...", filepath)
-        torch.save({"model" : self.model, "n_items": self.n_items}, filepath)
+        torch.save(self.get_state(), filepath)
         env.logger.info("Model checkpoint saved!")
+
+    @classmethod
+    def from_state(cls, state):
+        pop = Popularity(state['n_items'])
+        pop.model = state['model']
+        return pop
 
     @classmethod
     def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The checkpoint file %s does not exist." %filepath
         env.logger.info("Loading model checkpoint from %s...", filepath)
-        checkpoint = torch.load(filepath)
-        pop = Popularity(checkpoint['n_items'])
-        pop.model = checkpoint['model']
+        state = torch.load(filepath)
+        pop = Popularity.from_state(state)
         env.logger.info("Model checkpoint loaded!")
         return pop
 
@@ -322,25 +340,33 @@ class CF_KOMD(RecSysModel):
         pred = torch.FloatTensor(pred)
         return (pred, )
 
-    def save_model(self, filepath):
+    def get_state(self):
         state = {'lam': self.lambda_p,
                  'model': self.model,
                  'ker_fun': self.ker_fun,
                  'disj_degree': self.disj_degree
                 }
+        return state
+
+    def save_model(self, filepath):
         env.logger.info("Saving CF_KOMD model to %s...", filepath)
-        torch.save(state, filepath)
+        torch.save(self.get_state(), filepath)
         env.logger.info("Model saved!")
+    
+    @classmethod
+    def from_state(cls, state):
+        cfkomd = CF_KOMD(lam=state["lam"],
+                         ker_fun=state["ker_fun"],
+                         disj_degree=state["disj_degree"])
+        cfkomd.model = state["model"]
+        return cfkomd
 
     @classmethod
     def load_model(cls, filepath):
         assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
         env.logger.info("Loading CF_KOMD model from %s...", filepath)
         state = torch.load(filepath)
-        cfkomd = CF_KOMD(lam=state["lam"],
-                         ker_fun=state["ker_fun"],
-                         disj_degree=state["disj_degree"])
-        cfkomd.model = state["model"]
+        cfkomd = CF_KOMD.from_state(state)
         env.logger.info("Model loaded!")
         return cfkomd
 
@@ -497,9 +523,9 @@ class SLIM(RecSysModel):
         preds = sparse2tensor(preds)
         if remove_train:
             preds[train_items.nonzero()] = -np.inf
-        return (preds,)
+        return (preds, )
 
-    def save_model(self, filepath):
+    def get_state(self):
         state = {'l1_reg': self.l1_reg,
                  'l2_reg': self.l2_reg,
                  'model_data' : self.model.data,
@@ -507,20 +533,28 @@ class SLIM(RecSysModel):
                  'model_indptr' : self.model.indptr,
                  'model_shape' : self.model.shape
                 }
+        return state
+
+    def save_model(self, filepath):
         env.logger.info("Saving SLIM model to %s...", filepath)
-        torch.save(state, filepath)
+        torch.save(self.get_state(), filepath)
         env.logger.info("Model saved!")
 
     @classmethod
-    def load_model(cls, filepath):
-        assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
-        env.logger.info("Loading SLIM model from %s...", filepath)
-        state = torch.load(filepath)
+    def from_state(cls, state):
         slim = SLIM(l1_reg=state['l1_reg'],
                     l2_reg=state['l2_reg'])
         slim.model = csr_matrix((state['model_data'],
                                  state['model_indices'],
                                  state['model_indptr']),
                                 shape=state['model_shape'])
+        return slim
+
+    @classmethod
+    def load_model(cls, filepath):
+        assert os.path.isfile(filepath), "The model file %s does not exist." %filepath
+        env.logger.info("Loading SLIM model from %s...", filepath)
+        state = torch.load(filepath)
+        slim = SLIM.from_state(state)
         env.logger.info("Model loaded!")
         return slim

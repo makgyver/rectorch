@@ -25,7 +25,13 @@ rectorch modules
    models
    models.baseline
    models.nn
-   nets
+   models.nn.multvae
+   models.nn.cvae
+   models.nn.multdae
+   models.nn.svae
+   models.nn.recvae
+   models.nn.cfgan
+   models.mf
    samplers
    utils
    validation

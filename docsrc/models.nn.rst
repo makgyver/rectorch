@@ -8,19 +8,14 @@ Class list
 ~~~~~~~~~~
 
 .. autosummary::
+   rectorch.models.nn.NeuralNet
+   rectorch.models.nn.AE_net
+   rectorch.models.nn.VAE_net
    rectorch.models.nn.TorchNNTrainer
-   rectorch.models.nn.AETrainer
-   rectorch.models.nn.VAE
-   rectorch.models.nn.MultiDAE
-   rectorch.models.nn.MultiVAE
-   rectorch.models.nn.CMultiVAE
-   rectorch.models.nn.EASE
-   rectorch.models.nn.CFGAN
-   rectorch.models.nn.ADMM_Slim
-   rectorch.models.nn.SVAE
-   rectorch.models.nn.RecVAE
+   rectorch.models.nn.AE_trainer
+   rectorch.models.nn.VAE_trainer
+   rectorch.models.nn.NeuralModel
 
 .. automodule:: rectorch.models.nn
-   :members: RecSysModel, TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE, CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE, RecVAE
+   :members: NeuralNet, AE_net, VAE_net, TorchNNTrainer, AE_trainer, VAE_trainer, NeuralModel
    :show-inheritance:
-

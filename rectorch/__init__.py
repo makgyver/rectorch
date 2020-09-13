@@ -15,8 +15,40 @@ __email__ = "mak1788@gmail.com"
 __status__ = "Development"
 #
 
-__all__ = ['configuration', 'data', 'evaluation', 'metrics', 'models', 'nets', 'samplers', 'utils',
-           'validation']
+__all__ = ['StatefulObject', 'configuration', 'data', 'evaluation', 'metrics', 'models', 'utils',\
+           'validation', 'set_seed']
+
+
+class StatefulObject():
+    """Stateful object.
+
+    Any classes that inherited from this superclass must implements the :meth:`get_state` and
+    :meth:`from_state`.
+    """
+
+    def get_state(self):
+        r"""Return the state of the object as a dictionary.
+
+        The state contains all useful information to construct a new object from scratch
+        that is identical to the current object.
+        """
+        return {}
+
+    @classmethod
+    def from_state(cls, state):
+        r"""Create a new object from the given state (i.e., dictionary).
+
+        The state is a dictionary containing all the necesssary information to build a
+        ``StatefulObject`` equivalent to the one that generated the state (thorugh the method
+        :meth:`get_state`).
+
+        Parameters
+        ----------
+        state : :obj:`dict`
+            The object's state dictionary useful to replicate the saved stateful object.
+        """
+        return state
+
 
 class Environment():
     r"""Rectorch environment class.
@@ -88,13 +120,14 @@ class Environment():
 env = Environment()
 
 def set_seed(seed):
-    """Set the random seed.
+    """Set the ``rectorch`` random seed.
 
     Parameters
     ----------
     seed : :obj:`int`
-        An integer random seed.
+        An integer random seed. If set to :obj:`None` the seed wont be changed.
     """
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)

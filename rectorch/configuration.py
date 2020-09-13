@@ -20,6 +20,7 @@ __status__ = "Development"
 
 __all__ = ['DataConfig', 'ModelConfig', 'ConfigManager']
 
+
 class Singleton(type):
     r"""Define an Instance operation that lets clients access its unique instance.
     """

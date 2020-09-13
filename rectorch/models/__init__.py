@@ -1,5 +1,7 @@
 """This module includes the implementation of many recommender systems.
 """
+from rectorch import StatefulObject
+
 # AUTHORSHIP
 __version__ = "0.9.0dev"
 __author__ = "Mirko Polato"
@@ -10,13 +12,14 @@ __email__ = "mak1788@gmail.com"
 __status__ = "Development"
 #
 
-__all__ = ['baseline', 'nn', 'RecSysModel']
+__all__ = ['RecSysModel', 'baseline', 'mf', 'nn']
 
-class RecSysModel():
+
+class RecSysModel(StatefulObject):
     r"""Abstract base class that any Recommendation model must inherit from.
     """
 
-    def train(self, data_sampler, **kwargs):
+    def train(self, dataset, **kwargs):
         r"""Training procedure.
 
         This method is meant to execute all the training phase. Once the method ends, the
@@ -24,10 +27,8 @@ class RecSysModel():
 
         Parameters
         ----------
-        data_sampler : :class:`rectorch.samplers.Sampler` or :class:`scipy.sparse.csr_matrix` or\
-            :class:`torch.Tensor`
-            This object represents the training data. If the training procedure is based on
-            mini-batches, then ``data_sampler`` should be a :class:`rectorch.samplers.Sampler`.
+        dataset : :class:`rectorch.data.Dataset`
+            The dataset containing the training/validation set.
         **kargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             training.

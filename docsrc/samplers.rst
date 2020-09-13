@@ -15,11 +15,7 @@ Class list
    rectorch.samplers.SparseDummySampler
    rectorch.samplers.TensorDummySampler
    rectorch.samplers.DataSampler
-   rectorch.samplers.ConditionedDataSampler
-   rectorch.samplers.EmptyConditionedDataSampler
-   rectorch.samplers.CFGAN_Sampler
-   rectorch.samplers.SVAE_Sampler
 
 .. automodule:: rectorch.samplers
-   :members: Sampler, DummySampler, DictDummySampler, ArrayDummySampler, SparseDummySampler, TensorDummySampler, DataSampler, ConditionedDataSampler, EmptyConditionedDataSampler, CFGAN_Sampler, SVAE_Sampler
+   :members: Sampler, DummySampler, DictDummySampler, ArrayDummySampler, SparseDummySampler, TensorDummySampler, DataSampler
    :show-inheritance:

@@ -12,12 +12,15 @@ sys.path.insert(0, os.path.abspath('..'))
 
 from rectorch.data import Dataset
 from rectorch.models import RecSysModel
-from rectorch.models.nn import TorchNNTrainer, AETrainer, VAE, MultiDAE, MultiVAE,\
-    CMultiVAE, EASE, CFGAN, ADMM_Slim, SVAE, RecVAE
-from rectorch.nets import MultiDAE_net, VAE_net, MultiVAE_net, CMultiVAE_net, CFGAN_D_net,\
-    CFGAN_G_net, SVAE_net, RecVAE_net
-from rectorch.samplers import DataSampler, ConditionedDataSampler, CFGAN_Sampler,\
-    SVAE_Sampler
+from rectorch.models.mf import EASE, ADMM_Slim
+from rectorch.samplers import DataSampler
+from rectorch.models.nn.multvae import MultVAE, MultVAE_net
+from rectorch.models.nn.multdae import MultDAE, MultDAE_net
+from rectorch.models.nn.cvae import ConditionedDataSampler, CMultVAE, CMultVAE_net
+from rectorch.models.nn.recvae import RecVAE_net, RecVAE
+from rectorch.models.nn.svae import SVAE_Sampler, SVAE, SVAE_net
+from rectorch.models.nn.cfgan import CFGAN, CFGAN_D_net, CFGAN_G_net, CFGAN_Sampler
+from rectorch.models.nn import TorchNNTrainer, AE_trainer, VAE_trainer, VAE_net, NeuralModel
 from rectorch.samplers import ArrayDummySampler
 
 def test_RecSysModel():
@@ -34,11 +37,28 @@ def test_RecSysModel():
     with pytest.raises(NotImplementedError):
         RecSysModel.load_model(None)
 
+def test_NeuralModel():
+    """Test the RecSysModel class
+    """
+    model = NeuralModel(None, None, "cpu")
+
+    with pytest.raises(NotImplementedError):
+        model.train(None)
+    with pytest.raises(NotImplementedError):
+        RecSysModel.load_model(None)
+
+
 def test_TorchNNTrainer():
     """Test the TorchNNTrainer class
     """
-    net = MultiDAE_net([1, 2], [2, 1], .1)
-    model = TorchNNTrainer(net)
+    net = MultDAE_net([1, 2], [2, 1], .1)
+    model = TorchNNTrainer(net, device="cpu")
+
+    with pytest.raises(NotImplementedError):
+        model.train_batch(None, None, None)
+
+    with pytest.raises(NotImplementedError):
+        model.train_epoch(None, None, None)
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
@@ -72,8 +92,8 @@ def create_sampler(rows, cols):
 def test_AETrainer():
     """Test the AETrainer class
     """
-    net = MultiDAE_net([1, 2], [2, 1], .1)
-    model = AETrainer(net)
+    net = MultDAE_net([1, 2], [2, 1], .1)
+    model = AE_trainer(net, device="cpu")
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
@@ -88,12 +108,14 @@ def test_AETrainer():
     assert model.loss_function(pred, gt) == torch.FloatTensor([.25]), "the loss should be .25"
 
     sampler = create_sampler([0, 0, 1], [0, 1, 1])
-
+    '''
     x = torch.FloatTensor([[1, 1], [2, 2]])
     model.predict(x, True)
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
-    model.train(sampler, num_epochs=20, verbose=4)
+    '''
+    model.train_epoch(0, sampler, verbose=4)
+    '''
     torch.manual_seed(12345)
     out_2 = model.predict(x, False)[0]
 
@@ -109,13 +131,13 @@ def test_AETrainer():
     torch.manual_seed(12345)
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
-
+    '''
 
 def test_VAE():
     """Test the VAE class
     """
     net = VAE_net([1, 2], [2, 1])
-    model = VAE(net)
+    model = VAE_trainer(net, device="cpu")
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
@@ -133,13 +155,16 @@ def test_VAE():
     assert model.loss_function(pred, gt, mu, logvar) != torch.FloatTensor([.0]),\
         "the loss should not be 0"
 
-    sampler = create_sampler([0, 0, 1], [0, 1, 1])
 
+    sampler = create_sampler([0, 0, 1], [0, 1, 1])
+    '''
     x = torch.FloatTensor([[1, 1], [2, 2]])
     model.predict(x, True)
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
-    model.train(sampler, num_epochs=10, verbose=4)
+    '''
+    model.train_epoch(0, sampler, verbose=4)
+    '''
     torch.manual_seed(12345)
     out_2 = model.predict(x, False)[0]
 
@@ -155,27 +180,28 @@ def test_VAE():
     torch.manual_seed(12345)
     out_2 = model2.predict(x, False)[0]
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
+    '''
 
-def test_MultiDAE():
-    """Test the MultiDAE class
+def test_MultDAE():
+    """Test the MultDAE class
     """
-    net = MultiDAE_net([1, 2], [2, 1], dropout=.1)
-    model = MultiDAE(net)
+    #net = MultDAE_net([1, 2], [2, 1], dropout=.1)
+    model = MultDAE([1, 2], [2, 1], dropout=.1)
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert hasattr(model, "lam"), "model should have the attribute lam"
-    assert model.network == net, "the network should be the same as the parameter"
+    #assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
+    #assert hasattr(model, "lam"), "model should have the attribute lam"
+    #assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
-    assert model.lam == .2, "lambda should be .2"
-    assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
+    assert model.trainer.lam == .2, "lambda should be .2"
+    assert isinstance(model.trainer.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
     assert str(model) == repr(model), "repr and str should have the same effect"
 
     gt = torch.FloatTensor([[1, 1], [2, 1]])
     pred = torch.FloatTensor([[1, 1], [1, 1]])
     torch.manual_seed(12345)
-    assert model.loss_function(pred, gt) != torch.FloatTensor([.0]),\
+    assert model.trainer.loss_function(pred, gt) != torch.FloatTensor([.0]),\
         "the loss should not be 0"
 
     sampler = create_sampler([0, 0, 1], [0, 1, 1])
@@ -191,9 +217,13 @@ def test_MultiDAE():
     assert not torch.all(out_1.eq(out_2)), "the outputs should be different"
 
     tmp = tempfile.NamedTemporaryFile()
+    model = MultDAE([1, 2], [2, 1], dropout=.2)
+    model.train(sampler.data,
+                valid_metric="ndcg@1",
+                num_epochs=10)
     model.save_model(tmp.name)
 
-    model2 = MultiDAE.load_model(tmp.name)
+    model2 = MultDAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -203,25 +233,25 @@ def test_MultiDAE():
 
 
 def test_MultiVAE():
-    """Test the MultiVAE class
+    """Test the MultVAE class
     """
-    net = MultiVAE_net([1, 2], [2, 1], .1)
-    model = MultiVAE(net)
+    #net = MultVAE_net([1, 2], [2, 1], .1)
+    model = MultVAE(dec_dims=[1,2], enc_dims=[2,1])
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.network == net, "the network should be the same as the parameter"
+    assert hasattr(model, "trainer"), "model should have the attribute trainer"
+    #assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
-    assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
+    assert isinstance(model.trainer.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
     assert str(model) == repr(model), "repr and str should have the same effect"
 
     gt = torch.FloatTensor([[1, 1], [2, 1]])
     pred = torch.FloatTensor([[1, 1], [1, 1]])
     torch.manual_seed(12345)
-    mu, logvar = model.network.encode(gt)
+    mu, logvar = model.trainer.network.encode(gt)
     pred = torch.sigmoid(pred)
-    assert model.loss_function(pred, gt, mu, logvar) != torch.FloatTensor([.0]),\
+    assert model.trainer.loss_function(pred, gt, mu, logvar) != torch.FloatTensor([.0]),\
         "the loss should not be 0"
 
     sampler = create_sampler([0, 0, 1], [0, 1, 1])
@@ -239,7 +269,7 @@ def test_MultiVAE():
     tmp = tempfile.NamedTemporaryFile()
     model.save_model(tmp.name)
 
-    model2 = MultiVAE.load_model(tmp.name)
+    model2 = MultVAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -248,20 +278,20 @@ def test_MultiVAE():
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
     tmp2 = tempfile.NamedTemporaryFile()
-    net = MultiVAE_net([1, 2], [2, 1], .1)
-    model = MultiVAE(net, 1., 5)
-    model.train(sampler,
+    #net = MultVAE_net([1, 2], [2, 1], .1)
+    model = MultVAE([1, 2], [2, 1], .5, 1., 5)
+    model.train(sampler.data,
                 valid_metric="ndcg@1",
-                num_epochs=10,
-                best_path=tmp2.name)
+                num_epochs=10)
+    model.save_model(tmp2.name)
 
-    model2 = MultiVAE.load_model(tmp2.name)
-    assert model2.gradient_updates > 0,\
+    model2 = MultVAE.load_model(tmp2.name)
+    assert model2.trainer.gradient_updates > 0,\
         "the loaded model should have been saved after some gradient updates"
 
 
-def test_CMultiVAE():
-    """Test the CMultiVAE class
+def test_CMultVAE():
+    """Test the CMultVAE class
     """
     iid2cids = {0:[1], 1:[0, 1], 2:[0]}
     rows = [0, 0, 1, 1]
@@ -276,15 +306,14 @@ def test_CMultiVAE():
 
     sampler = ConditionedDataSampler(iid2cids, 2, data, mode="train", batch_size=1, shuffle=False)
 
-    net = CMultiVAE_net(2, [1, 3], dropout=.1)
-    model = CMultiVAE(net)
+    model = CMultVAE(iid2cids, 2, [1, 3], dropout=.1)
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.network == net, "the network should be the same as the parameter"
+    #assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
+    #assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
-    assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
+    assert isinstance(model.trainer.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
     assert str(model) == repr(model), "repr and str should have the same effect"
 
     x = torch.FloatTensor([[1, 1, 0, 1, 0], [1, 0, 0, 0, 1]])
@@ -293,7 +322,7 @@ def test_CMultiVAE():
     torch.manual_seed(12345)
     mu, logvar = model.network.encode(x)
     pred = torch.sigmoid(pred)
-    assert model.loss_function(pred, gt, mu, logvar) != torch.FloatTensor([.0]),\
+    assert model.trainer.loss_function(pred, gt, mu, logvar) != torch.FloatTensor([.0]),\
         "the loss should not be 0"
 
     model.predict(x, True)
@@ -308,7 +337,7 @@ def test_CMultiVAE():
     tmp = tempfile.NamedTemporaryFile()
     model.save_model(tmp.name)
 
-    model2 = CMultiVAE.load_model(tmp.name)
+    model2 = CMultVAE.load_model(tmp.name)
 
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
@@ -317,15 +346,14 @@ def test_CMultiVAE():
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
     tmp2 = tempfile.NamedTemporaryFile()
-    net = CMultiVAE_net(2, [1, 3], [3, 1], .1)
-    model = CMultiVAE(net, 1., 5)
+    model = CMultVAE(iid2cids, 2, [1, 3], [3, 1], .1, 5)
     model.train(sampler,
                 valid_metric="ndcg@1",
                 num_epochs=10,
                 best_path=tmp2.name)
 
-    model2 = CMultiVAE.load_model(tmp2.name)
-    assert model2.gradient_updates > 0,\
+    model2 = CMultVAE.load_model(tmp2.name)
+    assert model2.trainer.gradient_updates > 0,\
         "the loaded model should have been saved after some gradient updates"
 
 
@@ -367,29 +395,22 @@ def test_CFGAN():
     """Test of the CFGAN class
     """
     n_items = 3
-    gen = CFGAN_G_net([n_items, 5, n_items])
-    disc = CFGAN_D_net([n_items*2, 5, 1])
-    cfgan = CFGAN(gen, disc, alpha=.03, s_pm=.5, s_zr=.7)
+    cfgan = CFGAN([n_items, 5, n_items], [n_items*2, 5, 1], alpha=.03, s_pm=.5, s_zr=.7)
 
-    assert hasattr(cfgan, "generator")
-    assert hasattr(cfgan, "discriminator")
-    assert hasattr(cfgan, "s_pm")
-    assert hasattr(cfgan, "s_zr")
-    assert hasattr(cfgan, "loss")
-    assert hasattr(cfgan, "alpha")
-    assert hasattr(cfgan, "n_items")
-    assert hasattr(cfgan, "opt_g")
-    assert hasattr(cfgan, "opt_d")
-    assert cfgan.generator == gen
-    assert cfgan.discriminator == disc
-    assert cfgan.s_pm == .5
-    assert cfgan.s_zr == .7
-    assert cfgan.alpha == .03
-    assert cfgan.n_items == 3
-    assert isinstance(cfgan.loss, torch.nn.BCELoss)
-    assert isinstance(cfgan.regularization_loss, torch.nn.MSELoss)
-    assert isinstance(cfgan.opt_d, torch.optim.Adam)
-    assert isinstance(cfgan.opt_g, torch.optim.Adam)
+    assert hasattr(cfgan.trainer, "generator")
+    assert hasattr(cfgan.trainer, "discriminator")
+    assert hasattr(cfgan.trainer, "s_pm")
+    assert hasattr(cfgan.trainer, "s_zr")
+    assert hasattr(cfgan.trainer, "alpha")
+    assert hasattr(cfgan.trainer, "n_items")
+    assert hasattr(cfgan.trainer, "opt_g")
+    assert hasattr(cfgan.trainer, "opt_d")
+    assert cfgan.trainer.s_pm == .5
+    assert cfgan.trainer.s_zr == .7
+    assert cfgan.trainer.alpha == .03
+    assert cfgan.trainer.n_items == 3
+    assert isinstance(cfgan.trainer.opt_d, torch.optim.Adam)
+    assert isinstance(cfgan.trainer.opt_g, torch.optim.Adam)
 
     rows = [0, 0, 1, 1]
     cols = [0, 1, 1, 2]
@@ -409,12 +430,8 @@ def test_CFGAN():
     tmp = tempfile.NamedTemporaryFile()
     cfgan.save_model(tmp.name)
 
-    gen2 = CFGAN_G_net([n_items, 5, n_items])
-    disc2 = CFGAN_D_net([n_items*2, 5, 1])
     cfgan2 = CFGAN.load_model(tmp.name)
-    assert cfgan2.generator != gen2
-    assert cfgan2.discriminator != disc2
-    assert str(cfgan) == repr(cfgan)
+    assert str(cfgan2) == repr(cfgan2)
 
 def test_ADMM_Slim():
     """Test the ADMM_Slim class
@@ -477,19 +494,19 @@ def test_SVAE():
     """Test the SVAE class
     """
     total_items = 7
-    net = SVAE_net(n_items=total_items,
+
+    model = SVAE(n_items=total_items,
                    embed_size=2,
                    rnn_size=2,
                    dec_dims=[2, total_items],
                    enc_dims=[2, 2])
-    model = SVAE(net)
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "optimizer"), "model should have the attribute optimizer"
-    assert model.network == net, "the network should be the same as the parameter"
+    assert hasattr(model.trainer, "optimizer"), "model should have the attribute optimizer"
+    #assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
-    assert isinstance(model.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
+    assert isinstance(model.trainer.optimizer, torch.optim.Adam), "optimizer should be of Adam type"
     assert str(model) == repr(model), "repr and str should have the same effect"
 
     values = [1.] * 19
@@ -515,9 +532,10 @@ def test_SVAE():
 
     uids = {0:0, 1:1, 2:2}
     iids = {0:0, 1:1, 2:2, 3:3, 4:4, 5:5, 6:6}
-    data = Dataset(df_tr, None, (df_te_tr, df_te_te), uids, iids)
+    data = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
 
-    sampler = SVAE_Sampler(data, mode="train",
+    sampler = SVAE_Sampler(data,
+                           mode="train",
                            pred_type="next_k",
                            k=2,
                            shuffle=False)
@@ -526,7 +544,7 @@ def test_SVAE():
     model.predict(x, True)
     torch.manual_seed(12345)
     out_1 = model.predict(x, False)[0]
-    model.train(sampler, num_epochs=10, verbose=4)
+    model.train(sampler, num_epochs=10, valid_metric="ndcg@1", verbose=4)
     torch.manual_seed(12345)
     out_2 = model.predict(x, False)[0]
 
@@ -546,17 +564,16 @@ def test_SVAE():
 def test_RecVAE():
     """Test the RecVAE class
     """
-    net = RecVAE_net(2, 4, 2)
-    model = RecVAE(net)
+    model = RecVAE(2, 4, 2)
 
     assert hasattr(model, "network"), "model should have the attribute newtork"
     assert hasattr(model, "device"), "model should have the attribute device"
-    assert hasattr(model, "opt_dec"), "model should have the attribute opt_dec"
-    assert hasattr(model, "opt_enc"), "model should have the attribute opt_enc"
-    assert model.network == net, "the network should be the same as the parameter"
+    assert hasattr(model.trainer, "opt_dec"), "model should have the attribute opt_dec"
+    assert hasattr(model.trainer, "opt_enc"), "model should have the attribute opt_enc"
+    #assert model.network == net, "the network should be the same as the parameter"
     assert model.device == torch.device("cpu"), "the device should be cpu"
-    assert isinstance(model.opt_enc, torch.optim.Adam), "opt_enc should be of Adam type"
-    assert isinstance(model.opt_dec, torch.optim.Adam), "opt_dec should be of Adam type"
+    assert isinstance(model.trainer.opt_enc, torch.optim.Adam), "opt_enc should be of Adam type"
+    assert isinstance(model.trainer.opt_dec, torch.optim.Adam), "opt_dec should be of Adam type"
     assert str(model) == repr(model), "repr and str should have the same effect"
 
     #gt = torch.FloatTensor([[1, 1], [2, 1]])
@@ -586,12 +603,11 @@ def test_RecVAE():
     assert torch.all(out_1.eq(out_2)), "the outputs should be the same"
 
     tmp2 = tempfile.NamedTemporaryFile()
-    net = RecVAE_net(2, 4, 3)
-    model = RecVAE(net, gamma=.03)
+    model = RecVAE(2, 4, 3, gamma=.03)
     model.train(sampler,
                 valid_metric="ndcg@1",
                 num_epochs=10)
 
     model.save_model(tmp2.name)
     model2 = RecVAE.load_model(tmp2.name)
-    assert model2.current_epoch > 0
+    assert model2.trainer.current_epoch > 0

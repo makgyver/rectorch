@@ -34,7 +34,7 @@ from pandas import DataFrame
 from scipy.sparse import csr_matrix, vstack
 import torch
 from rectorch import env
-from .configuration import DataConfig
+from rectorch.configuration import DataConfig
 
 # AUTHORSHIP
 __version__ = "0.9.0dev"

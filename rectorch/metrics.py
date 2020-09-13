@@ -33,6 +33,7 @@ __status__ = "Development"
 
 __all__ = ['Metrics']
 
+
 class Metrics:
     r"""The class Metrics contains metric functions.
 

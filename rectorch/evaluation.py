@@ -3,8 +3,8 @@ r"""Module containing utility functions to evaluate recommendation engines.
 import random
 import numpy as np
 from scipy.sparse import csr_matrix
-from .metrics import Metrics
-from .utils import prepare_for_prediction
+from rectorch.metrics import Metrics
+from rectorch.utils import prepare_for_prediction
 
 # AUTHORSHIP
 __version__ = "0.9.0dev"

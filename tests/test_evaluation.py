@@ -14,7 +14,7 @@ from rectorch.data import Dataset
 from rectorch.evaluation import evaluate, one_plus_random
 from rectorch.validation import ValidFunc, GridSearch, BayesianSearch, RandomSearch, HyperoptSearch
 from rectorch.models import RecSysModel
-from rectorch.models.nn import MultiVAE
+from rectorch.models.nn.multvae import MultVAE
 from rectorch.samplers import Sampler, DataSampler
 
 # pylint: disable=W0223
@@ -207,11 +207,14 @@ def test_GridSearch():
     iids = {i:i for i in range(len(set(cols)))}
     dataset = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
 
-    gs = GridSearch(MultiVAE, {
-        "mvae_net" : ("MultiVAE_net", [{"dec_dims":[10, dataset.n_items]}]),
-        "beta" : [.5, 1.],
-        "anneal_steps" : [0]
-    }, ValidFunc(evaluate), "ndcg@1")
+    gs = GridSearch(MultVAE,
+                    {
+                        "dec_dims":[[10, dataset.n_items]],
+                        "beta" : [.5, 1.],
+                        "anneal_steps" : [0]
+                    },
+                    ValidFunc(evaluate),
+                    "ndcg@1")
     gs.report()
 
     assert hasattr(gs, "model_class")
@@ -223,7 +226,7 @@ def test_GridSearch():
     assert hasattr(gs, "valid_scores")
     assert hasattr(gs, "best_model")
 
-    assert gs.model_class == MultiVAE
+    assert gs.model_class == MultVAE
     assert gs.valid_metric == "ndcg@1"
     assert gs.size == 2
     assert gs.best_model is None
@@ -232,7 +235,7 @@ def test_GridSearch():
     mod, per = gs.train(sampler, num_epochs=1)
 
     assert gs.best_model is not None
-    assert isinstance(gs.best_model, MultiVAE)
+    assert isinstance(gs.best_model, MultVAE)
     assert gs.best_model == mod
     assert per in gs.valid_scores
 
@@ -253,11 +256,15 @@ def test_HyperoptSearch():
     iids = {i:i for i in range(len(set(cols)))}
     dataset = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
 
-    gs = HyperoptSearch(MultiVAE, {
-        "mvae_net" : ("MultiVAE_net", [{"dec_dims":[10, dataset.n_items]}]),
-        "beta" : (.5, 1.),
-        "anneal_steps" : [0, 1]
-    }, ValidFunc(evaluate), "ndcg@1", num_eval=4)
+    gs = HyperoptSearch(MultVAE,
+                        {
+                            "dec_dims":[[10, dataset.n_items]],
+                            "beta" : [.5, 1.],
+                            "anneal_steps" : [0]
+                        },
+                        ValidFunc(evaluate),
+                        "ndcg@1",
+                        num_eval=4)
     gs.report()
 
     assert hasattr(gs, "model_class")
@@ -268,7 +275,7 @@ def test_HyperoptSearch():
     assert hasattr(gs, "valid_scores")
     assert hasattr(gs, "best_model")
 
-    assert gs.model_class == MultiVAE
+    assert gs.model_class == MultVAE
     assert gs.valid_metric == "ndcg@1"
     assert gs.best_model is None
 
@@ -277,7 +284,7 @@ def test_HyperoptSearch():
     gs.report()
 
     assert gs.best_model is not None
-    assert isinstance(gs.best_model, MultiVAE)
+    assert isinstance(gs.best_model, MultVAE)
     assert gs.best_model == mod
     assert per in gs.valid_scores
     print(str(gs))
@@ -295,11 +302,15 @@ def test_RandomSearch():
     iids = {i:i for i in range(len(set(cols)))}
     dataset = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
 
-    gs = RandomSearch(MultiVAE, {
-        "mvae_net" : ("MultiVAE_net", [{"dec_dims":[10, dataset.n_items]}]),
-        "beta" : (.5, 1.),
-        "anneal_steps" : [0, 1]
-    }, ValidFunc(evaluate), "ndcg@1", num_eval=4)
+    gs = RandomSearch(MultVAE,
+                      {
+                          "dec_dims":[[10, dataset.n_items]],
+                          "beta" : [.5, 1.],
+                          "anneal_steps" : [0]
+                      },
+                      ValidFunc(evaluate),
+                      "ndcg@1",
+                      num_eval=4)
     gs.report()
 
     assert hasattr(gs, "model_class")
@@ -310,7 +321,7 @@ def test_RandomSearch():
     assert hasattr(gs, "valid_scores")
     assert hasattr(gs, "best_model")
 
-    assert gs.model_class == MultiVAE
+    assert gs.model_class == MultVAE
     assert gs.valid_metric == "ndcg@1"
     assert gs.best_model is None
 
@@ -319,7 +330,7 @@ def test_RandomSearch():
     gs.report()
 
     assert gs.best_model is not None
-    assert isinstance(gs.best_model, MultiVAE)
+    assert isinstance(gs.best_model, MultVAE)
     assert gs.best_model == mod
     assert per in gs.valid_scores
     print(str(gs))
@@ -337,11 +348,15 @@ def test_BayesianSearch():
     iids = {i:i for i in range(len(set(cols)))}
     dataset = Dataset(df_tr, (df_te_tr, df_te_te), (df_te_tr, df_te_te), uids, iids)
 
-    gs = BayesianSearch(MultiVAE, {
-        "mvae_net" : ("MultiVAE_net", [{"dec_dims":[10, dataset.n_items]}]),
-        "beta" : (.5, 1.),
-        "anneal_steps" : [0, 1]
-    }, ValidFunc(evaluate), "ndcg@1", num_eval=4)
+    gs = BayesianSearch(MultVAE,
+                        {
+                            "dec_dims":[[10, dataset.n_items]],
+                            "beta" : [.5, 1.],
+                            "anneal_steps" : [0]
+                        },
+                        ValidFunc(evaluate),
+                        "ndcg@1",
+                        num_eval=4)
     gs.report()
 
     assert hasattr(gs, "model_class")
@@ -352,7 +367,7 @@ def test_BayesianSearch():
     assert hasattr(gs, "valid_scores")
     assert hasattr(gs, "best_model")
 
-    assert gs.model_class == MultiVAE
+    assert gs.model_class == MultVAE
     assert gs.valid_metric == "ndcg@1"
     assert gs.best_model is None
 
@@ -361,7 +376,7 @@ def test_BayesianSearch():
     gs.report()
 
     assert gs.best_model is not None
-    assert isinstance(gs.best_model, MultiVAE)
+    assert isinstance(gs.best_model, MultVAE)
     assert gs.best_model == mod
     assert per in gs.valid_scores
     print(str(gs))

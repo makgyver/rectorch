@@ -1,6 +1,5 @@
 r"""This module contains classes and methods for perfoming model selection/validation.
 """
-import importlib
 import itertools
 from functools import partial
 import inspect
@@ -253,9 +252,8 @@ class GridSearch(HPSearch):
     >>> from rectorch.samplers import DataSampler
     >>> n_items = dataset.n_items
     >>> grid = GridSearch(MultiVAE,
-    >>>                   {"mvae_net" : ("MultiVAE_net",
-    >>>                                  [{"dec_dims":[50, n_items]}, {"dec_dims":[100, n_items]}]),
-    >>>                    "beta" : [.2, .5],
+    >>>                   {"dec_dims":[[50, n_items], [100, n_items]],
+    >>>                    "beta" : (0., 1.),
     >>>                    "anneal_steps" : [0, 100]},
     >>>                   ValidFunc(evaluate),
     >>>                   "ndcg@10")
@@ -276,13 +274,8 @@ class GridSearch(HPSearch):
         self.size = len(self.params_dicts)
 
     def _model_generator(self):
-        #model_cls = getattr(importlib.import_module("rectorch.models.nn"), self.model_class)
         model_cls = self.model_class
         for params in self.params_dicts:
-            for p, v in params.items():
-                if isinstance(v, tuple):
-                    net_class = getattr(importlib.import_module("rectorch.nets"), v[0])
-                    params[p] = net_class(**v[1])
             yield model_cls(**params)
 
     def train(self, data_sampler, **kwargs):
@@ -304,8 +297,8 @@ class GridSearch(HPSearch):
         best_model = None
 
         for model in self._model_generator():
-            data_sampler.train()
-            model.train(data_sampler, **kwargs)
+            #data_sampler.train()
+            model.train(data_sampler.data, **kwargs)
 
             data_sampler.valid()
             valid_res = self.valid_func(model, data_sampler, self.valid_metric)
@@ -379,8 +372,7 @@ class HyperoptSearch(HPSearch):
     >>> from hyperopt import tpe #necessary to specify the searching algorithm
     >>> sampler = DataSampler(dataset, mode="train")
     >>> n_items = dataset.n_items
-    >>> params = {"mvae_net" : ("MultiVAE_net", [{"dec_dims":[50, n_items]},
-    >>>                                          {"dec_dims":[100, n_items]}]),
+    >>> params = {"dec_dims":[[50, n_items], [100, n_items]],
     >>>           "beta" : (0., 1.),
     >>>           "anneal_steps" : [0, 100]}
     >>> rs = HyperoptSearch(MultiVAE, params, ValidFunc(evaluate), "ndcg@10", 4, tpe.suggest)
@@ -401,25 +393,23 @@ class HyperoptSearch(HPSearch):
 
         for k, v in self.params_domains.items():
             if isinstance(v, tuple):
-                if isinstance(v[1], list):
-                    net_class = getattr(importlib.import_module("rectorch.nets"), v[0])
-                    nets = [net_class(**p) for p in v[1]]
-                    self.space[k] = hp.choice(k, nets)
-                    self._params[k] = nets
-                else:
-                    self.space[k] = hp.uniform(k, v[0], v[1])
-                    self._params[k] = None
+                self.space[k] = hp.uniform(k, v[0], v[1])
+                self._params[k] = None
             elif isinstance(v, list):
-                self.space[k] = hp.choice(k, v)
+                self.space[k] = hp.choice(k, list(range(len(v))) if isinstance(v[0], list) else v)
                 self._params[k] = v
             else:
                 raise ValueError()
 
     def train(self, data_sampler, *args, **kwargs):
         def objective(params):
-            model = self.model_class(**params)
-            data_sampler.train()
-            model.train(data_sampler, *args, **kwargs)
+            params_conv = {}
+            for k, v in params.items():
+                pk = self._params[k]
+                check = isinstance(v, int) and isinstance(pk, list) and isinstance(pk[0], list)
+                params_conv[k] = v if not check else self._params[k][v]
+            model = self.model_class(**params_conv)
+            model.train(data_sampler.data, *args, **kwargs)
             data_sampler.valid()
             scores = self.valid_func(model, data_sampler, self.valid_metric)
             return {'loss': 1 - np.mean(scores), 'params': params, 'status': STATUS_OK}
@@ -436,8 +426,7 @@ class HyperoptSearch(HPSearch):
             best_params[k] = v if self._params[k] is None else self._params[k][v]
 
         self.best_model = self.model_class(**best_params)
-        data_sampler.train()
-        self.best_model.train(data_sampler, *args, **kwargs)
+        self.best_model.train(data_sampler.data, *args, **kwargs)
         best_result = 1. - max([trial["result"]["loss"] for trial in trials.trials])
         for trial in trials.trials:
             self.valid_scores.append(1. - trial["result"]["loss"])
@@ -494,8 +483,7 @@ class RandomSearch(HyperoptSearch):
     >>> from rectorch.samplers import DataSampler
     >>> sampler = DataSampler(dataset, mode="train")
     >>> n_items = dataset.n_items
-    >>> params = {"mvae_net" : ("MultiVAE_net", [{"dec_dims":[50, n_items]},
-    >>>                                          {"dec_dims":[100, n_items]}]),
+    >>> params = {"dec_dims":[[50, n_items], [100, n_items]],
     >>>           "beta" : (0., 1.),
     >>>           "anneal_steps" : [0, 100]}
     >>> rs = RandomSearch(MultiVAE, params, ValidFunc(evaluate), "ndcg@10", 4)
@@ -571,8 +559,7 @@ class BayesianSearch(HyperoptSearch):
     >>> from rectorch.samplers import DataSampler
     >>> sampler = DataSampler(dataset, mode="train")
     >>> n_items = dataset.n_items
-    >>> params = {"mvae_net" : ("MultiVAE_net", [{"dec_dims":[50, n_items]},
-    >>>                                          {"dec_dims":[100, n_items]}]),
+    >>> params = {"dec_dims":[[50, n_items], [100, n_items]],
     >>>           "beta" : (0., 1.),
     >>>           "anneal_steps" : [0, 100]}
     >>> bs = BayesianSearch(MultiVAE, params, ValidFunc(evaluate), "ndcg@10", 4)
