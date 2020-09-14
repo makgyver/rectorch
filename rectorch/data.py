@@ -172,19 +172,19 @@ class Dataset():
         files saved in ``pro_dir``:
 
         * ``train.csv`` : (`csv` file) the training ratings corresponding to all ratings of the\
-            training users;
+          training users;
         * ``validation_tr.csv`` (*) : (`csv` file) the ratings corresponding to the validation set.
         * ``validation_tr.csv`` (**) : (`csv` file) the training ratings corresponding to the\
-            validation users.
+          validation users.
         * ``validation_te.csv`` (**) : (`csv` file) the test ratings corresponding to the\
-            validation users;
+          validation users;
         * ``test_tr.csv`` (*) : (`csv` file) the ratings corresponding to the test set;
         * ``test_tr.csv`` (**): (`csv` file) the training ratings corresponding to the test users;
         * ``test_te.csv`` (**): (`csv` file) the test ratings corresponding to the test users;
         * ``unique_uid.txt`` : (`txt` file) with the user id mapping. Line numbers represent the\
-            internal id, while the string on the corresponding line is the raw id;
+          internal id, while the string on the corresponding line is the raw id;
         * ``unique_iid.txt`` : (`txt` file) with the item id mapping. Line numbers represent the\
-            internal id, while the string on the corresponding line is the raw id;
+          internal id, while the string on the corresponding line is the raw id;
 
         Where (*) means that the file is created only in the case of horizontal splitting, and
         (**) means that the file is created only in the case of vertical splitting.
@@ -645,7 +645,7 @@ class DataProcessing:
 
         1. Split the users in training, validation and test sets;
         2. (In case of vertical splitting) Split the validation and test set user ratings \
-            in training and test items according to ``test_prop``;
+           in training and test items according to ``test_prop``;
         3. Returns the corresponding :class:`Dataset` object.
 
         .. warning:: In step (1) there is the possibility that users in the validation or test set \

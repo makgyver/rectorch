@@ -702,7 +702,7 @@ class NeuralModel(RecSysModel):
 
         Returns
         -------
-        :class:`TorchNNTrainer`
-            An object of type that is a sub-class of :class:`TorchNNTrainer`.
+        :class:`rectorch.models.nn.TorchNNTrainer`
+            An object of type that is a sub-class of :class:`rectorch.models.nn.TorchNNTrainer`.
         """
         raise NotImplementedError()
