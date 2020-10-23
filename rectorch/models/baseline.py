@@ -276,13 +276,6 @@ class CF_KOMD(RecSysModel):
         else:
             data_sampler = dataset
 
-        if only_test:
-            data_sampler.test()
-            (test_users, _), _ = next(iter(data_sampler))
-            data_sampler.train()
-        else:
-            test_users = range(data_sampler.data.n_users)
-
         X = data_sampler.data_tr
         env.logger.info("Computing {} kernel".format(self.ker_fun))
         K = self._compute_kernel(X)
@@ -294,6 +287,13 @@ class CF_KOMD(RecSysModel):
             q_[i, 0] = sum(K[i, :]) / float(K.size[0]) #-1
 
         env.logger.info("Kernel computed!")
+
+        if only_test:
+            data_sampler.test()
+            (test_users, _), _ = next(iter(data_sampler))
+            data_sampler.train()
+        else:
+            test_users = range(data_sampler.data.n_users)
 
         log_delay = max(100, len(test_users) // 10**verbose)
         b = co.matrix(1.0)

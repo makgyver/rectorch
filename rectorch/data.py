@@ -280,9 +280,8 @@ class Dataset():
         binarize : :obj:`bool`
             Whether the ratings have to be binarized.
         cold_users : :obj:`bool` [optional]
-            Whether the validation/test users have to be included in the training set
-            i.e., ``cold_users == False``, by default :obj:`True`.
-            Note: it is used only when the dataset has been vertically splitted.
+            Whether cold users are included in the validation/test, by default :obj:`True`.
+            Note: it is used only when the dataset is vertically splitted.
 
         Returns
         -------
@@ -334,9 +333,8 @@ class Dataset():
         binarize : :obj:`bool` [optional]
             Whether the ratings have to be binarize or not, by default :obj:`True`.
         cold_users : :obj:`bool` [optional]
-            Whether the validation/test users have to be included in the training set
-            i.e., ``cold_users == False``, by default :obj:`True`.
-            Note: it is used only when the dataset has been vertically splitted.
+            Whether cold users are included in the validation/test, by default :obj:`True`.
+            Note: it is used only when the dataset is vertically splitted.
 
         Returns
         -------
@@ -404,9 +402,8 @@ class Dataset():
         binarize : :obj:`bool` [optional]
             Whether the ratings have to be binarize or not, by default :obj:`True`.
         cold_users : :obj:`bool` [optional]
-            Whether the validation/test users have to be included in the training set
-            i.e., ``cold_users == False``, by default :obj:`True`.
-            Note: it is used only when the dataset has been vertically splitted.
+            Whether cold users are included in the validation/test, by default :obj:`True`.
+            Note: it is used only when the dataset is vertically splitted.
 
         Returns
         -------
@@ -482,9 +479,8 @@ class Dataset():
         binarize : :obj:`bool` [optional]
             Whether the ratings have to be binarize or not, by default :obj:`True`.
         cold_users : :obj:`bool` [optional]
-            Whether the validation/test users have to be included in the training set
-            i.e., ``cold_users == False``, by default :obj:`True`.
-            Note: it is used only when the dataset has been vertically splitted.
+            Whether cold users are included in the validation/test, by default :obj:`True`.
+            Note: it is used only when the dataset is vertically splitted.
 
         Returns
         -------

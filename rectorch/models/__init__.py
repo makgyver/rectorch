@@ -27,8 +27,8 @@ class RecSysModel(StatefulObject):
 
         Parameters
         ----------
-        dataset : :class:`rectorch.data.Dataset`
-            The dataset containing the training/validation set.
+        dataset : :class:`rectorch.data.Dataset` or :class:`rectorch.samplers.Sampler`
+            The dataset/sampler containing the training/validation set.
         **kargs : :obj:`dict` [optional]
             These are the potential keyword parameters useful to the model for performing the
             training.

@@ -37,8 +37,11 @@ def init_optimizer(params, opt_cfg=None):
         return Adam(params)
 
     cfg = opt_cfg.copy()
-    opt_name = cfg['name']
-    del cfg['name']
+    if "name" in cfg:
+        opt_name = cfg['name']
+        del cfg['name']
+    else:
+        opt_name = "adam"
 
     if opt_name == "adam":
         opt_cls = Adam
