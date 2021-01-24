@@ -20,7 +20,7 @@ setup(
         "cvxopt>=1.2.3",
         "hyperopt>=0.1.2"
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.5',
     license="MIT",
     description='rectorch: state-of-the-art recsys approaches implemented in pytorch.',
     long_description=long_description,
